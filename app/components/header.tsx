@@ -5,8 +5,8 @@ import { MenuIcon } from "lucide-react"
 
 const Header = () => {
   return (
-    <Card className="rounded-none">
-      <CardContent className="flex items-center justify-between px-4 py-2">
+    <Card className="bg-background rounded-none">
+      <CardContent className="flex items-center justify-between px-4">
         <Image src="/logo.png" alt="Vig Barber" width={120} height={120} />
         <Button size="icon" variant="ghost">
           <MenuIcon></MenuIcon>
