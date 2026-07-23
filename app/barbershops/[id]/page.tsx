@@ -1,7 +1,9 @@
 import { prisma } from "@/app/_lib/prisma"
 import PhoneItem from "@/app/components/phone-item"
 import ServiceItem from "@/app/components/service-item"
+import SidebarSheet from "@/app/components/sidebar-sheet"
 import { Button } from "@/app/components/ui/button"
+import { Sheet, SheetTrigger } from "@/app/components/ui/sheet"
 import {
   ChevronLeftIcon,
   MapPinIcon,
@@ -57,13 +59,21 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
             <ChevronLeftIcon></ChevronLeftIcon>
           </Link>
         </Button>
-        <Button
-          size="icon"
-          variant="secondary"
-          className="absolute top-3 right-3"
-        >
-          <MenuIcon></MenuIcon>
-        </Button>
+
+        <Sheet>
+          <SheetTrigger
+            render={
+              <Button
+                size="icon"
+                variant="secondary"
+                className="absolute top-3 right-3"
+              >
+                <MenuIcon></MenuIcon>
+              </Button>
+            }
+          ></SheetTrigger>
+          <SidebarSheet></SidebarSheet>
+        </Sheet>
       </div>
       {/* Info */}
       <div className="border-b p-4">
