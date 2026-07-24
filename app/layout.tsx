@@ -24,10 +24,12 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${nunito.variable} dark h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <AuthProvider>
-          {children}
-          <Toaster></Toaster>
-          <Footer></Footer>
+          <div className="flex h-full flex-col">
+            <div className="flex-1">{children}</div>
+            <Footer></Footer>
+          </div>
         </AuthProvider>
+        <Toaster></Toaster>
       </body>
     </html>
   )

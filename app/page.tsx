@@ -8,6 +8,7 @@ import BarbershopItem from "./components/barbershop-item"
 import Footer from "./components/footer"
 import { quickSearchOptions } from "./_constants/search"
 import BookingItem from "./components/booking-item"
+import Search from "./components/search"
 
 export default async function Home() {
   const barbershops = await prisma.barbershop.findMany({})
@@ -29,11 +30,8 @@ export default async function Home() {
         <p>Segunda-feira, 20 de julho.</p>
 
         {/* Search */}
-        <div className="mt-6 flex items-center gap-2">
-          <Input placeholder="Faça sua busca..." className="px-3 py-5"></Input>
-          <Button className="px-4 py-5">
-            <SearchIcon></SearchIcon>
-          </Button>
+        <div className="mt-6">
+          <Search></Search>
         </div>
 
         {/* Fast Search */}
