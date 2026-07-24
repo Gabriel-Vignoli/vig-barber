@@ -3,6 +3,7 @@ import { Nunito } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "sonner"
 import Footer from "./components/footer"
+import AuthProvider from "./_providers/auth"
 
 const nunito = Nunito({
   variable: "--font-sans",
@@ -22,9 +23,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${nunito.variable} dark h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        {children}
-        <Toaster></Toaster>
-        <Footer></Footer>
+        <AuthProvider>
+          {children}
+          <Toaster></Toaster>
+          <Footer></Footer>
+        </AuthProvider>
       </body>
     </html>
   )
