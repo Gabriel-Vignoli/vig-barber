@@ -2,7 +2,7 @@
 
 import { Button } from "./ui/button"
 import { CalendarIcon, HomeIcon, LogInIcon, LogOutIcon } from "lucide-react"
-import { SheetContent, SheetHeader, SheetTitle } from "./ui/sheet"
+import { SheetClose, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet"
 import { quickSearchOptions } from "../_constants/search"
 import { Avatar, AvatarImage } from "./ui/avatar"
 import Link from "next/link"
@@ -84,14 +84,19 @@ const SidebarSheet = () => {
       </div>
 
       <div className="flex flex-col gap-3 border-b p-4 pt-2">
-        <Button
-          className="justify-start gap-2 py-4"
-          render={<Link href="/" />}
+        <SheetClose
           nativeButton={false}
-        >
-          <HomeIcon size={18} />
-          Início
-        </Button>
+          render={
+            <Button
+              className="justify-start gap-2 py-4"
+              render={<Link href="/" />}
+              nativeButton={false}
+            >
+              <HomeIcon size={18} />
+              Início
+            </Button>
+          }
+        ></SheetClose>
         <Button className="justify-start gap-2 py-4" variant="ghost">
           <CalendarIcon size={18}></CalendarIcon>Agendamentos
         </Button>
@@ -103,15 +108,19 @@ const SidebarSheet = () => {
             className="justify-start gap-2 py-4"
             variant="ghost"
             key={option.title}
-          >
-            <Image
-              src={option.imageUrl}
-              alt={option.title}
-              width={18}
-              height={18}
-            />
-            {option.title}
-          </Button>
+            nativeButton={false}
+            render={
+              <Link href={`/barbershops?search=${option.title}`}>
+                <Image
+                  src={option.imageUrl}
+                  alt={option.title}
+                  width={18}
+                  height={18}
+                />
+                {option.title}
+              </Link>
+            }
+          ></Button>
         ))}
       </div>
 
