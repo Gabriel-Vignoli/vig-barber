@@ -1,13 +1,27 @@
-import { BarbershopService } from "@prisma/client"
+"use client"
+
+import { useState } from "react"
 import Image from "next/image"
 import { Button } from "./ui/button"
 import { Card, CardContent } from "./ui/card"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet"
+import { Calendar } from "./ui/calendar"
+import { ptBR } from "date-fns/locale"
+import { BarbershopService } from "@prisma/client"
 
 interface ServiceItemProps {
-  service: BarbershopService
+  service: Omit<BarbershopService, "price"> & { price: number }
 }
 
 const ServiceItem = ({ service }: ServiceItemProps) => {
+  const [date, setDate] = useState<Date | undefined>(undefined)
+
   return (
     <Card className="p-0">
       <CardContent className="flex items-center gap-2 p-3">
@@ -28,12 +42,33 @@ const ServiceItem = ({ service }: ServiceItemProps) => {
               {Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
-              }).format(Number(service.price))}
+              }).format(service.price)}
             </p>
 
-            <Button variant="outline" size="sm">
-              Reservar
-            </Button>
+            <Sheet>
+              <SheetTrigger
+                render={
+                  <Button variant="secondary" size="sm">
+                    Reservar
+                  </Button>
+                }
+              ></SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Fazer Reserva</SheetTitle>
+                </SheetHeader>
+
+                <div className="py-4">
+                  <Calendar
+                    mode="single"
+                    locale={ptBR}
+                    selected={date}
+                    onSelect={setDate}
+                    className="rounded-lg border"
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </CardContent>

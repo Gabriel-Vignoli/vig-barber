@@ -38,13 +38,22 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
     return notFound()
   }
 
+  // Convert Decimal fields to number so they can be passed to Client Components
+  const barbershopSerialized = {
+    ...barbershop,
+    services: barbershop.services.map((service) => ({
+      ...service,
+      price: Number(service.price),
+    })),
+  }
+
   return (
     <div>
       {/* Image */}
       <div className="relative h-62.5 w-full">
         <Image
-          src={barbershop.imageUrl}
-          alt={barbershop.name}
+          src={barbershopSerialized.imageUrl}
+          alt={barbershopSerialized.name}
           fill
           sizes="100vw"
           className="object-cover"
@@ -77,10 +86,10 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
       </div>
       {/* Info */}
       <div className="border-b p-4">
-        <h1 className="mb-3 text-xl font-bold">{barbershop.name}</h1>
+        <h1 className="mb-3 text-xl font-bold">{barbershopSerialized.name}</h1>
         <div className="mb-2 flex items-center gap-2">
           <MapPinIcon className="text-primary" size={18}></MapPinIcon>
-          <p className="text-sm">{barbershop.address}</p>
+          <p className="text-sm">{barbershopSerialized.address}</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -93,7 +102,9 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
         <h3 className="text-base font-bold text-gray-400 uppercase">
           Sobre nós
         </h3>
-        <p className="text-justify text-sm">{barbershop.description}</p>
+        <p className="text-justify text-sm">
+          {barbershopSerialized.description}
+        </p>
       </div>
 
       {/* Services */}
@@ -102,7 +113,7 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
           Serviços
         </h3>
         <div className="space-y-3">
-          {barbershop.services.map((service) => (
+          {barbershopSerialized.services.map((service) => (
             <ServiceItem key={service.id} service={service}></ServiceItem>
           ))}
         </div>
@@ -110,7 +121,7 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
 
       {/* Contact */}
       <div className="space-y-3 p-4">
-        {barbershop.phones.map((phone, index) => (
+        {barbershopSerialized.phones.map((phone, index) => (
           <PhoneItem key={`${phone}-${index}`} phone={phone} />
         ))}
       </div>
