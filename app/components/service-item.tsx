@@ -125,12 +125,13 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                   <SheetTitle>Fazer Reserva</SheetTitle>
                 </SheetHeader>
 
-                <div className="border-b">
+                <div className="flex justify-center border-b bg-transparent pb-6">
                   <Calendar
                     mode="single"
                     locale={ptBR}
                     selected={selectedDay}
                     onSelect={handleDateSelect}
+                    className="bg-transparent"
                     styles={{
                       weekday: {
                         width: "100%",
