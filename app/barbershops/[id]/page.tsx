@@ -4,14 +4,7 @@ import ServiceItem from "@/app/components/service-item"
 import SidebarSheet from "@/app/components/sidebar-sheet"
 import { Button } from "@/app/components/ui/button"
 import { Sheet, SheetTrigger } from "@/app/components/ui/sheet"
-import {
-  ChevronLeftIcon,
-  MapPinIcon,
-  MenuIcon,
-  Phone,
-  SmartphoneIcon,
-  StarIcon,
-} from "lucide-react"
+import { ChevronLeftIcon, MapPinIcon, MenuIcon, StarIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -114,7 +107,11 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
         </h3>
         <div className="space-y-3">
           {barbershopSerialized.services.map((service) => (
-            <ServiceItem key={service.id} service={service}></ServiceItem>
+            <ServiceItem
+              key={service.id}
+              service={service}
+              barbershop={barbershopSerialized}
+            ></ServiceItem>
           ))}
         </div>
       </div>
