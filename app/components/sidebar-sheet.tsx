@@ -50,12 +50,12 @@ const SidebarSheet = () => {
             <h2 className="text-lg font-bold">Olá, faça seu login!</h2>
             <Dialog>
               <DialogTrigger
-                render={
-                  <Button size="icon">
-                    <LogInIcon></LogInIcon>
+                render={(triggerProps) => (
+                  <Button size="icon" {...triggerProps}>
+                    <LogInIcon />
                   </Button>
-                }
-              ></DialogTrigger>
+                )}
+              />
               <DialogContent className="w-[90%] text-center">
                 <DialogHeader>
                   <DialogTitle>Faça login na plataforma</DialogTitle>
@@ -86,17 +86,20 @@ const SidebarSheet = () => {
       <div className="flex flex-col gap-3 border-b p-4 pt-2">
         <SheetClose
           nativeButton={false}
-          render={
+          render={(closeProps) => (
             <Button
               className="justify-start gap-2 py-4"
-              render={<Link href="/" />}
               nativeButton={false}
-            >
-              <HomeIcon size={18} />
-              Início
-            </Button>
-          }
-        ></SheetClose>
+              {...closeProps}
+              render={(buttonProps) => (
+                <Link href="/" {...buttonProps}>
+                  <HomeIcon size={18} />
+                  Início
+                </Link>
+              )}
+            />
+          )}
+        />
         <Button className="justify-start gap-2 py-4" variant="ghost">
           <CalendarIcon size={18}></CalendarIcon>Agendamentos
         </Button>
@@ -109,8 +112,11 @@ const SidebarSheet = () => {
             variant="ghost"
             key={option.title}
             nativeButton={false}
-            render={
-              <Link href={`/barbershops?search=${option.title}`}>
+            render={(buttonProps) => (
+              <Link
+                href={`/barbershops?search=${option.title}`}
+                {...buttonProps}
+              >
                 <Image
                   src={option.imageUrl}
                   alt={option.title}
@@ -119,8 +125,8 @@ const SidebarSheet = () => {
                 />
                 {option.title}
               </Link>
-            }
-          ></Button>
+            )}
+          />
         ))}
       </div>
 
