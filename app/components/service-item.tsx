@@ -50,7 +50,13 @@ const TIME_LIST = [
   "18:00",
 ]
 
-const getTimeList = (bookings: Booking[]) => {
+const getTimeList = (bookings: Booking[], selectedDay: Date) => {
+  const now = new Date()
+  const isToday =
+    selectedDay.getDate() === now.getDate() &&
+    selectedDay.getMonth() === now.getMonth() &&
+    selectedDay.getFullYear() === now.getFullYear()
+
   return TIME_LIST.filter((time) => {
     const hour = Number(time.split(":")[0])
     const minutes = Number(time.split(":")[1])
@@ -61,7 +67,17 @@ const getTimeList = (bookings: Booking[]) => {
         booking.bookingDate.getMinutes() === minutes,
     )
 
-    return !hasBookingOnCurrentTime
+    if (hasBookingOnCurrentTime) return false
+
+    if (isToday) {
+      const timeIsInThePast =
+        hour < now.getHours() ||
+        (hour === now.getHours() && minutes <= now.getMinutes())
+
+      if (timeIsInThePast) return false
+    }
+
+    return true
   })
 }
 
@@ -172,6 +188,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                     locale={ptBR}
                     selected={selectedDay}
                     onSelect={handleDateSelect}
+                    disabled={{ before: new Date() }}
                     className="bg-transparent"
                     styles={{
                       weekday: {
@@ -198,7 +215,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
 
                 {selectedDay && (
                   <div className="flex gap-3 overflow-x-auto border-b p-4 [&::-webkit-scrollbar]:hidden">
-                    {getTimeList(dayBookings).map((time) => (
+                    {getTimeList(dayBookings, selectedDay).map((time) => (
                       <Button
                         key={time}
                         variant={selectedTime === time ? "default" : "outline"}
