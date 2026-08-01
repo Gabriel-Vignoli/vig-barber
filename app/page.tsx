@@ -1,22 +1,44 @@
-import { SearchIcon } from "lucide-react"
 import Header from "./components/header"
 import { Button } from "./components/ui/button"
-import { Input } from "./components/ui/input"
 import Image from "next/image"
 import { prisma } from "./_lib/prisma"
 import BarbershopItem from "./components/barbershop-item"
-import Footer from "./components/footer"
 import { quickSearchOptions } from "./_constants/search"
 import BookingItem from "./components/booking-item"
 import Search from "./components/search"
+import { getServerSession } from "next-auth"
+import { authOptions } from "./_lib/auth"
 
 export default async function Home() {
+  const session = await getServerSession(authOptions)
   const barbershops = await prisma.barbershop.findMany({})
   const popularBarbershops = await prisma.barbershop.findMany({
     orderBy: {
       name: "desc",
     },
   })
+
+  const bookings = session?.user
+    ? await prisma.booking.findMany({
+        where: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          userId: (session?.user as any).id,
+          bookingDate: {
+            gte: new Date(),
+          },
+        },
+        include: {
+          barbershopService: {
+            include: {
+              barbershop: true,
+            },
+          },
+        },
+        orderBy: {
+          bookingDate: "asc",
+        },
+      })
+    : []
 
   return (
     <div>
@@ -64,8 +86,14 @@ export default async function Home() {
         </div>
 
         {/* Schedule */}
-        <BookingItem></BookingItem>
-
+        <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
+          Agendamentos
+        </h2>
+        <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+          {bookings.map((booking) => (
+            <BookingItem key={booking.id} booking={booking}></BookingItem>
+          ))}
+        </div>
         {/* Barbershops */}
         <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
           Recomendados
