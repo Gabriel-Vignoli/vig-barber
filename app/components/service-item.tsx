@@ -121,6 +121,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDay(date)
+    setSelectedTime(undefined)
   }
 
   const handleTimeSelect = (time: string) => {
@@ -130,6 +131,13 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
   const handleCreateBooking = async () => {
     try {
       if (!selectedDay || !selectedTime) return
+      const validTimes = getTimeList(dayBookings, selectedDay)
+      if (!validTimes.includes(selectedTime)) {
+        toast.error("Horário indisponível, selecione outro.")
+        setSelectedTime(undefined)
+        return
+      }
+
       const hour = Number(selectedTime.split(":")[0])
       const minute = Number(selectedTime.split(":")[1])
 
