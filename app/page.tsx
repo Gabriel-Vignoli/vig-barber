@@ -42,6 +42,16 @@ export default async function Home() {
       })
     : []
 
+  // Prisma's Decimal fields can't be passed from Server to Client Components,
+  // so we convert price to a plain number before rendering <BookingItem>.
+  const serializedBookings = bookings.map((booking) => ({
+    ...booking,
+    barbershopService: {
+      ...booking.barbershopService,
+      price: Number(booking.barbershopService.price),
+    },
+  }))
+
   return (
     <div>
       {/* Header */}
@@ -101,7 +111,7 @@ export default async function Home() {
           Agendamentos
         </h2>
         <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-          {bookings.map((booking) => (
+          {serializedBookings.map((booking) => (
             <BookingItem key={booking.id} booking={booking}></BookingItem>
           ))}
         </div>

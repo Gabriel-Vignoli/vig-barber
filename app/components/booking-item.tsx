@@ -3,7 +3,7 @@
 import { Card, CardContent } from "./ui/card"
 import { Avatar, AvatarImage } from "./ui/avatar"
 import { Badge } from "./ui/badge"
-import { Prisma } from "@prisma/client"
+import { PaymentMethod, Prisma } from "@prisma/client"
 import { format, isFuture } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
@@ -34,21 +34,34 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 interface BookingItemsProps {
-  booking: Prisma.BookingGetPayload<{
-    include: {
-      barbershopService: {
-        include: {
-          barbershop: true
-        }
-      }
-    }
-  }> & {
+  booking: {
+    id: string
+    userId: string
+    bookingDate: Date
+    paymentMethod: PaymentMethod | null
     barbershopService: {
+      id: string
+      name: string
+      description: string
+      imageUrl: string
+      durationInMinutes: number
+      barbershopId: string
+      createdAt: Date
+      updatedAt: Date
       price: number
+      barbershop: {
+        id: string
+        name: string
+        address: string
+        description: string
+        imageUrl: string
+        phones: string[]
+        createdAt: Date
+        updatedAt: Date
+      }
     }
   }
 }
-// TODO recive schedule as props
 
 const BookingItem = ({ booking }: BookingItemsProps) => {
   const router = useRouter()
@@ -168,7 +181,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
                   {Intl.NumberFormat("pt-BR", {
                     style: "currency",
                     currency: "BRL",
-                  }).format(Number(booking.barbershopService.price))}
+                  }).format(booking.barbershopService.price)}
                 </p>
               </div>
 
