@@ -120,7 +120,7 @@ const SidebarSheet = () => {
 
       <div className="flex flex-col gap-3 p-4 pt-1">
         <Button
-          className="justify-start gap-2 py-4 text-red-400"
+          className="cursor-pointer justify-start gap-2 py-4 text-red-400"
           variant="ghost"
           onClick={handleLogoutClick}
         >

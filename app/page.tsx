@@ -83,7 +83,7 @@ export default async function Home() {
             <Button
               key={option.title}
               variant="outline"
-              className="gap-2 px-2 py-4"
+              className="cursor-pointer gap-2 px-2 py-4"
             >
               <Image
                 src={option.imageUrl}

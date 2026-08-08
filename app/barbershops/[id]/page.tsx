@@ -55,7 +55,7 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
         <Button
           size="icon"
           variant="secondary"
-          className="absolute top-3 left-3"
+          className="absolute top-3 left-3 cursor-pointer"
         >
           <Link href="/">
             <ChevronLeftIcon></ChevronLeftIcon>
@@ -68,7 +68,7 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
               <Button
                 size="icon"
                 variant="secondary"
-                className="absolute top-3 right-3"
+                className="absolute top-3 right-3 cursor-pointer"
               >
                 <MenuIcon></MenuIcon>
               </Button>

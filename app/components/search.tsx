@@ -47,7 +47,7 @@ const Search = () => {
         )}
       </div>
 
-      <Button type="submit">
+      <Button type="submit" className="cursor-pointer">
         <SearchIcon />
       </Button>
     </form>

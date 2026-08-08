@@ -17,7 +17,7 @@ const Header = () => {
         <Sheet>
           <SheetTrigger
             render={
-              <Button size="icon" variant="ghost">
+              <Button size="icon" variant="ghost" className="cursor-pointer">
                 <MenuIcon />
               </Button>
             }
