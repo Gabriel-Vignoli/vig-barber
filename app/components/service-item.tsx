@@ -208,6 +208,11 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                       onSelect={handleDateSelect}
                       disabled={{ before: new Date() }}
                       className="bg-transparent"
+                      classNames={{
+                        day: "cursor-pointer",
+                        button_previous: "cursor-pointer",
+                        button_next: "cursor-pointer",
+                      }}
                       styles={{
                         weekday: {
                           width: "100%",
@@ -239,7 +244,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                           variant={
                             selectedTime === time ? "default" : "outline"
                           }
-                          className="rounded-full"
+                          className="cursor-pointer rounded-full"
                           onClick={() => handleTimeSelect(time)}
                         >
                           {time}
@@ -290,7 +295,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                       render={
                         <Button
                           onClick={handleCreateBooking}
-                          className="py-5"
+                          className="cursor-pointer py-5"
                           disabled={!selectedTime || !selectedDay}
                         >
                           Confirmar

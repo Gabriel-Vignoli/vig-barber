@@ -259,14 +259,14 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
                   <AlertDialogFooter>
                     <AlertDialogCancel
                       variant="destructive"
-                      className="py-5"
+                      className="cursor-pointer py-5"
                       disabled={isDeleting}
                     >
                       Voltar
                     </AlertDialogCancel>
                     <AlertDialogAction
                       variant="outline"
-                      className="py-5"
+                      className="cursor-pointer py-5"
                       disabled={isDeleting}
                       onClick={(e) => {
                         // Prevent the dialog from auto-closing before the
