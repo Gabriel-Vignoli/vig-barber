@@ -110,23 +110,33 @@ export default async function Home() {
         <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
           Agendamentos
         </h2>
-        <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-          {serializedBookings.map((booking) => (
-            <BookingItem key={booking.id} booking={booking}></BookingItem>
-          ))}
-        </div>
+        {serializedBookings.length === 0 ? (
+          <p className="text-sm text-gray-400">
+            Nenhum agendamento até o momento
+          </p>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+            {serializedBookings.map((booking) => (
+              <BookingItem key={booking.id} booking={booking}></BookingItem>
+            ))}
+          </div>
+        )}
         {/* Barbershops */}
-        <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
-          Recomendados
-        </h2>
-        <div className="mt-2 flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
-          {barbershops.map((barbershop) => (
-            <BarbershopItem
-              key={barbershop.id}
-              barbershop={barbershop}
-            ></BarbershopItem>
-          ))}
-        </div>
+        {bookings.length === 0 && (
+          <>
+            <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
+              Recomendados
+            </h2>
+            <div className="mt-2 flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
+              {barbershops.map((barbershop) => (
+                <BarbershopItem
+                  key={barbershop.id}
+                  barbershop={barbershop}
+                ></BarbershopItem>
+              ))}
+            </div>
+          </>
+        )}
 
         <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
           Populares

@@ -99,7 +99,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
-      <SheetTrigger className="w-full">
+      <SheetTrigger className="w-full min-w-[90%] cursor-pointer">
         <Card className="mt-2 min-w-[90%] cursor-pointer p-0">
           <CardContent className="flex items-stretch justify-between p-0">
             {/* Left */}
