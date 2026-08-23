@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "./_lib/auth"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { getConfirmedBookings } from "./_data/get-confirmed-bookings"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
@@ -20,37 +21,7 @@ export default async function Home() {
     },
   })
 
-  const bookings = session?.user
-    ? await prisma.booking.findMany({
-        where: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          userId: (session?.user as any).id,
-          bookingDate: {
-            gte: new Date(),
-          },
-        },
-        include: {
-          barbershopService: {
-            include: {
-              barbershop: true,
-            },
-          },
-        },
-        orderBy: {
-          bookingDate: "asc",
-        },
-      })
-    : []
-
-  // Prisma's Decimal fields can't be passed from Server to Client Components,
-  // so we convert price to a plain number before rendering <BookingItem>.
-  const serializedBookings = bookings.map((booking) => ({
-    ...booking,
-    barbershopService: {
-      ...booking.barbershopService,
-      price: Number(booking.barbershopService.price),
-    },
-  }))
+  const confirmedBookings = await getConfirmedBookings()
 
   return (
     <div>
@@ -110,19 +81,19 @@ export default async function Home() {
         <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
           Agendamentos
         </h2>
-        {serializedBookings.length === 0 ? (
+        {confirmedBookings.length === 0 ? (
           <p className="text-sm text-gray-400">
             Nenhum agendamento até o momento
           </p>
         ) : (
           <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-            {serializedBookings.map((booking) => (
+            {confirmedBookings.map((booking) => (
               <BookingItem key={booking.id} booking={booking}></BookingItem>
             ))}
           </div>
         )}
         {/* Barbershops */}
-        {bookings.length === 0 && (
+        {confirmedBookings.length === 0 && (
           <>
             <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
               Recomendados
