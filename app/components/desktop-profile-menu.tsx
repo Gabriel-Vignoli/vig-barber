@@ -18,11 +18,29 @@ const DesktopProfileMenu = () => {
       <PopoverTrigger
         render={(triggerProps) => (
           <Button
-            className="cursor-pointer gap-2 rounded-xl px-5"
+            className="cursor-pointer gap-2 rounded-full"
+            variant={data?.user ? "link" : "default"}
             {...triggerProps}
           >
-            <UserIcon size={18} />
-            Perfil
+            {data?.user ? (
+              <>
+                <Avatar className="h-7 w-7">
+                  <AvatarImage
+                    src={data.user.image ?? ""}
+                    alt={data.user.name ?? "User"}
+                    referrerPolicy="no-referrer"
+                  />
+                </Avatar>
+                <span className="hover:underline-primary font-bold text-white hover:text-white">
+                  {data.user.name}
+                </span>
+              </>
+            ) : (
+              <>
+                <UserIcon size={18} />
+                Perfil
+              </>
+            )}
           </Button>
         )}
       />
