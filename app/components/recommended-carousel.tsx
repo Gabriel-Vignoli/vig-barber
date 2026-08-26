@@ -10,9 +10,9 @@ const CARD_GAP_PX = 20 // matches gap-5 (5 * 4px)
 
 const BlankRecommendedCard = () => {
   return (
-    <Card className="w-72 shrink-0 p-0">
+    <Card className="w-56 shrink-0 p-0 md:w-72">
       <CardContent className="p-0">
-        <div className="relative h-52 w-full">
+        <div className="relative h-36 w-full md:h-52 lg:h-64">
           <div className="bg-secondary h-full w-full rounded-xl" />
 
           <Badge
@@ -26,10 +26,14 @@ const BlankRecommendedCard = () => {
             <p className="text-xs font-semibold">5,0</p>
           </Badge>
         </div>
-        <div className="px-2 py-3">
+        <div className="px-2 py-2 md:py-3">
           <h3 className="bg-secondary h-4 w-3/4 rounded" />
           <p className="bg-secondary mt-2 h-3 w-full rounded" />
-          <Button disabled variant="outline" className="mt-3 w-full py-4">
+          <Button
+            disabled
+            variant="outline"
+            className="mt-2 w-full py-3 text-sm md:mt-3 md:py-4 md:text-base"
+          >
             Reservar
           </Button>
         </div>
@@ -78,17 +82,19 @@ const RecommendedCarousel = () => {
       <button
         onClick={handleScrollLeft}
         aria-label="Ver recomendações anteriores"
-        className="absolute top-1/2 left-0 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6"
+        className="absolute top-1/2 left-0 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6 md:h-12 md:w-12"
       >
-        <ChevronLeftIcon size={30} />
+        <ChevronLeftIcon size={20} className="md:hidden" />
+        <ChevronLeftIcon size={30} className="hidden md:block" />
       </button>
 
       <button
         onClick={handleScrollRight}
         aria-label="Ver mais recomendações"
-        className="absolute top-1/2 right-0 flex h-12 w-12 translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6"
+        className="absolute top-1/2 right-0 flex h-9 w-9 translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6 md:h-12 md:w-12"
       >
-        <ChevronRightIcon size={30} />
+        <ChevronRightIcon size={20} className="md:hidden" />
+        <ChevronRightIcon size={30} className="hidden md:block" />
       </button>
     </div>
   )

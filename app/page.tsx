@@ -28,8 +28,8 @@ export default async function Home() {
       {/* Header */}
       <Header></Header>
 
-      <div className="p-4 md:px-16 md:pt-14 lg:px-32">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-24 lg:gap-32">
+      <div className="p-4 md:px-8 lg:px-16 lg:pt-14 xl:px-32">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-24 xl:gap-32">
           {/* Left column */}
           <div className="mt-2">
             <h2 className="text-xl md:text-3xl">
