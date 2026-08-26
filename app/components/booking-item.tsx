@@ -107,7 +107,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
             <div className="flex flex-col gap-2 p-4">
               <Badge
                 className="w-fit"
-                variant={isConfirmed ? "default" : "destructive"}
+                variant={isConfirmed ? "success" : "destructive"}
               >
                 {isConfirmed ? "Confirmado" : "Finalizado"}
               </Badge>
