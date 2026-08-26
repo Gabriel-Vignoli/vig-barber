@@ -35,8 +35,8 @@ const Search = () => {
     <form onSubmit={form.handleSubmit(handleSubmit)} className="flex gap-2">
       <div className="w-full">
         <Input
-          placeholder="Faça sua busca..."
-          className="w-full"
+          placeholder="Buscar barbearias..."
+          className="w-full md:h-12 md:p-4 md:text-lg"
           {...form.register("search")}
         />
 
@@ -47,8 +47,8 @@ const Search = () => {
         )}
       </div>
 
-      <Button type="submit" className="cursor-pointer">
-        <SearchIcon />
+      <Button type="submit" className="cursor-pointer md:h-12 md:w-12">
+        <SearchIcon className="md:size-5" />
       </Button>
     </form>
   )
