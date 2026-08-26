@@ -10,6 +10,7 @@ import { authOptions } from "./_lib/auth"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { getConfirmedBookings } from "./_data/get-confirmed-bookings"
+import Carousel from "./components/carousel"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
@@ -28,15 +29,14 @@ export default async function Home() {
       <Header></Header>
 
       <div className="p-4 md:px-16 md:pt-14 lg:px-32">
-        <div className="grid grid-cols-1 gap-16 md:grid-cols-2 md:gap-24 lg:gap-32">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-24 lg:gap-32">
           {/* Left column */}
-          <div>
+          <div className="mt-2">
             <h2 className="text-xl md:text-3xl">
               Olá,{" "}
               <span className="font-bold">
-                {session?.user ? session.user.name : "usuário, faça seu login"}
+                {session?.user ? session.user.name : "usuário, faça seu login"}!
               </span>
-              !
             </h2>
 
             <p>
@@ -49,7 +49,7 @@ export default async function Home() {
             </p>
 
             {/* Search */}
-            <div className="mt-8 lg:mt-10">
+            <div className="mt-6 lg:mt-10">
               <Search></Search>
             </div>
 
@@ -90,18 +90,18 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Populares - full width below the two-column area */}
-        <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase">
+        {/* Populares */}
+        <h2 className="mt-5 mb-2 text-xs font-bold text-gray-400 uppercase md:mt-12 md:mb-3 md:text-base lg:mt-16">
           Populares
         </h2>
-        <div className="mt-2 flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
+        <Carousel>
           {popularBarbershops.map((barbershop) => (
             <BarbershopItem
               key={barbershop.id}
               barbershop={barbershop}
             ></BarbershopItem>
           ))}
-        </div>
+        </Carousel>
       </div>
     </div>
   )

@@ -48,7 +48,7 @@ const Search = () => {
       </div>
 
       <Button type="submit" className="cursor-pointer md:h-12 md:w-12">
-        <SearchIcon className="md:size-5" />
+        <SearchIcon className="size-3.5 md:size-5" />
       </Button>
     </form>
   )
