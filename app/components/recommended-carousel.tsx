@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef } from "react"
-import { ChevronRightIcon, StarIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, StarIcon } from "lucide-react"
 import { Card, CardContent } from "./ui/card"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
@@ -53,6 +53,17 @@ const RecommendedCarousel = () => {
     container.scrollBy({ left: scrollAmount, behavior: "smooth" })
   }
 
+  // Same logic as scroll right, but moves the row back by one card's width.
+  const handleScrollLeft = () => {
+    const container = scrollRef.current
+    if (!container) return
+
+    const firstCard = container.firstElementChild as HTMLElement | null
+    const scrollAmount = firstCard ? firstCard.offsetWidth + CARD_GAP_PX : 240
+
+    container.scrollBy({ left: -scrollAmount, behavior: "smooth" })
+  }
+
   return (
     <div className="relative">
       <div
@@ -63,6 +74,14 @@ const RecommendedCarousel = () => {
         <BlankRecommendedCard />
         <BlankRecommendedCard />
       </div>
+
+      <button
+        onClick={handleScrollLeft}
+        aria-label="Ver recomendações anteriores"
+        className="absolute top-1/2 left-0 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6"
+      >
+        <ChevronLeftIcon size={30} />
+      </button>
 
       <button
         onClick={handleScrollRight}
