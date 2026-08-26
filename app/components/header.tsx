@@ -9,7 +9,7 @@ import BookingsNavLink from "./bookings-nav-link"
 const Header = () => {
   return (
     <Card className="bg-background rounded-none">
-      <CardContent className="flex items-center justify-between md:px-14 md:py-2">
+      <CardContent className="flex items-center justify-between md:px-16 md:py-2 lg:px-32">
         <Link href="/">
           <Image
             src="/logo.png"
