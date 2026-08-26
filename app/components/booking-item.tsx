@@ -104,48 +104,47 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
         <Card className="mt-2 min-w-[90%] cursor-pointer p-0">
           <CardContent className="flex items-stretch justify-between p-0">
             {/* Left */}
-            <div className="flex flex-col gap-2 p-4">
+            <div className="flex flex-col gap-2 p-4 md:gap-3 lg:gap-4">
               <Badge
-                className="w-fit"
+                className="w-fit px-2 py-2 md:px-3 md:py-3 md:text-sm"
                 variant={isConfirmed ? "success" : "destructive"}
               >
                 {isConfirmed ? "Confirmado" : "Finalizado"}
               </Badge>
-              <h3 className="font-semibold">
+              <h3 className="font-semibold md:text-xl">
                 {booking.barbershopService.name}
               </h3>
 
               <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
+                <Avatar className="h-6 w-6 md:h-8 md:w-8">
                   <AvatarImage src={barbershop.imageUrl}></AvatarImage>
                 </Avatar>
-                <p className="text-sm">{barbershop.name}</p>
+                <p className="text-sm lg:text-base">{barbershop.name}</p>
               </div>
             </div>
 
             {/* Right */}
-            <div className="border-border flex flex-col items-center justify-center border-l px-5">
-              <p className="text-sm capitalize">
+            <div className="border-border flex flex-col items-center justify-center border-l px-5 md:px-8 lg:px-14">
+              <p className="text-sm capitalize md:text-base">
                 {format(booking.bookingDate, "MMMM", { locale: ptBR })}
               </p>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold lg:text-3xl">
                 {format(booking.bookingDate, "dd", { locale: ptBR })}
               </p>
-              <p className="font-semibold">
+              <p className="font-semibold md:text-lg">
                 {format(booking.bookingDate, "HH:mm", { locale: ptBR })}
               </p>
             </div>
           </CardContent>
         </Card>
       </SheetTrigger>
-      <SheetContent className="px-4">
+      <SheetContent className="px-4 data-[side=right]:w-[85%] sm:max-w-lg">
         <SheetHeader>
-          <SheetTrigger className="text-left">
+          <SheetTrigger className="mt-2 text-left md:mt-3 md:text-base lg:mt-4 lg:text-lg">
             Informações da Reserva
           </SheetTrigger>
         </SheetHeader>
-
-        <div className="relative flex h-45 w-full items-end">
+        <div className="relative flex h-36 w-full items-end md:h-45">
           <Image
             src="/map.png"
             fill
@@ -155,26 +154,25 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
 
           <Card className="z-50 mx-5 mb-3 w-full rounded-xl">
             <CardContent className="flex items-center gap-3">
-              <Avatar>
+              <Avatar className="h-8 w-8 md:h-10 md:w-10">
                 <AvatarImage src={barbershop.imageUrl}></AvatarImage>
               </Avatar>
               <div>
-                <h3 className="font-bold">{barbershop.name}</h3>
-                <p className="text-xs">{barbershop.address}</p>
+                <h3 className="font-bold lg:text-base">{barbershop.name}</h3>
+                <p className="text-xs lg:text-sm">{barbershop.address}</p>
               </div>
             </CardContent>
           </Card>
         </div>
-
         <div className="mt-3">
           <Badge
-            className="w-fit"
-            variant={isConfirmed ? "default" : "destructive"}
+            className="w-fit px-2 py-2 md:px-3 md:py-3 md:text-sm"
+            variant={isConfirmed ? "success" : "destructive"}
           >
             {isConfirmed ? "Confirmado" : "Finalizado"}
           </Badge>
 
-          <div className="mt-6 mb-3">
+          <div className="mt-6 mb-3 md:mb-7">
             <BookingSummary
               barbershop={barbershop}
               service={booking.barbershopService}
@@ -188,14 +186,13 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
             ))}
           </div>
         </div>
-
         <SheetFooter className="px-0 py-4">
           <div className="flex w-full items-center gap-3">
             <SheetClose
               render={
                 <Button
                   variant="outline"
-                  className="flex-1 cursor-pointer py-5"
+                  className="flex-1 cursor-pointer py-5 lg:text-base"
                 >
                   Voltar
                 </Button>
@@ -210,7 +207,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
                   render={
                     <Button
                       variant="destructive"
-                      className="flex-1 cursor-pointer py-5"
+                      className="flex-1 cursor-pointer py-5 lg:text-base"
                     >
                       Cancelar reserva
                     </Button>
