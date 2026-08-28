@@ -219,6 +219,90 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                 </Button>
 
                 {/* SheetContent unchanged */}
+                <SheetContent className="px-0 lg:w-[480px] lg:max-w-[480px]">
+                  <SheetHeader>
+                    <SheetTitle className="lg:text-lg">
+                      Fazer Reserva
+                    </SheetTitle>
+                  </SheetHeader>
+
+                  <div className="flex justify-center border-b bg-transparent pb-6 lg:pb-8">
+                    <Calendar
+                      mode="single"
+                      locale={ptBR}
+                      selected={selectedDay}
+                      onSelect={handleDateSelect}
+                      disabled={{ before: new Date() }}
+                      className="bg-transparent lg:w-full lg:max-w-3xs lg:p-2"
+                      classNames={{
+                        day: "cursor-pointer",
+                        button_previous: "cursor-pointer",
+                        button_next: "cursor-pointer",
+                      }}
+                      styles={{
+                        weekday: {
+                          width: "100%",
+                          textTransform: "capitalize",
+                        },
+                        day: {
+                          width: "100%",
+                        },
+                        button_previous: {
+                          width: "32px",
+                          height: "32px",
+                        },
+                        button_next: {
+                          width: "32px",
+                          height: "32px",
+                        },
+                        month_caption: {
+                          textTransform: "capitalize",
+                        },
+                      }}
+                    />
+                  </div>
+
+                  {selectedDay && (
+                    <div className="flex gap-3 overflow-x-auto border-b p-4 lg:gap-4 lg:p-6 [&::-webkit-scrollbar]:hidden">
+                      {getTimeList(dayBookings, selectedDay).map((time) => (
+                        <Button
+                          key={time}
+                          variant={
+                            selectedTime === time ? "default" : "outline"
+                          }
+                          className="cursor-pointer rounded-full lg:h-10 lg:px-5 lg:text-base"
+                          onClick={() => handleTimeSelect(time)}
+                        >
+                          {time}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedTime && selectedDay && (
+                    <div className="p-4 lg:p-6">
+                      <BookingSummary
+                        barbershop={barbershop}
+                        service={service}
+                        selectedDay={selectedDate as Date}
+                      ></BookingSummary>
+                    </div>
+                  )}
+
+                  <SheetFooter className="lg:p-6">
+                    <SheetClose
+                      render={
+                        <Button
+                          onClick={handleCreateBooking}
+                          className="cursor-pointer py-5 lg:py-6 lg:text-base"
+                          disabled={!selectedTime || !selectedDay}
+                        >
+                          Confirmar
+                        </Button>
+                      }
+                    ></SheetClose>
+                  </SheetFooter>
+                </SheetContent>
               </Sheet>
             </div>
           </div>

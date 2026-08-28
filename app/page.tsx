@@ -70,7 +70,7 @@ export default async function Home() {
               </>
             ) : (
               /* Banner - shown instead of the schedule when there are no bookings */
-              <div className="relative mt-4 h-37.5 w-full">
+              <div className="relative mt-4 h-37.5 w-full lg:mt-8 lg:h-48">
                 <Image
                   src="/banner-01.png"
                   alt="Banner 01"
