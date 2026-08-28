@@ -2,11 +2,9 @@ import { prisma } from "@/app/_lib/prisma"
 import Header from "@/app/components/header"
 import PhoneItem from "@/app/components/phone-item"
 import ServiceItem from "@/app/components/service-item"
-import SidebarSheet from "@/app/components/sidebar-sheet"
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent } from "@/app/components/ui/card"
-import { Sheet, SheetTrigger } from "@/app/components/ui/sheet"
-import { ChevronLeftIcon, MapPinIcon, MenuIcon, StarIcon } from "lucide-react"
+import { ChevronLeftIcon, MapPinIcon, StarIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -78,21 +76,6 @@ const BarberShopPage = async ({ params }: BarberShopPageProps) => {
                   <ChevronLeftIcon></ChevronLeftIcon>
                 </Link>
               </Button>
-
-              <Sheet>
-                <SheetTrigger
-                  render={
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="absolute top-3 right-3 cursor-pointer lg:hidden"
-                    >
-                      <MenuIcon></MenuIcon>
-                    </Button>
-                  }
-                ></SheetTrigger>
-                <SidebarSheet></SidebarSheet>
-              </Sheet>
             </div>
 
             {/* Info */}
