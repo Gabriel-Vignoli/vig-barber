@@ -219,7 +219,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                 </Button>
 
                 {/* SheetContent unchanged */}
-                <SheetContent className="px-0 lg:w-[480px] lg:max-w-[480px]">
+                <SheetContent className="px-0 lg:w-120 lg:max-w-120">
                   <SheetHeader>
                     <SheetTitle className="lg:text-lg">
                       Fazer Reserva
