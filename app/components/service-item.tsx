@@ -24,6 +24,7 @@ import { Dialog, DialogContent } from "./ui/dialog"
 import SignInDialog from "./sign-in-dialog"
 import BookingSummary from "./booking-summary"
 import { useRouter } from "next/navigation"
+import { showBookingSuccessToast } from "./booking-success-toast"
 
 interface ServiceItemProps {
   service: Omit<BarbershopService, "price"> & { price: number }
@@ -162,12 +163,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
         bookingDate: newDate,
       })
       setBookingSheetIsOpen(false)
-      toast.success("Reserva criada com sucesso!", {
-        action: {
-          label: "Ver agendamentos",
-          onClick: () => router.push("/bookings"),
-        },
-      })
+      showBookingSuccessToast()
     } catch (error) {
       console.log(error)
       toast.error("Error ao criar reserva!")
@@ -218,7 +214,6 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                   Reservar
                 </Button>
 
-                {/* SheetContent unchanged */}
                 <SheetContent className="px-0 lg:w-120 lg:max-w-120">
                   <SheetHeader>
                     <SheetTitle className="lg:text-lg">
