@@ -31,7 +31,7 @@ export default async function Home() {
       <div className="p-4 md:px-8 lg:px-16 lg:pt-14 xl:px-32">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-24 xl:gap-32">
           {/* Left column */}
-          <div className="mt-2">
+          <div className="mt-2 min-w-0">
             <h2 className="text-xl md:text-3xl">
               Olá,{" "}
               <span className="font-bold">
@@ -59,7 +59,7 @@ export default async function Home() {
                 <h2 className="mt-8 text-xs font-bold text-gray-400 uppercase md:mt-12 md:mb-3 md:text-base">
                   Agendamentos
                 </h2>
-                <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                <div className="flex w-full max-w-full gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
                   {confirmedBookings.map((booking) => (
                     <BookingItem
                       key={booking.id}
