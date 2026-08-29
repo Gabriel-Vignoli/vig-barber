@@ -215,27 +215,25 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
                 >
                   Show Dialog
                 </AlertDialogTrigger>
-                <AlertDialogContent className="w-[90%]">
+                <AlertDialogContent size="sm" className="lg:max-w-md">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Você tem certeza que deseja cancelar sua reserva?
+                    <AlertDialogTitle className="lg:text-xl">
+                      Cancelar Reserva
                     </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Pense bem se você deseja realmente cancelar sua reserva.
-                      Essa ação é irreversível.
+                    <AlertDialogDescription className="lg:text-base">
+                      Tem certeza que deseja cancelar esse agendamento?
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
+                  <AlertDialogFooter className="lg:p-6">
                     <AlertDialogCancel
-                      variant="destructive"
-                      className="cursor-pointer py-5"
+                      className="cursor-pointer py-5 lg:py-6 lg:text-base"
                       disabled={isDeleting}
                     >
                       Voltar
                     </AlertDialogCancel>
                     <AlertDialogAction
-                      variant="outline"
-                      className="cursor-pointer py-5"
+                      variant="destructive"
+                      className="cursor-pointer py-5 lg:py-6 lg:text-base"
                       disabled={isDeleting}
                       onClick={(e) => {
                         // Prevent the dialog from auto-closing before the
@@ -244,7 +242,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
                         handleCancelBooking()
                       }}
                     >
-                      {isDeleting ? "Cancelando..." : "Cancelar Reserva"}
+                      {isDeleting ? "Cancelando..." : "Confirmar"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
