@@ -43,7 +43,7 @@ export default async function Home() {
 
   const services = await prisma.barbershopService.findMany({
     orderBy: {
-      name: "desc",
+      name: "asc",
     },
   })
 
@@ -113,10 +113,10 @@ export default async function Home() {
             )}
           </div>
 
-          {/* Right column - Recomendados */}
+          {/* Right column */}
           <div>
             <h2 className="mb-2 text-xs font-bold text-gray-400 uppercase md:mb-3 md:text-base">
-              Recomendados
+              Funcionários recomendados
             </h2>
             <RecommendedCarousel
               employees={employeesSerialized}
@@ -126,7 +126,7 @@ export default async function Home() {
 
         {/* Populares */}
         <h2 className="mt-5 mb-2 text-xs font-bold text-gray-400 uppercase md:mt-12 md:mb-3 md:text-base lg:mt-16">
-          Populares
+          Nossos serviços
         </h2>
         <Carousel>
           {servicesSerialized.map((service) => (
