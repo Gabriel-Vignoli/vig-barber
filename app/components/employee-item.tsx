@@ -52,9 +52,9 @@ const EmployeeItem = ({ employee }: EmployeeItemProps) => {
           </p>
           <Button
             variant="outline"
-            className="mt-2 w-full py-3 text-sm md:mt-3 md:py-4 md:text-base"
+            className="mt-2 w-full cursor-pointer py-3 text-sm md:mt-3 md:py-4 md:text-base"
           >
-            <Link href={`/employees/${employee.id}`}>Reservar</Link>
+            <Link href={`/employees/${employee.id}`}>Visualizar</Link>
           </Button>
         </div>
       </CardContent>
