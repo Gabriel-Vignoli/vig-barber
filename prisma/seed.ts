@@ -1,149 +1,260 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role, Weekday } from "@prisma/client"
+import { hash } from "bcryptjs"
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
-async function seedDatabase() {
-  try {
-    const images = [
-      "https://utfs.io/f/c97a2dc9-cf62-468b-a851-bfd2bdde775f-16p.png",
-      "https://utfs.io/f/45331760-899c-4b4b-910e-e00babb6ed81-16q.png",
-      "https://utfs.io/f/5832df58-cfd7-4b3f-b102-42b7e150ced2-16r.png",
-      "https://utfs.io/f/7e309eaa-d722-465b-b8b6-76217404a3d3-16s.png",
-      "https://utfs.io/f/178da6b6-6f9a-424a-be9d-a2feb476eb36-16t.png",
-      "https://utfs.io/f/2f9278ba-3975-4026-af46-64af78864494-16u.png",
-      "https://utfs.io/f/988646ea-dcb6-4f47-8a03-8d4586b7bc21-16v.png",
-      "https://utfs.io/f/60f24f5c-9ed3-40ba-8c92-0cd1dcd043f9-16w.png",
-      "https://utfs.io/f/f64f1bd4-59ce-4ee3-972d-2399937eeafc-16x.png",
-      "https://utfs.io/f/e995db6d-df96-4658-99f5-11132fd931e1-17j.png",
-      "https://utfs.io/f/3bcf33fc-988a-462b-8b98-b811ee2bbd71-17k.png",
-      "https://utfs.io/f/5788be0e-2307-4bb4-b603-d9dd237950a2-17l.png",
-      "https://utfs.io/f/6b0888f8-b69f-4be7-a13b-52d1c0c9cab2-17m.png",
-      "https://utfs.io/f/ef45effa-415e-416d-8c4a-3221923cd10f-17n.png",
-      "https://utfs.io/f/ef45effa-415e-416d-8c4a-3221923cd10f-17n.png",
-      "https://utfs.io/f/a55f0f39-31a0-4819-8796-538d68cc2a0f-17o.png",
-      "https://utfs.io/f/5c89f046-80cd-4443-89df-211de62b7c2a-17p.png",
-      "https://utfs.io/f/23d9c4f7-8bdb-40e1-99a5-f42271b7404a-17q.png",
-      "https://utfs.io/f/9f0847c2-d0b8-4738-a673-34ac2b9506ec-17r.png",
-      "https://utfs.io/f/07842cfb-7b30-4fdc-accc-719618dfa1f2-17s.png",
-      "https://utfs.io/f/0522fdaf-0357-4213-8f52-1d83c3dcb6cd-18e.png",
-    ];
+async function main() {
+  console.log("Limpando banco de dados...")
+  await prisma.review.deleteMany()
+  await prisma.booking.deleteMany()
+  await prisma.employeeSchedule.deleteMany()
+  await prisma.employeeService.deleteMany()
+  await prisma.employee.deleteMany()
+  await prisma.barbershopService.deleteMany()
+  await prisma.barbershop.deleteMany()
+  await prisma.session.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.user.deleteMany()
 
-    // Nomes criativos para as barbearias
-    const creativeNames = [
-      "Barbearia Vintage",
-      "Corte & Estilo",
-      "Barba & Navalha",
-      "The Dapper Den",
-      "Cabelo & Cia.",
-      "Machado & Tesoura",
-      "Barbearia Elegance",
-      "Aparência Impecável",
-      "Estilo Urbano",
-      "Estilo Clássico",
-    ];
+  console.log("Criando barbearia...")
+  const barbershop = await prisma.barbershop.create({
+    data: {
+      name: "Vig Barber",
+      address: "Avenida São Sebastião, 357, São Paulo",
+      phones: ["(11) 98204-5108", "(11) 99503-2351"],
+      description:
+        "Bem-vindo à Vig Barber, onde tradição encontra estilo. Nossa equipe de mestres barbeiros transforma cortes de cabelo e barbas em obras de arte. Em um ambiente acolhedor, promovemos confiança, estilo e uma comunidade unida.",
+      imageUrl:
+        "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1200&q=80",
+    },
+  })
 
-    // Endereços fictícios para as barbearias
-    const addresses = [
-      "Rua da Barbearia, 123",
-      "Avenida dos Cortes, 456",
-      "Praça da Barba, 789",
-      "Travessa da Navalha, 101",
-      "Alameda dos Estilos, 202",
-      "Estrada do Machado, 303",
-      "Avenida Elegante, 404",
-      "Praça da Aparência, 505",
-      "Rua Urbana, 606",
-      "Avenida Clássica, 707",
-    ];
-
-    const services = [
-      {
+  console.log("Criando serviços...")
+  const services = await Promise.all([
+    prisma.barbershopService.create({
+      data: {
+        barbershopId: barbershop.id,
         name: "Corte de Cabelo",
         description: "Estilo personalizado com as últimas tendências.",
-        price: 60.0,
+        price: 50.0,
+        durationInMinutes: 30,
         imageUrl:
-          "https://utfs.io/f/0ddfbd26-a424-43a0-aaf3-c3f1dc6be6d1-1kgxo7.png",
+          "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&q=80",
       },
-      {
+    }),
+    prisma.barbershopService.create({
+      data: {
+        barbershopId: barbershop.id,
         name: "Barba",
         description: "Modelagem completa para destacar sua masculinidade.",
-        price: 40.0,
+        price: 45.0,
+        durationInMinutes: 25,
         imageUrl:
-          "https://utfs.io/f/e6bdffb6-24a9-455b-aba3-903c2c2b5bde-1jo6tu.png",
+          "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&q=80",
       },
-      {
-        name: "Pézinho",
-        description: "Acabamento perfeito para um visual renovado.",
-        price: 35.0,
-        imageUrl:
-          "https://utfs.io/f/8a457cda-f768-411d-a737-cdb23ca6b9b5-b3pegf.png",
-      },
-      {
+    }),
+    prisma.barbershopService.create({
+      data: {
+        barbershopId: barbershop.id,
         name: "Sobrancelha",
         description: "Expressão acentuada com modelagem precisa.",
-        price: 20.0,
-        imageUrl:
-          "https://utfs.io/f/2118f76e-89e4-43e6-87c9-8f157500c333-b0ps0b.png",
-      },
-      {
-        name: "Massagem",
-        description: "Relaxe com uma massagem revigorante.",
-        price: 50.0,
-        imageUrl:
-          "https://utfs.io/f/c4919193-a675-4c47-9f21-ebd86d1c8e6a-4oen2a.png",
-      },
-      {
-        name: "Hidratação",
-        description: "Hidratação profunda para cabelo e barba.",
         price: 25.0,
+        durationInMinutes: 15,
         imageUrl:
-          "https://utfs.io/f/8a457cda-f768-411d-a737-cdb23ca6b9b5-b3pegf.png",
+          "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&q=80",
       },
-    ];
+    }),
+    prisma.barbershopService.create({
+      data: {
+        barbershopId: barbershop.id,
+        name: "Pézinho",
+        description: "Acabamento perfeito para um visual renovado.",
+        price: 20.0,
+        durationInMinutes: 15,
+        imageUrl:
+          "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&q=80",
+      },
+    }),
+    prisma.barbershopService.create({
+      data: {
+        barbershopId: barbershop.id,
+        name: "Hidratação",
+        description: "Fios hidratados, macios e brilhantes.",
+        price: 30.0,
+        durationInMinutes: 20,
+        imageUrl:
+          "https://images.unsplash.com/photo-1560869713-7d0a29430803?w=600&q=80",
+      },
+    }),
+    prisma.barbershopService.create({
+      data: {
+        barbershopId: barbershop.id,
+        name: "Massagem",
+        description: "Relaxe e renove com nossos tratamentos revitalizantes.",
+        price: 35.0,
+        durationInMinutes: 20,
+        imageUrl:
+          "https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=600&q=80",
+      },
+    }),
+  ])
 
-    // Criar 10 barbearias com nomes e endereços fictícios
-    const barbershops = [];
-    for (let i = 0; i < 10; i++) {
-      const name = creativeNames[i];
-      const address = addresses[i];
-      const imageUrl = images[i];
+  const [
+    corteService,
+    barbaService,
+    sobrancelhaService,
+    pezinhoService,
+    hidratacaoService,
+    massagemService,
+  ] = services
 
-      const barbershop = await prisma.barbershop.create({
-        data: {
-          name,
-          address,
-          imageUrl: imageUrl,
-          phones: ["(11) 99999-9999", "(11) 99999-9999"],
-          description:
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ac augue ullamcorper, pharetra orci mollis, auctor tellus. Phasellus pharetra erat ac libero efficitur tempus. Donec pretium convallis iaculis. Etiam eu felis sollicitudin, cursus mi vitae, iaculis magna. Nam non erat neque. In hac habitasse platea dictumst. Pellentesque molestie accumsan tellus id laoreet.",
+  console.log("Criando funcionários...")
+
+  const employeesData = [
+    {
+      name: "Miguel Silva Menezes",
+      email: "miguel@vigbarber.com",
+      imageUrl:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80",
+      bio: "Especialista em cortes clássicos e modernos, com mais de 8 anos de experiência.",
+      services: [corteService, pezinhoService, hidratacaoService],
+    },
+    {
+      name: "Rafael Costa",
+      email: "rafael@vigbarber.com",
+      imageUrl:
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80",
+      bio: "Mestre em barba e acabamentos, focado em técnicas de navalha.",
+      services: [barbaService, sobrancelhaService, pezinhoService],
+    },
+    {
+      name: "Lucas Almeida",
+      email: "lucas@vigbarber.com",
+      imageUrl:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80",
+      bio: "Apaixonado por tendências, especializado em cortes degradê e design.",
+      services: [corteService, barbaService, massagemService],
+    },
+  ]
+
+  const employees = []
+
+  for (const data of employeesData) {
+    const hashedPassword = await hash("senha123", 10)
+
+    const user = await prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+        image: data.imageUrl,
+        role: Role.EMPLOYEE,
+      },
+    })
+
+    const employee = await prisma.employee.create({
+      data: {
+        userId: user.id,
+        bio: data.bio,
+        imageUrl: data.imageUrl,
+      },
+    })
+
+    await prisma.employeeService.createMany({
+      data: data.services.map((service) => ({
+        employeeId: employee.id,
+        serviceId: service.id,
+      })),
+    })
+
+    // Working hours: Tue-Fri 09:00-21:00, Sat 08:00-17:00, Sun/Mon off
+    await prisma.employeeSchedule.createMany({
+      data: [
+        {
+          employeeId: employee.id,
+          weekday: Weekday.MONDAY,
+          startTime: "00:00",
+          endTime: "00:00",
+          isDayOff: true,
         },
-      });
+        {
+          employeeId: employee.id,
+          weekday: Weekday.TUESDAY,
+          startTime: "09:00",
+          endTime: "21:00",
+          isDayOff: false,
+        },
+        {
+          employeeId: employee.id,
+          weekday: Weekday.WEDNESDAY,
+          startTime: "09:00",
+          endTime: "21:00",
+          isDayOff: false,
+        },
+        {
+          employeeId: employee.id,
+          weekday: Weekday.THURSDAY,
+          startTime: "09:00",
+          endTime: "21:00",
+          isDayOff: false,
+        },
+        {
+          employeeId: employee.id,
+          weekday: Weekday.FRIDAY,
+          startTime: "09:00",
+          endTime: "21:00",
+          isDayOff: false,
+        },
+        {
+          employeeId: employee.id,
+          weekday: Weekday.SATURDAY,
+          startTime: "08:00",
+          endTime: "17:00",
+          isDayOff: false,
+        },
+        {
+          employeeId: employee.id,
+          weekday: Weekday.SUNDAY,
+          startTime: "00:00",
+          endTime: "00:00",
+          isDayOff: true,
+        },
+      ],
+    })
 
-      for (const service of services) {
-        await prisma.barbershopService.create({
-          data: {
-            name: service.name,
-            description: service.description,
-            price: service.price,
-            barbershop: {
-              connect: {
-                id: barbershop.id,
-              },
-            },
-            imageUrl: service.imageUrl,
-          },
-        });
-      }
-
-      barbershops.push(barbershop);
-    }
-
-    console.log("Seed concluído com sucesso!");
-  } catch (error) {
-    console.error("Erro ao criar as barbearias:", error);
-  } finally {
-    await prisma.$disconnect();
+    employees.push(employee)
   }
+
+  console.log("Criando cliente de teste...")
+  const clientPassword = await hash("senha123", 10)
+  await prisma.user.create({
+    data: {
+      name: "João Cliente",
+      email: "cliente@example.com",
+      password: clientPassword,
+      role: Role.CLIENT,
+    },
+  })
+
+  console.log("Criando admin de teste...")
+  const adminPassword = await hash("senha123", 10)
+  await prisma.user.create({
+    data: {
+      name: "Gabriel Vignoli",
+      email: "admin@vigbarber.com",
+      password: adminPassword,
+      role: Role.ADMIN,
+    },
+  })
+
+  console.log("Seed concluído com sucesso!")
 }
 
-seedDatabase();
+main()
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })
