@@ -207,6 +207,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                       key={service.id}
                       service={service}
                       barbershop={{ name: barbershop.name }}
+                      employeeId={employee.id}
                     ></ServiceItem>
                   ))}
                 </div>

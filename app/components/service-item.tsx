@@ -23,71 +23,16 @@ import { getBookings } from "../_actions/get-bookings"
 import { Dialog, DialogContent } from "./ui/dialog"
 import SignInDialog from "./sign-in-dialog"
 import BookingSummary from "./booking-summary"
-import { useRouter } from "next/navigation"
+import { getTimeList } from "../_lib/time-list"
 import { showBookingSuccessToast } from "./booking-success-toast"
 
 interface ServiceItemProps {
   service: Omit<BarbershopService, "price"> & { price: number }
   barbershop: Pick<Barbershop, "name">
+  employeeId: string
 }
 
-const TIME_LIST = [
-  "08:00",
-  "08:30",
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-  "18:00",
-]
-
-const getTimeList = (bookings: Booking[], selectedDay: Date) => {
-  const now = new Date()
-  const isToday =
-    selectedDay.getDate() === now.getDate() &&
-    selectedDay.getMonth() === now.getMonth() &&
-    selectedDay.getFullYear() === now.getFullYear()
-
-  return TIME_LIST.filter((time) => {
-    const hour = Number(time.split(":")[0])
-    const minutes = Number(time.split(":")[1])
-
-    const hasBookingOnCurrentTime = bookings.some(
-      (booking) =>
-        booking.bookingDate.getHours() === hour &&
-        booking.bookingDate.getMinutes() === minutes,
-    )
-
-    if (hasBookingOnCurrentTime) return false
-
-    if (isToday) {
-      const timeIsInThePast =
-        hour < now.getHours() ||
-        (hour === now.getHours() && minutes <= now.getMinutes())
-
-      if (timeIsInThePast) return false
-    }
-
-    return true
-  })
-}
-
-const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
-  const router = useRouter()
+const ServiceItem = ({ service, barbershop, employeeId }: ServiceItemProps) => {
   const [signInDialogIsOpen, setSignInDialogIsOpen] = useState(false)
   const { data } = useSession()
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(undefined)
@@ -102,12 +47,12 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
       if (!selectedDay) return
       const bookings = await getBookings({
         date: selectedDay,
-        serviceId: service.id,
+        employeeId,
       })
       setDayBookings(bookings)
     }
     fetch()
-  }, [selectedDay, service.id])
+  }, [selectedDay, employeeId])
 
   const selectedDate = useMemo(() => {
     if (!selectedDay || !selectedTime) return undefined
@@ -160,6 +105,7 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
 
       await createBooking({
         barbershopServiceId: service.id,
+        employeeId,
         bookingDate: newDate,
       })
       setBookingSheetIsOpen(false)

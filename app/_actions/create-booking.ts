@@ -7,11 +7,13 @@ import { authOptions } from "../_lib/auth"
 
 interface CreateBookingParams {
   barbershopServiceId: string
+  employeeId: string
   bookingDate: Date
 }
 
 export const createBooking = async ({
   barbershopServiceId,
+  employeeId,
   bookingDate,
 }: CreateBookingParams) => {
   const user = await getServerSession(authOptions)
@@ -21,10 +23,13 @@ export const createBooking = async ({
   await prisma.booking.create({
     data: {
       barbershopServiceId,
+      employeeId,
       bookingDate,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userId: (user.user as any).id,
     },
   })
   revalidatePath("/barbershops/[id]")
+  revalidatePath("/employees/[id]")
+  revalidatePath("/")
 }

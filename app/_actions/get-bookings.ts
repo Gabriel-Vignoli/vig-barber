@@ -4,14 +4,14 @@ import { endOfDay, startOfDay } from "date-fns"
 import { prisma } from "../_lib/prisma"
 
 interface GetBookingsProps {
-  serviceId: string
+  employeeId: string
   date: Date
 }
 
-export const getBookings = async ({ date, serviceId }: GetBookingsProps) => {
+export const getBookings = async ({ date, employeeId }: GetBookingsProps) => {
   return await prisma.booking.findMany({
     where: {
-      barbershopServiceId: serviceId,
+      employeeId,
       bookingDate: {
         lte: endOfDay(date),
         gte: startOfDay(date),
