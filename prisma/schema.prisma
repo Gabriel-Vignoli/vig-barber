@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,6 +9,12 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CLIENT
+  EMPLOYEE
+  ADMIN
 }
 
 enum BookingStatus {
@@ -24,6 +27,16 @@ enum PaymentMethod {
   CASH
   PIX
   CARD
+}
+
+enum Weekday {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
 }
 
 model Account {
@@ -73,12 +86,55 @@ model User {
   image         String?
   phone         String?
   password      String?
+  role          Role      @default(CLIENT)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   accounts Account[]
   sessions Session[]
   bookings Booking[]
+  reviews  Review[]
+  employee Employee?
+}
+
+model Employee {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  bio       String?
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services  EmployeeService[]
+  schedules EmployeeSchedule[]
+  bookings  Booking[]
+  reviews   Review[]
+}
+
+model EmployeeService {
+  id         String @id @default(cuid())
+  employeeId String
+  serviceId  String
+
+  employee Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  service  BarbershopService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, serviceId])
+}
+
+model EmployeeSchedule {
+  id         String   @id @default(cuid())
+  employeeId String
+  weekday    Weekday
+  startTime  String // e.g. "09:00"
+  endTime    String // e.g. "18:00"
+  isDayOff   Boolean  @default(false)
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, weekday])
 }
 
 model Barbershop {
@@ -94,16 +150,17 @@ model Barbershop {
 }
 
 model BarbershopService {
-  id                String    @id @default(cuid())
+  id                String            @id @default(cuid())
   barbershopId      String
   name              String
   description       String
-  price             Decimal   @db.Decimal(10, 2)
+  price             Decimal           @db.Decimal(10, 2)
   imageUrl          String
-  durationInMinutes Int       @default(30)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  durationInMinutes Int               @default(30)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   bookings          Booking[]
+  employees         EmployeeService[]
 
   barbershop Barbershop @relation(fields: [barbershopId], references: [id])
 }
@@ -112,6 +169,7 @@ model Booking {
   id                  String         @id @default(cuid())
   userId              String
   barbershopServiceId String
+  employeeId          String
   bookingDate         DateTime
   status              BookingStatus  @default(PENDING)
   paymentMethod       PaymentMethod?
@@ -120,4 +178,20 @@ model Booking {
 
   user              User              @relation(fields: [userId], references: [id])
   barbershopService BarbershopService @relation(fields: [barbershopServiceId], references: [id])
+  employee          Employee          @relation(fields: [employeeId], references: [id])
+  review            Review?
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  userId     String
+  employeeId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 }
