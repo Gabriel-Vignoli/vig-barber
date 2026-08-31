@@ -90,7 +90,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
 
   return (
     <>
-      <Header></Header>
+      <Header />
       <div className="lg:mx-auto lg:max-w-360 lg:p-8">
         <div className="lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8">
           {/* Main column */}
@@ -111,7 +111,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                 className="absolute top-3 left-3 cursor-pointer lg:hidden"
               >
                 <Link href="/">
-                  <ChevronLeftIcon></ChevronLeftIcon>
+                  <ChevronLeftIcon />
                 </Link>
               </Button>
             </div>
@@ -123,17 +123,14 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                   {employeeName}
                 </h1>
                 <div className="mb-2 flex items-center gap-2">
-                  <MapPinIcon className="text-primary" size={18}></MapPinIcon>
+                  <MapPinIcon className="text-primary" size={18} />
                   <p className="text-sm lg:text-base">{barbershop.address}</p>
                 </div>
               </div>
 
               <Card className="mt-2 w-fit p-0 lg:mt-0">
                 <CardContent className="flex items-center gap-2 px-3 py-2">
-                  <StarIcon
-                    className="text-primary fill-primary"
-                    size={18}
-                  ></StarIcon>
+                  <StarIcon className="text-primary fill-primary" size={18} />
                   <div>
                     <p className="text-sm font-semibold lg:text-base">
                       {averageRating !== null
@@ -208,7 +205,8 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                       service={service}
                       barbershop={{ name: barbershop.name }}
                       employeeId={employee.id}
-                    ></ServiceItem>
+                      employeeName={employeeName}
+                    />
                   ))}
                 </div>
               )}
@@ -236,7 +234,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                             <StarIcon
                               className="text-primary fill-primary"
                               size={14}
-                            ></StarIcon>
+                            />
                             <p className="text-sm font-medium">
                               {review.rating.toFixed(1).replace(".", ",")}
                             </p>
@@ -274,7 +272,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                   fill
                   className="rounded-xl"
                   alt="Localização da Barbearia"
-                ></Image>
+                />
 
                 <Card className="z-10 mx-3 mb-3 w-full rounded-xl">
                   <CardContent className="flex flex-col items-center gap-3 px-3 py-1">

@@ -36,6 +36,7 @@ import { getEmployeesForService } from "../_actions/get-employees-for-service"
 import { getTimeList } from "../_lib/time-list"
 import { showBookingSuccessToast } from "./booking-success-toast"
 import SignInDialog from "./sign-in-dialog"
+import BookingSummary from "./booking-summary"
 
 interface ServiceCardProps {
   service: {
@@ -204,132 +205,116 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       </Card>
 
       <Sheet open={bookingSheetIsOpen} onOpenChange={handleSheetOpenChange}>
-        <SheetContent className="px-0 lg:w-120 lg:max-w-120">
-          <SheetHeader>
+        <SheetContent className="flex flex-col px-0 lg:w-120 lg:max-w-120">
+          <SheetHeader className="shrink-0 px-4 pt-4">
             <SheetTitle className="lg:text-lg">Fazer Reserva</SheetTitle>
           </SheetHeader>
 
-          {/* Step 1: choose employee */}
-          <div className="border-b p-4">
-            <h3 className="mb-3 text-sm font-semibold text-gray-400 uppercase">
-              Escolha o profissional
-            </h3>
-            {employees.length === 0 ? (
-              <p className="text-sm text-gray-400">
-                Nenhum profissional disponível para este serviço.
-              </p>
-            ) : (
-              <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                {employees.map((employee) => (
-                  <button
-                    key={employee.id}
-                    onClick={() => handleEmployeeSelect(employee.id)}
-                    className={`flex shrink-0 flex-col items-center gap-2 rounded-lg border p-3 transition-colors ${
-                      selectedEmployeeId === employee.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border"
-                    }`}
+          <div className="flex-1 overflow-y-auto px-0 [&::-webkit-scrollbar]:hidden">
+            {/* Step 1: choose employee */}
+            <div className="border-b px-4 pb-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-400 uppercase">
+                Escolha o profissional
+              </h3>
+              {employees.length === 0 ? (
+                <p className="text-sm text-gray-400">
+                  Nenhum profissional disponível para este serviço.
+                </p>
+              ) : (
+                <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                  {employees.map((employee) => (
+                    <button
+                      key={employee.id}
+                      onClick={() => handleEmployeeSelect(employee.id)}
+                      className={`flex shrink-0 cursor-pointer flex-col items-center gap-2 rounded-lg border p-2 transition-colors lg:p-3 xl:p-4 ${
+                        selectedEmployeeId === employee.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border"
+                      }`}
+                    >
+                      <Avatar className="h-15 w-15 lg:h-18 lg:w-18">
+                        <AvatarImage src={employee.imageUrl}></AvatarImage>
+                        <AvatarFallback>
+                          {employee.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="w-20 truncate text-center text-xs font-medium lg:text-sm xl:text-base">
+                        {employee.name}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: calendar */}
+            {selectedEmployeeId && (
+              <div className="flex justify-center border-b bg-transparent pb-6 lg:pb-8">
+                <Calendar
+                  mode="single"
+                  locale={ptBR}
+                  selected={selectedDay}
+                  onSelect={handleDateSelect}
+                  disabled={{ before: new Date() }}
+                  className="bg-transparent lg:w-full lg:max-w-3xs lg:p-2"
+                  classNames={{
+                    day: "cursor-pointer",
+                    button_previous: "cursor-pointer",
+                    button_next: "cursor-pointer",
+                  }}
+                  styles={{
+                    weekday: {
+                      width: "100%",
+                      textTransform: "capitalize",
+                    },
+                    day: {
+                      width: "100%",
+                    },
+                    button_previous: {
+                      width: "32px",
+                      height: "32px",
+                    },
+                    button_next: {
+                      width: "32px",
+                      height: "32px",
+                    },
+                    month_caption: {
+                      textTransform: "capitalize",
+                    },
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Step 3: time list */}
+            {selectedDay && (
+              <div className="flex gap-3 overflow-x-auto border-b p-4 lg:gap-4 lg:p-6 [&::-webkit-scrollbar]:hidden">
+                {getTimeList(dayBookings, selectedDay).map((time) => (
+                  <Button
+                    key={time}
+                    variant={selectedTime === time ? "default" : "outline"}
+                    className="cursor-pointer rounded-full lg:h-10 lg:px-5 lg:text-base"
+                    onClick={() => setSelectedTime(time)}
                   >
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={employee.imageUrl}></AvatarImage>
-                      <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <p className="w-20 truncate text-center text-xs font-medium">
-                      {employee.name}
-                    </p>
-                  </button>
+                    {time}
+                  </Button>
                 ))}
+              </div>
+            )}
+
+            {/* Step 4: summary */}
+            {selectedTime && selectedDay && selectedEmployee && (
+              <div className="p-4 lg:p-6">
+                <BookingSummary
+                  service={service}
+                  selectedDay={selectedDate as Date}
+                  employee={{ name: selectedEmployee.name }}
+                />
               </div>
             )}
           </div>
 
-          {/* Step 2: calendar */}
-          {selectedEmployeeId && (
-            <div className="flex justify-center border-b bg-transparent pb-6 lg:pb-8">
-              <Calendar
-                mode="single"
-                locale={ptBR}
-                selected={selectedDay}
-                onSelect={handleDateSelect}
-                disabled={{ before: new Date() }}
-                className="bg-transparent lg:w-full lg:max-w-3xs lg:p-2"
-                classNames={{
-                  day: "cursor-pointer",
-                  button_previous: "cursor-pointer",
-                  button_next: "cursor-pointer",
-                }}
-                styles={{
-                  weekday: {
-                    width: "100%",
-                    textTransform: "capitalize",
-                  },
-                  day: {
-                    width: "100%",
-                  },
-                  button_previous: {
-                    width: "32px",
-                    height: "32px",
-                  },
-                  button_next: {
-                    width: "32px",
-                    height: "32px",
-                  },
-                  month_caption: {
-                    textTransform: "capitalize",
-                  },
-                }}
-              />
-            </div>
-          )}
-
-          {/* Step 3: time list */}
-          {selectedDay && (
-            <div className="flex gap-3 overflow-x-auto border-b p-4 lg:gap-4 lg:p-6 [&::-webkit-scrollbar]:hidden">
-              {getTimeList(dayBookings, selectedDay).map((time) => (
-                <Button
-                  key={time}
-                  variant={selectedTime === time ? "default" : "outline"}
-                  className="cursor-pointer rounded-full lg:h-10 lg:px-5 lg:text-base"
-                  onClick={() => setSelectedTime(time)}
-                >
-                  {time}
-                </Button>
-              ))}
-            </div>
-          )}
-
-          {/* Step 4: summary */}
-          {selectedTime && selectedDay && selectedEmployee && (
-            <div className="space-y-3 p-4 lg:p-6">
-              <div className="flex items-center justify-between text-sm">
-                <p className="text-gray-400">Profissional</p>
-                <p className="font-semibold">{selectedEmployee.name}</p>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <p className="text-gray-400">Serviço</p>
-                <p className="font-semibold">{service.name}</p>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <p className="text-gray-400">Data</p>
-                <p className="font-semibold capitalize">
-                  {format(selectedDate as Date, "dd 'de' MMMM 'às' HH:mm", {
-                    locale: ptBR,
-                  })}
-                </p>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <p className="text-gray-400">Valor</p>
-                <p className="text-primary font-bold">
-                  {Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(service.price)}
-                </p>
-              </div>
-            </div>
-          )}
-
-          <SheetFooter className="lg:p-6">
+          <SheetFooter className="shrink-0 border-t p-4 lg:p-6">
             <AlertDialog
               open={confirmDialogIsOpen}
               onOpenChange={setConfirmDialogIsOpen}
@@ -348,14 +333,23 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
               >
                 Show Dialog
               </AlertDialogTrigger>
-              <AlertDialogContent size="sm" className="lg:max-w-md">
+              <AlertDialogContent
+                size="sm"
+                className="w-[90%] max-w-[90%] lg:w-auto lg:max-w-md"
+              >
                 <AlertDialogHeader>
                   <AlertDialogTitle className="lg:text-xl">
                     Confirmar Reserva
                   </AlertDialogTitle>
                   <AlertDialogDescription className="lg:text-base">
                     Deseja confirmar o agendamento de {service.name} com{" "}
-                    {selectedEmployee?.name}?
+                    {selectedEmployee?.name} para{" "}
+                    {selectedDate
+                      ? format(selectedDate, "dd 'de' MMMM 'às' HH:mm", {
+                          locale: ptBR,
+                        })
+                      : ""}
+                    ?
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="lg:p-6">
