@@ -1,48 +1,22 @@
 "use client"
 
 import { useRef } from "react"
-import { ChevronLeftIcon, ChevronRightIcon, StarIcon } from "lucide-react"
-import { Card, CardContent } from "./ui/card"
-import { Badge } from "./ui/badge"
-import { Button } from "./ui/button"
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import EmployeeItem from "./employee-item"
 
 const CARD_GAP_PX = 20 // matches gap-5 (5 * 4px)
 
-const BlankRecommendedCard = () => {
-  return (
-    <Card className="w-56 shrink-0 p-0 md:w-72">
-      <CardContent className="p-0">
-        <div className="relative h-36 w-full md:h-52 lg:h-64">
-          <div className="bg-secondary h-full w-full rounded-xl" />
-
-          <Badge
-            className="bg-secondary/80 absolute top-2 right-2 space-x-1"
-            variant="secondary"
-          >
-            <StarIcon
-              size={12}
-              className="fill-primary text-primary"
-            ></StarIcon>
-            <p className="text-xs font-semibold">5,0</p>
-          </Badge>
-        </div>
-        <div className="px-2 py-2 md:py-3">
-          <h3 className="bg-secondary h-4 w-3/4 rounded" />
-          <p className="bg-secondary mt-2 h-3 w-full rounded" />
-          <Button
-            disabled
-            variant="outline"
-            className="mt-2 w-full py-3 text-sm md:mt-3 md:py-4 md:text-base"
-          >
-            Reservar
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
+interface RecommendedCarouselProps {
+  employees: {
+    id: string
+    name: string
+    imageUrl: string
+    averageRating: number | null
+    ratingCount: number
+  }[]
 }
 
-const RecommendedCarousel = () => {
+const RecommendedCarousel = ({ employees }: RecommendedCarouselProps) => {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   // Drags the row over by exactly one card's width, using the first card's
@@ -74,9 +48,9 @@ const RecommendedCarousel = () => {
         ref={scrollRef}
         className="flex gap-5 overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden"
       >
-        <BlankRecommendedCard />
-        <BlankRecommendedCard />
-        <BlankRecommendedCard />
+        {employees.map((employee) => (
+          <EmployeeItem key={employee.id} employee={employee}></EmployeeItem>
+        ))}
       </div>
 
       <button

@@ -1,7 +1,7 @@
 import Header from "./components/header"
 import Image from "next/image"
 import { prisma } from "./_lib/prisma"
-import BarbershopItem from "./components/barbershop-item"
+import ServiceCard from "./components/service-card"
 import RecommendedCarousel from "./components/recommended-carousel"
 import BookingItem from "./components/booking-item"
 import Search from "./components/search"
@@ -14,11 +14,43 @@ import Carousel from "./components/carousel"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
-  const popularBarbershops = await prisma.barbershop.findMany({
+
+  const employees = await prisma.employee.findMany({
+    where: { isActive: true },
+    include: {
+      user: { select: { name: true, image: true } },
+      reviews: { select: { rating: true } },
+    },
+  })
+
+  const employeesSerialized = employees.map((employee) => {
+    const ratingCount = employee.reviews.length
+    const averageRating =
+      ratingCount > 0
+        ? employee.reviews.reduce((acc, review) => acc + review.rating, 0) /
+          ratingCount
+        : null
+
+    return {
+      id: employee.id,
+      name: employee.user.name ?? "Funcionário",
+      imageUrl:
+        employee.imageUrl ?? employee.user.image ?? "/avatar-placeholder.png",
+      averageRating,
+      ratingCount,
+    }
+  })
+
+  const services = await prisma.barbershopService.findMany({
     orderBy: {
       name: "desc",
     },
   })
+
+  const servicesSerialized = services.map((service) => ({
+    ...service,
+    price: Number(service.price),
+  }))
 
   const confirmedBookings = await getConfirmedBookings()
   const hasBookings = confirmedBookings.length > 0
@@ -86,7 +118,9 @@ export default async function Home() {
             <h2 className="mb-2 text-xs font-bold text-gray-400 uppercase md:mb-3 md:text-base">
               Recomendados
             </h2>
-            <RecommendedCarousel></RecommendedCarousel>
+            <RecommendedCarousel
+              employees={employeesSerialized}
+            ></RecommendedCarousel>
           </div>
         </div>
 
@@ -95,11 +129,8 @@ export default async function Home() {
           Populares
         </h2>
         <Carousel>
-          {popularBarbershops.map((barbershop) => (
-            <BarbershopItem
-              key={barbershop.id}
-              barbershop={barbershop}
-            ></BarbershopItem>
+          {servicesSerialized.map((service) => (
+            <ServiceCard key={service.id} service={service}></ServiceCard>
           ))}
         </Carousel>
       </div>
