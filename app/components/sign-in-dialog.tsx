@@ -13,8 +13,12 @@ import { signUp } from "../_actions/sign-up"
 
 type Mode = "login" | "signup"
 
-const SignInDialog = () => {
-  const [mode, setMode] = useState<Mode>("login")
+interface SignInDialogProps {
+  initialMode?: Mode
+}
+
+const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
+  const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [name, setName] = useState("")
