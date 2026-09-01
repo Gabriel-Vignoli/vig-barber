@@ -33,6 +33,7 @@ import { toast } from "sonner"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import BookingSummary from "./booking-summary"
+import { showBookingCancelToast } from "./booking-cancel-toast"
 
 interface BookingItemsProps {
   booking: {
@@ -100,7 +101,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
       setIsAlertDialogOpen(false)
       setIsSheetOpen(false)
 
-      toast.success("Reserva cancelada com sucesso!")
+      showBookingCancelToast()
 
       // Re-fetch the Server Component data so the list reflects the deletion
       router.refresh()
