@@ -169,7 +169,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
   return (
     <>
-      <Card className="min-w-32 p-0 md:min-w-52 lg:min-w-60">
+      <Card className="w-32 shrink-0 p-0 md:w-52 lg:w-60">
         <CardContent className="p-0">
           <div className="relative h-32 w-full md:h-48 lg:h-56">
             <Image
