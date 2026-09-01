@@ -40,6 +40,20 @@ interface BookingItemsProps {
     userId: string
     bookingDate: Date
     paymentMethod: PaymentMethod | null
+    employee: {
+      id: string
+      userId: string
+      bio: string | null
+      imageUrl: string | null
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+      user: {
+        id: string
+        name: string | null
+        image: string | null
+      }
+    }
     barbershopService: {
       id: string
       name: string
@@ -70,9 +84,12 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const {
+    employee,
     barbershopService: { barbershop },
   } = booking
   const isConfirmed = isFuture(booking.bookingDate)
+  const employeeName = employee.user.name ?? "Funcionário"
+  const employeeImage = employee.imageUrl ?? employee.user.image ?? undefined
 
   const handleCancelBooking = async () => {
     try {
@@ -117,9 +134,9 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
 
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6 md:h-8 md:w-8">
-                  <AvatarImage src={barbershop.imageUrl}></AvatarImage>
+                  <AvatarImage src={employeeImage}></AvatarImage>
                 </Avatar>
-                <p className="text-sm lg:text-base">{barbershop.name}</p>
+                <p className="text-sm lg:text-base">{employeeName}</p>
               </div>
             </div>
 
@@ -155,10 +172,10 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
           <Card className="z-50 mx-5 mb-3 w-full rounded-xl">
             <CardContent className="flex items-center gap-3">
               <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                <AvatarImage src={barbershop.imageUrl}></AvatarImage>
+                <AvatarImage src={employeeImage}></AvatarImage>
               </Avatar>
               <div>
-                <h3 className="font-bold lg:text-base">{barbershop.name}</h3>
+                <h3 className="font-bold lg:text-base">{employeeName}</h3>
                 <p className="text-xs lg:text-sm">{barbershop.address}</p>
               </div>
             </CardContent>
@@ -174,7 +191,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
 
           <div className="mt-6 mb-3 md:mb-7">
             <BookingSummary
-              barbershop={barbershop}
+              employee={{ name: employeeName }}
               service={booking.barbershopService}
               selectedDay={booking.bookingDate}
             ></BookingSummary>
