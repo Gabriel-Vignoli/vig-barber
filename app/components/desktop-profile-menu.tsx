@@ -3,15 +3,27 @@
 import { Button } from "./ui/button"
 import { LogInIcon, LogOutIcon, UserIcon } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Avatar, AvatarImage } from "./ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
 import { signOut, useSession } from "next-auth/react"
 import SignInDialog from "./sign-in-dialog"
+
+const getInitials = (name?: string | null) => {
+  if (!name) return "?"
+
+  const parts = name.trim().split(/\s+/)
+  const first = parts[0]?.charAt(0) ?? ""
+  const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : ""
+
+  return (first + last).toUpperCase()
+}
 
 const DesktopProfileMenu = () => {
   const { data } = useSession()
 
   const handleLogoutClick = () => signOut()
+
+  const initials = getInitials(data?.user?.name)
 
   return (
     <Popover>
@@ -30,6 +42,9 @@ const DesktopProfileMenu = () => {
                     alt={data.user.name ?? "User"}
                     referrerPolicy="no-referrer"
                   />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="hover:underline-primary font-bold text-white hover:text-white">
                   {data.user.name}
@@ -55,6 +70,9 @@ const DesktopProfileMenu = () => {
                   alt="User"
                   referrerPolicy="no-referrer"
                 />
+                <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
 
               <div>
