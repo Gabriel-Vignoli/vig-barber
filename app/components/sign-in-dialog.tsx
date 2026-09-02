@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import { toast } from "sonner"
 import { Loader2Icon } from "lucide-react"
@@ -10,6 +12,12 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
 import { signUp } from "../_actions/sign-up"
+import {
+  loginSchema,
+  signUpFormSchema,
+  LoginFormValues,
+  SignUpFormValues,
+} from "../_lib/validations/auth"
 
 type Mode = "login" | "signup"
 
@@ -21,33 +29,31 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  })
+
+  const signUpForm = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpFormSchema),
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+  })
 
   const handleLoginWithGoogleClick = () => signIn("google")
 
-  const resetFields = () => {
-    setName("")
-    setEmail("")
-    setPassword("")
-    setConfirmPassword("")
-  }
-
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode)
-    resetFields()
+    loginForm.reset()
+    signUpForm.reset()
   }
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleLoginSubmit = async (values: LoginFormValues) => {
     setIsSubmitting(true)
 
     try {
       const result = await signIn("credentials", {
-        email,
-        password,
+        email: values.email,
+        password: values.password,
         redirect: false,
       })
 
@@ -64,27 +70,19 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     }
   }
 
-  const handleSignUpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem.")
-      return
-    }
-
-    if (password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres.")
-      return
-    }
-
+  const handleSignUpSubmit = async (values: SignUpFormValues) => {
     setIsSubmitting(true)
 
     try {
-      await signUp({ name, email, password })
+      await signUp({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      })
 
       const result = await signIn("credentials", {
-        email,
-        password,
+        email: values.email,
+        password: values.password,
         redirect: false,
       })
 
@@ -142,7 +140,8 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       {mode === "login" ? (
         <form
           className="space-y-3 text-left xl:space-y-5"
-          onSubmit={handleLoginSubmit}
+          onSubmit={loginForm.handleSubmit(handleLoginSubmit)}
+          noValidate
         >
           <div className="space-y-1">
             <Label htmlFor="login-email" className="xl:text-base">
@@ -152,10 +151,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="login-email"
               type="email"
               className="xl:p-5 xl:text-base"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              {...loginForm.register("email")}
             />
+            {loginForm.formState.errors.email && (
+              <p className="text-destructive text-xs">
+                {loginForm.formState.errors.email.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -166,10 +168,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="login-password"
               className="xl:p-5 xl:text-base"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              {...loginForm.register("password")}
             />
+            {loginForm.formState.errors.password && (
+              <p className="text-destructive text-xs">
+                {loginForm.formState.errors.password.message}
+              </p>
+            )}
           </div>
 
           <Button
@@ -187,7 +192,8 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       ) : (
         <form
           className="space-y-3 text-left xl:space-y-5"
-          onSubmit={handleSignUpSubmit}
+          onSubmit={signUpForm.handleSubmit(handleSignUpSubmit)}
+          noValidate
         >
           <div className="space-y-1">
             <Label htmlFor="signup-name" className="xl:text-base">
@@ -197,10 +203,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="signup-name"
               type="text"
               className="xl:p-5 xl:text-base"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
+              {...signUpForm.register("name")}
             />
+            {signUpForm.formState.errors.name && (
+              <p className="text-destructive text-xs">
+                {signUpForm.formState.errors.name.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -211,10 +220,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="signup-email"
               type="email"
               className="xl:p-5 xl:text-base"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              {...signUpForm.register("email")}
             />
+            {signUpForm.formState.errors.email && (
+              <p className="text-destructive text-xs">
+                {signUpForm.formState.errors.email.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -225,10 +237,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="signup-password"
               type="password"
               className="xl:p-5 xl:text-base"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              {...signUpForm.register("password")}
             />
+            {signUpForm.formState.errors.password && (
+              <p className="text-destructive text-xs">
+                {signUpForm.formState.errors.password.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -239,10 +254,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="signup-confirm-password"
               type="password"
               className="xl:p-5 xl:text-base"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
+              {...signUpForm.register("confirmPassword")}
             />
+            {signUpForm.formState.errors.confirmPassword && (
+              <p className="text-destructive text-xs">
+                {signUpForm.formState.errors.confirmPassword.message}
+              </p>
+            )}
           </div>
 
           <Button
