@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import { toast } from "sonner"
-import { Loader2Icon } from "lucide-react"
+import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
@@ -31,6 +31,16 @@ const AUTH_TOAST_KEY = "pending-auth-toast"
 const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [visiblePasswords, setVisiblePasswords] = useState({
+    loginPassword: false,
+    signUpPassword: false,
+    signUpConfirmPassword: false,
+  })
+
+  const togglePasswordVisibility = (field: keyof typeof visiblePasswords) => {
+    setVisiblePasswords((prev) => ({ ...prev, [field]: !prev[field] }))
+  }
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -169,12 +179,26 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
             <Label htmlFor="login-password" className="xl:text-base">
               Senha
             </Label>
-            <Input
-              id="login-password"
-              className="xl:p-5 xl:text-base"
-              type="password"
-              {...loginForm.register("password")}
-            />
+            <div className="relative">
+              <Input
+                id="login-password"
+                className="pr-10 xl:p-5 xl:text-base"
+                type={visiblePasswords.loginPassword ? "text" : "password"}
+                {...loginForm.register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility("loginPassword")}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
+                tabIndex={-1}
+              >
+                {visiblePasswords.loginPassword ? (
+                  <EyeOffIcon size={18} />
+                ) : (
+                  <EyeIcon size={18} />
+                )}
+              </button>
+            </div>
             {loginForm.formState.errors.password && (
               <p className="text-destructive text-xs">
                 {loginForm.formState.errors.password.message}
@@ -238,12 +262,26 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
             <Label htmlFor="signup-password" className="xl:text-base">
               Senha
             </Label>
-            <Input
-              id="signup-password"
-              type="password"
-              className="xl:p-5 xl:text-base"
-              {...signUpForm.register("password")}
-            />
+            <div className="relative">
+              <Input
+                id="signup-password"
+                type={visiblePasswords.signUpPassword ? "text" : "password"}
+                className="pr-10 xl:p-5 xl:text-base"
+                {...signUpForm.register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility("signUpPassword")}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
+                tabIndex={-1}
+              >
+                {visiblePasswords.signUpPassword ? (
+                  <EyeOffIcon size={18} />
+                ) : (
+                  <EyeIcon size={18} />
+                )}
+              </button>
+            </div>
             {signUpForm.formState.errors.password && (
               <p className="text-destructive text-xs">
                 {signUpForm.formState.errors.password.message}
@@ -255,12 +293,30 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
             <Label htmlFor="signup-confirm-password" className="xl:text-base">
               Confirmar senha
             </Label>
-            <Input
-              id="signup-confirm-password"
-              type="password"
-              className="xl:p-5 xl:text-base"
-              {...signUpForm.register("confirmPassword")}
-            />
+            <div className="relative">
+              <Input
+                id="signup-confirm-password"
+                type={
+                  visiblePasswords.signUpConfirmPassword ? "text" : "password"
+                }
+                className="pr-10 xl:p-5 xl:text-base"
+                {...signUpForm.register("confirmPassword")}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  togglePasswordVisibility("signUpConfirmPassword")
+                }
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
+                tabIndex={-1}
+              >
+                {visiblePasswords.signUpConfirmPassword ? (
+                  <EyeOffIcon size={18} />
+                ) : (
+                  <EyeIcon size={18} />
+                )}
+              </button>
+            </div>
             {signUpForm.formState.errors.confirmPassword && (
               <p className="text-destructive text-xs">
                 {signUpForm.formState.errors.confirmPassword.message}
