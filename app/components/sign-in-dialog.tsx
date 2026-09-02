@@ -109,10 +109,10 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
   return (
     <>
       <DialogHeader>
-        <DialogTitle>
+        <DialogTitle className="xl:text-lg">
           {mode === "login" ? "Faça login na plataforma" : "Crie sua conta"}
         </DialogTitle>
-        <DialogDescription>
+        <DialogDescription className="xl:text-base">
           {mode === "login"
             ? "Conecte-se com o Google ou com seu email e senha"
             : "Cadastre-se para começar a agendar"}
@@ -121,7 +121,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
 
       <Button
         variant="outline"
-        className="gap-2 p-4 font-bold"
+        className="font-bol cursor-pointer gap-2 p-4 xl:p-5 xl:text-base"
         onClick={handleLoginWithGoogleClick}
       >
         <Image
@@ -135,17 +135,23 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
 
       <div className="flex items-center gap-3">
         <div className="bg-border h-px flex-1" />
-        <span className="text-muted-foreground text-xs">ou</span>
+        <span className="text-muted-foreground text-xs xl:text-base">ou</span>
         <div className="bg-border h-px flex-1" />
       </div>
 
       {mode === "login" ? (
-        <form className="space-y-3 text-left" onSubmit={handleLoginSubmit}>
+        <form
+          className="space-y-3 text-left xl:space-y-5"
+          onSubmit={handleLoginSubmit}
+        >
           <div className="space-y-1">
-            <Label htmlFor="login-email">Email</Label>
+            <Label htmlFor="login-email" className="xl:text-base">
+              Email
+            </Label>
             <Input
               id="login-email"
               type="email"
+              className="xl:p-5 xl:text-base"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -153,9 +159,12 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="login-password">Senha</Label>
+            <Label htmlFor="login-password" className="xl:text-base">
+              Senha
+            </Label>
             <Input
               id="login-password"
+              className="xl:p-5 xl:text-base"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -165,7 +174,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
 
           <Button
             type="submit"
-            className="w-full cursor-pointer gap-2 p-4 font-bold"
+            className="w-full cursor-pointer gap-2 p-4 font-bold xl:p-5 xl:text-base"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -176,12 +185,18 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
           </Button>
         </form>
       ) : (
-        <form className="space-y-3 text-left" onSubmit={handleSignUpSubmit}>
+        <form
+          className="space-y-3 text-left xl:space-y-5"
+          onSubmit={handleSignUpSubmit}
+        >
           <div className="space-y-1">
-            <Label htmlFor="signup-name">Nome</Label>
+            <Label htmlFor="signup-name" className="xl:text-base">
+              Nome
+            </Label>
             <Input
               id="signup-name"
               type="text"
+              className="xl:p-5 xl:text-base"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -189,10 +204,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="signup-email">Email</Label>
+            <Label htmlFor="signup-email" className="xl:text-base">
+              Email
+            </Label>
             <Input
               id="signup-email"
               type="email"
+              className="xl:p-5 xl:text-base"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -200,10 +218,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="signup-password">Senha</Label>
+            <Label htmlFor="signup-password" className="xl:text-base">
+              Senha
+            </Label>
             <Input
               id="signup-password"
               type="password"
+              className="xl:p-5 xl:text-base"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -211,10 +232,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="signup-confirm-password">Confirmar senha</Label>
+            <Label htmlFor="signup-confirm-password" className="xl:text-base">
+              Confirmar senha
+            </Label>
             <Input
               id="signup-confirm-password"
               type="password"
+              className="xl:p-5 xl:text-base"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -223,7 +247,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
 
           <Button
             type="submit"
-            className="w-full cursor-pointer gap-2 p-4 font-bold"
+            className="w-full cursor-pointer gap-2 p-4 font-bold xl:p-5 xl:text-base"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -235,7 +259,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
         </form>
       )}
 
-      <p className="text-muted-foreground text-center text-sm">
+      <p className="text-muted-foreground text-center text-sm xl:text-base">
         {mode === "login" ? (
           <>
             Não tem uma conta?{" "}
