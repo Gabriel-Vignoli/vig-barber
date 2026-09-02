@@ -26,6 +26,8 @@ interface SignInDialogProps {
   initialMode?: Mode
 }
 
+const AUTH_TOAST_KEY = "pending-auth-toast"
+
 const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -63,6 +65,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
         return
       }
 
+      sessionStorage.setItem(AUTH_TOAST_KEY, "login")
       window.location.reload()
     } catch (error) {
       toast.error("Erro ao fazer login. Tente novamente.")
@@ -95,6 +98,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
         return
       }
 
+      sessionStorage.setItem(AUTH_TOAST_KEY, "signup")
       window.location.reload()
     } catch (error) {
       toast.error(

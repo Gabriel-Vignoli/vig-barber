@@ -4,6 +4,7 @@ import "./globals.css"
 import { Toaster } from "sonner"
 import Footer from "./components/footer"
 import AuthProvider from "./_providers/auth"
+import { AuthToastListener } from "./components/auth-toast-listener"
 
 const nunito = Nunito({
   variable: "--font-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({
           </div>
         </AuthProvider>
         <Toaster></Toaster>
+        <AuthToastListener></AuthToastListener>
       </body>
     </html>
   )

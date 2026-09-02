@@ -29,7 +29,7 @@ export function showBookingSuccessToast() {
       </div>
     ),
     {
-      duration: Infinity,
+      duration: 5000,
       position: "top-center",
     },
   )
