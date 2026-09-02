@@ -18,6 +18,7 @@ import {
   LoginFormValues,
   SignUpFormValues,
 } from "../_lib/validations/auth"
+import { showLoginErrorToast } from "./login-error-toast"
 
 type Mode = "login" | "signup"
 
@@ -58,7 +59,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       })
 
       if (result?.error) {
-        toast.error("Email ou senha inválidos.")
+        showLoginErrorToast()
         return
       }
 
