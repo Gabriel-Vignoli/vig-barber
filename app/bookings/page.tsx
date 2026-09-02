@@ -1,16 +1,24 @@
 import { getServerSession } from "next-auth"
 import Header from "../components/header"
 import { authOptions } from "../_lib/auth"
-import { notFound } from "next/navigation"
 import BookingItem from "../components/booking-item"
 import { getConfirmedBookings } from "../_data/get-confirmed-bookings"
 import { getConcludedBookings } from "../_data/get-concluded-bookings"
+import BookingsEmptyState from "../components/bookings-empty-state"
 
 const Bookings = async () => {
   const session = await getServerSession(authOptions)
 
   if (!session?.user) {
-    return notFound()
+    return (
+      <>
+        <Header></Header>
+        <div className="p-4 lg:mx-auto lg:max-w-5xl lg:p-8 xl:py-12">
+          <h1 className="text-xl font-bold lg:text-2xl">Agendamentos</h1>
+          <BookingsEmptyState></BookingsEmptyState>
+        </div>
+      </>
+    )
   }
 
   const confirmedBookings = await getConfirmedBookings()
