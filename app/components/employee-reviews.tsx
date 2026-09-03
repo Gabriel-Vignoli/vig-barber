@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { PencilIcon, StarIcon, Trash2Icon } from "lucide-react"
+import { InfoIcon, PencilIcon, StarIcon, Trash2Icon } from "lucide-react"
 import { Card, CardContent } from "./ui/card"
 import { Button } from "./ui/button"
 import {
@@ -54,6 +54,11 @@ const EmployeeReviews = ({
     ? reviews.find((review) => review.userId === currentUserId)
     : undefined
 
+  const canReview = Boolean(currentUserId && !userReview && reviewableBookingId)
+  const needsPastBooking = Boolean(
+    currentUserId && !userReview && !reviewableBookingId,
+  )
+
   const handleDelete = async (reviewId: string) => {
     setIsDeleting(true)
 
@@ -78,11 +83,11 @@ const EmployeeReviews = ({
           Avaliações
         </h3>
 
-        {currentUserId && !userReview && reviewableBookingId && (
+        {canReview && (
           <ReviewFormDialog
             mode="create"
             employeeId={employeeId}
-            bookingId={reviewableBookingId}
+            bookingId={reviewableBookingId as string}
             renderTrigger={(triggerProps) => (
               <Button
                 size="sm"
@@ -96,6 +101,19 @@ const EmployeeReviews = ({
           />
         )}
       </div>
+
+      {needsPastBooking && (
+        <div className="bg-muted/50 flex items-start gap-2 rounded-lg p-3">
+          <InfoIcon
+            size={16}
+            className="text-muted-foreground mt-0.5 shrink-0"
+          />
+          <p className="text-muted-foreground text-sm">
+            Você poderá avaliar este profissional depois de concluir um
+            atendimento com ele.
+          </p>
+        </div>
+      )}
 
       {reviews.length === 0 ? (
         <p className="text-sm xl:text-base">
