@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { Button } from "./ui/button"
 import {
   CalendarIcon,
@@ -30,6 +31,10 @@ const getInitials = (name?: string | null) => {
 
 const SidebarSheet = () => {
   const { data } = useSession()
+  const pathname = usePathname()
+
+  const isHomeActive = pathname === "/"
+  const isBookingsActive = pathname === "/bookings"
 
   const handleLogoutClick = () => {
     sessionStorage.setItem("pending-auth-toast", "logout")
@@ -126,6 +131,7 @@ const SidebarSheet = () => {
           render={(closeProps) => (
             <Button
               className="justify-start gap-2 py-4"
+              variant={isHomeActive ? "default" : "ghost"}
               nativeButton={false}
               {...closeProps}
               render={(buttonProps) => (
@@ -142,7 +148,7 @@ const SidebarSheet = () => {
           render={(closeProps) => (
             <Button
               className="justify-start gap-2 py-4"
-              variant="ghost"
+              variant={isBookingsActive ? "default" : "ghost"}
               nativeButton={false}
               {...closeProps}
               render={(buttonProps) => (
