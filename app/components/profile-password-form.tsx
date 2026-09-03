@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
 import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
@@ -14,6 +13,7 @@ import {
   UpdatePasswordFormValues,
 } from "../_lib/validations/profile"
 import { showProfileUpdateSuccessToast } from "./profile-update-success-toast"
+import { showPasswordErrorToast } from "./password-error-toast"
 
 interface ProfilePasswordFormProps {
   hasPassword: boolean
@@ -54,7 +54,7 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
       })
       reset()
     } catch (error) {
-      toast.error(
+      showPasswordErrorToast(
         error instanceof Error ? error.message : "Erro ao atualizar senha.",
       )
     } finally {
