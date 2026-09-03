@@ -8,6 +8,7 @@ interface SignUpInput {
   name: string
   email: string
   password: string
+  acceptTerms: boolean
 }
 
 export const signUp = async (input: SignUpInput) => {
@@ -15,6 +16,10 @@ export const signUp = async (input: SignUpInput) => {
 
   if (!parsed.success) {
     throw new Error(parsed.error.issues[0].message)
+  }
+
+  if (!input.acceptTerms) {
+    throw new Error("Você precisa aceitar a política de privacidade.")
   }
 
   const { name, email, password } = parsed.data
@@ -34,6 +39,7 @@ export const signUp = async (input: SignUpInput) => {
       name,
       email,
       password: hashedPassword,
+      acceptedTermsAt: new Date(),
     },
   })
 }

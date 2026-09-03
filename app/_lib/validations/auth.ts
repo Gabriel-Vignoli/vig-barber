@@ -24,10 +24,15 @@ export const signUpSchema = z.object({
 export const signUpFormSchema = signUpSchema
   .extend({
     confirmPassword: z.string().min(1, "Confirme sua senha."),
+    acceptTerms: z.boolean(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não coincidem.",
     path: ["confirmPassword"],
+  })
+  .refine((data) => data.acceptTerms === true, {
+    message: "Você precisa aceitar a política de privacidade.",
+    path: ["acceptTerms"],
   })
 
 export type SignUpFormValues = z.infer<typeof signUpFormSchema>

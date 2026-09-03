@@ -87,6 +87,7 @@ model User {
   phone         String?
   password      String?
   role          Role      @default(CLIENT)
+  acceptedTermsAt DateTime? @map("accepted_terms_at")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

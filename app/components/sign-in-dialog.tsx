@@ -6,10 +6,17 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import { toast } from "sonner"
-import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  EyeIcon,
+  EyeOffIcon,
+  Loader2Icon,
+} from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
+import { Checkbox } from "./ui/checkbox"
 import { DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
 import { signUp } from "../_actions/sign-up"
 import {
@@ -19,6 +26,7 @@ import {
   SignUpFormValues,
 } from "../_lib/validations/auth"
 import { showLoginErrorToast } from "./login-error-toast"
+import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
 
 type Mode = "login" | "signup"
 
@@ -31,6 +39,7 @@ const AUTH_TOAST_KEY = "pending-auth-toast"
 const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPolicyOpen, setIsPolicyOpen] = useState(false)
 
   const [visiblePasswords, setVisiblePasswords] = useState({
     loginPassword: false,
@@ -49,7 +58,13 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
 
   const signUpForm = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpFormSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      acceptTerms: false,
+    },
   })
 
   const handleLoginWithGoogleClick = () => {
@@ -61,6 +76,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     setMode(newMode)
     loginForm.reset()
     signUpForm.reset()
+    setIsPolicyOpen(false)
   }
 
   const handleLoginSubmit = async (values: LoginFormValues) => {
@@ -95,6 +111,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
         name: values.name,
         email: values.email,
         password: values.password,
+        acceptTerms: values.acceptTerms,
       })
 
       const result = await signIn("credentials", {
@@ -323,6 +340,58 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
             {signUpForm.formState.errors.confirmPassword && (
               <p className="text-destructive text-xs">
                 {signUpForm.formState.errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="signup-accept-terms"
+                checked={signUpForm.watch("acceptTerms")}
+                onCheckedChange={(checked: boolean | "indeterminate") =>
+                  signUpForm.setValue("acceptTerms", checked === true, {
+                    shouldValidate: true,
+                  })
+                }
+              />
+              <Label
+                htmlFor="signup-accept-terms"
+                className="text-muted-foreground text-xs leading-snug font-normal xl:text-sm"
+              >
+                Eu li e aceito a política de privacidade.
+              </Label>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsPolicyOpen((prev) => !prev)}
+              className="text-primary flex cursor-pointer items-center gap-1 text-xs font-semibold xl:text-sm"
+            >
+              {isPolicyOpen ? "Ocultar" : "Ler"} política de privacidade
+              {isPolicyOpen ? (
+                <ChevronUpIcon size={14} />
+              ) : (
+                <ChevronDownIcon size={14} />
+              )}
+            </button>
+
+            {isPolicyOpen && (
+              <div className="bg-muted/50 max-h-40 space-y-3 overflow-y-auto rounded-lg p-3 text-xs">
+                {PRIVACY_POLICY_SECTIONS.map((section) => (
+                  <div key={section.title} className="space-y-1">
+                    <p className="text-foreground font-semibold">
+                      {section.title}
+                    </p>
+                    <p className="text-muted-foreground">{section.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {signUpForm.formState.errors.acceptTerms && (
+              <p className="text-destructive text-xs">
+                {signUpForm.formState.errors.acceptTerms.message}
               </p>
             )}
           </div>
