@@ -156,31 +156,6 @@ const SidebarSheet = () => {
         />
       </div>
 
-      <div className="flex flex-col gap-3 border-b p-4 pt-1">
-        {quickSearchOptions.map((option) => (
-          <Button
-            className="justify-start gap-2 py-4"
-            variant="ghost"
-            key={option.title}
-            nativeButton={false}
-            render={(buttonProps) => (
-              <Link
-                href={`/barbershops?search=${option.title}`}
-                {...buttonProps}
-              >
-                <Image
-                  src={option.imageUrl}
-                  alt={option.title}
-                  width={18}
-                  height={18}
-                />
-                {option.title}
-              </Link>
-            )}
-          />
-        ))}
-      </div>
-
       <div className="flex flex-col gap-3 p-4 pt-1">
         {data?.user && (
           <Button
