@@ -1,7 +1,14 @@
 "use client"
 
+import Link from "next/link"
 import { Button } from "./ui/button"
-import { LogInIcon, LogOutIcon, UserIcon, UserPlusIcon } from "lucide-react"
+import {
+  LogInIcon,
+  LogOutIcon,
+  UserCogIcon,
+  UserIcon,
+  UserPlusIcon,
+} from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
@@ -83,6 +90,18 @@ const DesktopProfileMenu = () => {
                 <div className="text-xs">{data.user.email}</div>
               </div>
             </div>
+
+            <Button
+              className="cursor-pointer justify-start gap-2"
+              variant="ghost"
+              nativeButton={false}
+              render={(buttonProps) => (
+                <Link href="/profile" {...buttonProps}>
+                  <UserCogIcon size={18} />
+                  Meu Perfil
+                </Link>
+              )}
+            />
 
             <Button
               className="cursor-pointer justify-start gap-2 text-red-400"
