@@ -7,6 +7,7 @@ import {
   HomeIcon,
   LogInIcon,
   LogOutIcon,
+  UserCogIcon,
   UserIcon,
   UserPlusIcon,
 } from "lucide-react"
@@ -161,6 +162,28 @@ const SidebarSheet = () => {
           )}
         />
       </div>
+
+      {data?.user && (
+        <div className="flex flex-col gap-3 border-b p-4 pt-2">
+          <SheetClose
+            nativeButton={false}
+            render={(closeProps) => (
+              <Button
+                className="justify-start gap-2 py-4"
+                variant="ghost"
+                nativeButton={false}
+                {...closeProps}
+                render={(buttonProps) => (
+                  <Link href="/profile" {...buttonProps}>
+                    <UserCogIcon size={18} />
+                    Meu Perfil
+                  </Link>
+                )}
+              />
+            )}
+          />
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 p-4 pt-1">
         {data?.user && (
