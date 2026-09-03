@@ -1,7 +1,10 @@
 import { prisma } from "@/app/_lib/prisma"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/_lib/auth"
 import Header from "@/app/components/header"
 import PhoneItem from "@/app/components/phone-item"
 import ServiceItem from "@/app/components/service-item"
+import EmployeeReviews from "@/app/components/employee-reviews"
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent } from "@/app/components/ui/card"
 import { ChevronLeftIcon, MapPinIcon, StarIcon } from "lucide-react"
@@ -48,6 +51,9 @@ const WEEKDAY_LABELS: Record<Weekday, string> = {
 
 const EmployeePage = async ({ params }: EmployeePageProps) => {
   const { id } = await params
+  const session = await getServerSession(authOptions)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const currentUserId = (session?.user as any)?.id ?? null
 
   const employee = await prisma.employee.findUnique({
     where: { id },
@@ -67,6 +73,24 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
   if (!employee || !barbershop) {
     return notFound()
   }
+
+  const hasReviewed = currentUserId
+    ? employee.reviews.some((review) => review.userId === currentUserId)
+    : false
+
+  const reviewableBooking =
+    currentUserId && !hasReviewed
+      ? await prisma.booking.findFirst({
+          where: {
+            employeeId: employee.id,
+            userId: currentUserId,
+            bookingDate: { lt: new Date() },
+            status: { not: "CANCELLED" },
+            review: null,
+          },
+          orderBy: { bookingDate: "desc" },
+        })
+      : null
 
   const employeeName = employee.user.name ?? "Funcionário"
   const employeeImage =
@@ -214,42 +238,12 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
 
             {/* Reviews */}
             <div className="space-y-3 border-b p-4 lg:border-b-0 lg:p-0 lg:pt-8">
-              <h3 className="mb-3 text-base font-bold text-gray-400 uppercase xl:text-lg">
-                Avaliações
-              </h3>
-              {employee.reviews.length === 0 ? (
-                <p className="text-sm xl:text-base">
-                  Este profissional ainda não possui avaliações.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {employee.reviews.map((review) => (
-                    <Card key={review.id} className="p-0">
-                      <CardContent className="space-y-1 p-4">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-semibold">
-                            {review.user.name ?? "Cliente"}
-                          </p>
-                          <div className="flex items-center gap-1">
-                            <StarIcon
-                              className="text-primary fill-primary"
-                              size={14}
-                            />
-                            <p className="text-sm font-medium">
-                              {review.rating.toFixed(1).replace(".", ",")}
-                            </p>
-                          </div>
-                        </div>
-                        {review.comment && (
-                          <p className="text-sm text-gray-400">
-                            {review.comment}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              <EmployeeReviews
+                employeeId={employee.id}
+                reviews={employee.reviews}
+                currentUserId={currentUserId}
+                reviewableBookingId={reviewableBooking?.id ?? null}
+              />
             </div>
 
             {/* Contact - mobile position (hidden on lg, shown in sidebar instead) */}
