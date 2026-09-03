@@ -14,6 +14,7 @@ import {
   updateNameSchema,
   UpdateNameFormValues,
 } from "../_lib/validations/profile"
+import { showProfileUpdateSuccessToast } from "./profile-update-success-toast"
 
 interface ProfileNameFormProps {
   currentName: string
@@ -33,7 +34,10 @@ const ProfileNameForm = ({ currentName }: ProfileNameFormProps) => {
 
     try {
       await updateProfile(values)
-      toast.success("Nome atualizado com sucesso!")
+      showProfileUpdateSuccessToast({
+        title: "Nome atualizado!",
+        description: "Seu nome foi atualizado com sucesso.",
+      })
       router.refresh()
     } catch (error) {
       toast.error(

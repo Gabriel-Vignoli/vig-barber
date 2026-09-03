@@ -13,6 +13,7 @@ import {
   updatePasswordFormSchema,
   UpdatePasswordFormValues,
 } from "../_lib/validations/profile"
+import { showProfileUpdateSuccessToast } from "./profile-update-success-toast"
 
 interface ProfilePasswordFormProps {
   hasPassword: boolean
@@ -45,11 +46,12 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
 
     try {
       await updatePassword(values)
-      toast.success(
-        hasPassword
-          ? "Senha atualizada com sucesso!"
-          : "Senha definida com sucesso!",
-      )
+      showProfileUpdateSuccessToast({
+        title: hasPassword ? "Senha atualizada!" : "Senha definida!",
+        description: hasPassword
+          ? "Sua senha foi atualizada com sucesso."
+          : "Sua senha foi definida com sucesso.",
+      })
       reset()
     } catch (error) {
       toast.error(
