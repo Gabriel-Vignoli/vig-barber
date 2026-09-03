@@ -31,7 +31,10 @@ const getInitials = (name?: string | null) => {
 const SidebarSheet = () => {
   const { data } = useSession()
 
-  const handleLogoutClick = () => signOut()
+  const handleLogoutClick = () => {
+    sessionStorage.setItem("pending-auth-toast", "logout")
+    signOut()
+  }
 
   const initials = getInitials(data?.user?.name)
 
