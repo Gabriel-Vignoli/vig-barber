@@ -43,20 +43,22 @@ const ProfilePage = async () => {
       <div className="mx-auto max-w-2xl space-y-6 p-4 lg:p-8">
         <h1 className="text-xl font-bold lg:text-2xl">Meu Perfil</h1>
 
-        <div className="flex items-center gap-3">
-          <Avatar className="size-14">
+        <div className="flex items-center gap-3 xl:gap-4">
+          <Avatar className="size-14 xl:size-18">
             <AvatarImage
               src={user.image ?? ""}
               alt={user.name ?? "User"}
               referrerPolicy="no-referrer"
             />
-            <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+            <AvatarFallback className="bg-primary text-primary-foreground font-bold xl:text-lg">
               {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-bold">{user.name}</p>
-            <p className="text-muted-foreground text-sm">{user.email}</p>
+            <p className="font-bold xl:text-lg">{user.name}</p>
+            <p className="text-muted-foreground text-sm xl:text-base">
+              {user.email}
+            </p>
           </div>
         </div>
 

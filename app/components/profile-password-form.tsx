@@ -61,15 +61,21 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
   }
 
   return (
-    <form className="space-y-3" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form
+      className="space-y-3 xl:space-y-5"
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+    >
       {hasPassword && (
         <div className="space-y-1">
-          <Label htmlFor="current-password">Senha atual</Label>
+          <Label htmlFor="current-password" className="xl:text-base">
+            Senha atual
+          </Label>
           <div className="relative">
             <Input
               id="current-password"
               type={visible.current ? "text" : "password"}
-              className="pr-10"
+              className="pr-10 xl:p-5 xl:text-base"
               {...register("currentPassword")}
             />
             <button
@@ -94,14 +100,14 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
       )}
 
       <div className="space-y-1">
-        <Label htmlFor="new-password">
+        <Label htmlFor="new-password" className="xl:text-base">
           {hasPassword ? "Nova senha" : "Senha"}
         </Label>
         <div className="relative">
           <Input
             id="new-password"
             type={visible.next ? "text" : "password"}
-            className="pr-10"
+            className="pr-10 xl:p-5 xl:text-base"
             {...register("newPassword")}
           />
           <button
@@ -121,14 +127,14 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="confirm-new-password">
+        <Label htmlFor="confirm-new-password" className="xl:text-base">
           {hasPassword ? "Confirmar nova senha" : "Confirmar senha"}
         </Label>
         <div className="relative">
           <Input
             id="confirm-new-password"
             type={visible.confirm ? "text" : "password"}
-            className="pr-10"
+            className="pr-10 xl:p-5 xl:text-base"
             {...register("confirmNewPassword")}
           />
           <button
@@ -149,7 +155,7 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
 
       <Button
         type="submit"
-        className="cursor-pointer gap-2"
+        className="cursor-pointer gap-2 xl:p-5 xl:text-base"
         disabled={isSubmitting}
       >
         {isSubmitting ? (

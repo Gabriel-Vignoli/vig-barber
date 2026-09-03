@@ -45,10 +45,21 @@ const ProfileNameForm = ({ currentName }: ProfileNameFormProps) => {
   }
 
   return (
-    <form className="space-y-3" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form
+      className="space-y-3 xl:space-y-5"
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+    >
       <div className="space-y-1">
-        <Label htmlFor="profile-name">Nome</Label>
-        <Input id="profile-name" type="text" {...register("name")} />
+        <Label htmlFor="profile-name" className="xl:text-base">
+          Nome
+        </Label>
+        <Input
+          id="profile-name"
+          type="text"
+          className="xl:p-5 xl:text-base"
+          {...register("name")}
+        />
         {formState.errors.name && (
           <p className="text-destructive text-xs">
             {formState.errors.name.message}
@@ -58,7 +69,7 @@ const ProfileNameForm = ({ currentName }: ProfileNameFormProps) => {
 
       <Button
         type="submit"
-        className="cursor-pointer gap-2"
+        className="cursor-pointer gap-2 xl:p-5 xl:text-base"
         disabled={isSubmitting}
       >
         {isSubmitting ? (
