@@ -52,7 +52,10 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   })
 
-  const handleLoginWithGoogleClick = () => signIn("google")
+  const handleLoginWithGoogleClick = () => {
+    sessionStorage.setItem(AUTH_TOAST_KEY, "google")
+    signIn("google")
+  }
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode)

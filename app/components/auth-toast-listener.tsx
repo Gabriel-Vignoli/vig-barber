@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { showLoginSuccessToast } from "./login-success-toast"
 import { showSignUpSuccessToast } from "./signup-success-toast"
+import { showGoogleLoginSuccessToast } from "./google-login-success-toast"
 
 const AUTH_TOAST_KEY = "pending-auth-toast"
 
@@ -14,6 +15,8 @@ export function AuthToastListener() {
       showLoginSuccessToast()
     } else if (pending === "signup") {
       showSignUpSuccessToast()
+    } else if (pending === "google") {
+      showGoogleLoginSuccessToast()
     }
 
     if (pending) {
