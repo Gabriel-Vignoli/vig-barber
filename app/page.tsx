@@ -4,16 +4,18 @@ import { prisma } from "./_lib/prisma"
 import ServiceCard from "./components/service-card"
 import RecommendedCarousel from "./components/recommended-carousel"
 import BookingItem from "./components/booking-item"
-import Search from "./components/search"
 import { getServerSession } from "next-auth"
 import { authOptions } from "./_lib/auth"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { getConfirmedBookings } from "./_data/get-confirmed-bookings"
 import Carousel from "./components/carousel"
+import { ScissorsIcon } from "lucide-react"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
+
+  const barbershop = await prisma.barbershop.findFirst()
 
   const employees = await prisma.employee.findMany({
     where: { isActive: true },
@@ -80,9 +82,16 @@ export default async function Home() {
               </span>
             </p>
 
-            {/* Search */}
-            <div className="mt-6 lg:mt-10">
-              <Search></Search>
+            {/* Hero message */}
+            <div className="mt-6 space-y-2 rounded-2xl border p-5 lg:mt-10 lg:p-8">
+              <h1 className="text-lg font-bold lg:text-2xl">
+                Bem-vindo{barbershop ? ` à ${barbershop.name}` : ""}!
+              </h1>
+              <p className="text-muted-foreground text-sm lg:text-base">
+                Estilo, precisão e cuidado em cada detalhe. Agende seu horário
+                com os melhores profissionais e viva a experiência que você
+                merece.
+              </p>
             </div>
 
             {hasBookings ? (
