@@ -27,6 +27,7 @@ import {
 } from "../_lib/validations/auth"
 import { showLoginErrorToast } from "./login-error-toast"
 import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
+import ForgotPasswordDialog from "./forgot-password-dialog"
 
 type Mode = "login" | "signup"
 
@@ -435,6 +436,9 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
           </>
         )}
       </p>
+      <div className="flex justify-end">
+        <ForgotPasswordDialog />
+      </div>
     </>
   )
 }
