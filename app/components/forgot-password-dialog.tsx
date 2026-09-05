@@ -18,6 +18,7 @@ import {
 } from "./ui/dialog"
 import { requestPasswordReset } from "../_actions/request-password-reset"
 import { resetPassword } from "../_actions/reset-password"
+
 import {
   RequestResetCodeFormValues,
   requestResetCodeSchema,
@@ -106,26 +107,29 @@ const ForgotPasswordDialog = () => {
           </button>
         )}
       />
-      <DialogContent className="w-[90%] sm:max-w-md">
+      <DialogContent className="bg-card border-primary/50 w-[90%] border-2 shadow-xl sm:max-w-md xl:max-w-lg xl:p-8">
         {step === "request" ? (
           <>
             <DialogHeader>
-              <DialogTitle>Redefinir senha</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="xl:text-lg">Redefinir senha</DialogTitle>
+              <DialogDescription className="xl:text-base">
                 Informe seu email para receber um código de verificação.
               </DialogDescription>
             </DialogHeader>
 
             <form
-              className="space-y-3 text-left"
+              className="space-y-3 text-left xl:space-y-5"
               onSubmit={requestForm.handleSubmit(onRequestSubmit)}
               noValidate
             >
               <div className="space-y-1">
-                <Label htmlFor="reset-request-email">Email</Label>
+                <Label htmlFor="reset-request-email" className="xl:text-base">
+                  Email
+                </Label>
                 <Input
                   id="reset-request-email"
                   type="email"
+                  className="xl:p-5 xl:text-base"
                   {...requestForm.register("email")}
                 />
                 {requestForm.formState.errors.email && (
@@ -137,7 +141,7 @@ const ForgotPasswordDialog = () => {
 
               <Button
                 type="submit"
-                className="w-full cursor-pointer py-5"
+                className="w-full cursor-pointer gap-2 p-4 font-bold xl:p-6 xl:text-base"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -151,25 +155,27 @@ const ForgotPasswordDialog = () => {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Digite o código</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="xl:text-lg">Digite o código</DialogTitle>
+              <DialogDescription className="xl:text-base">
                 Enviamos um código de 6 dígitos para {email}.
               </DialogDescription>
             </DialogHeader>
 
             <form
-              className="space-y-3 text-left"
+              className="space-y-3 text-left xl:space-y-5"
               onSubmit={resetForm.handleSubmit(onResetSubmit)}
               noValidate
             >
               <div className="space-y-1">
-                <Label htmlFor="reset-code">Código</Label>
+                <Label htmlFor="reset-code" className="xl:text-base">
+                  Código
+                </Label>
                 <Input
                   id="reset-code"
                   type="text"
                   inputMode="numeric"
                   maxLength={6}
-                  className="text-center text-lg tracking-[0.5em]"
+                  className="text-center text-lg tracking-[0.5em] xl:p-5 xl:text-xl"
                   {...resetForm.register("code")}
                 />
                 {resetForm.formState.errors.code && (
@@ -180,12 +186,14 @@ const ForgotPasswordDialog = () => {
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="reset-new-password">Nova senha</Label>
+                <Label htmlFor="reset-new-password" className="xl:text-base">
+                  Nova senha
+                </Label>
                 <div className="relative">
                   <Input
                     id="reset-new-password"
                     type={visible.next ? "text" : "password"}
-                    className="pr-10"
+                    className="pr-10 xl:p-5 xl:text-base"
                     {...resetForm.register("newPassword")}
                   />
                   <button
@@ -211,14 +219,17 @@ const ForgotPasswordDialog = () => {
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="reset-confirm-password">
+                <Label
+                  htmlFor="reset-confirm-password"
+                  className="xl:text-base"
+                >
                   Confirmar nova senha
                 </Label>
                 <div className="relative">
                   <Input
                     id="reset-confirm-password"
                     type={visible.confirm ? "text" : "password"}
-                    className="pr-10"
+                    className="pr-10 xl:p-5 xl:text-base"
                     {...resetForm.register("confirmNewPassword")}
                   />
                   <button
@@ -248,7 +259,7 @@ const ForgotPasswordDialog = () => {
 
               <Button
                 type="submit"
-                className="w-full cursor-pointer py-5"
+                className="w-full cursor-pointer gap-2 p-4 font-bold xl:p-6 xl:text-base"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -261,7 +272,7 @@ const ForgotPasswordDialog = () => {
               <button
                 type="button"
                 onClick={() => setStep("request")}
-                className="text-muted-foreground w-full cursor-pointer text-center text-xs hover:underline"
+                className="text-muted-foreground w-full cursor-pointer text-center text-xs hover:underline xl:text-sm"
               >
                 Usar outro email
               </button>
