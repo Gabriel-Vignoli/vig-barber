@@ -2,7 +2,7 @@
 
 import { prisma } from "../_lib/prisma"
 import { resend } from "../_lib/resend"
-import { requestResetCodeSchema } from "./password-reset"
+import { requestResetCodeSchema } from "../_lib/validations/password-reset"
 
 const CODE_EXPIRY_MINUTES = 15
 

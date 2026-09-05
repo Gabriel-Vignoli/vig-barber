@@ -1,11 +1,21 @@
 import { z } from "zod"
-import { passwordSchema } from "../_lib/validations/auth"
+import { passwordSchema } from "./auth"
 
 export const requestResetCodeSchema = z.object({
-  email: z.string().email("Email inválido.").min(1, "O email é obrigatório."),
+  email: z.email("Email inválido.").min(1, "O email é obrigatório."),
 })
 
 export type RequestResetCodeFormValues = z.infer<typeof requestResetCodeSchema>
+
+export const verifyCodeSchema = z.object({
+  email: z.email("Email inválido."),
+  code: z
+    .string()
+    .length(6, "O código deve ter 6 dígitos.")
+    .regex(/^\d+$/, "O código deve conter apenas números."),
+})
+
+export type VerifyCodeFormValues = z.infer<typeof verifyCodeSchema>
 
 export const resetPasswordSchema = z
   .object({

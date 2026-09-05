@@ -2,7 +2,7 @@
 
 import bcrypt from "bcryptjs"
 import { prisma } from "../_lib/prisma"
-import { resetPasswordSchema } from "./password-reset"
+import { resetPasswordSchema } from "../_lib/validations/password-reset"
 
 export const resetPassword = async (input: {
   email: string

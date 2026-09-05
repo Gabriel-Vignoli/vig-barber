@@ -17,27 +17,35 @@ import {
   DialogTrigger,
 } from "./ui/dialog"
 import { requestPasswordReset } from "../_actions/request-password-reset"
+import { verifyResetCode } from "../_actions/verify-reset-code"
 import { resetPassword } from "../_actions/reset-password"
-
 import {
-  RequestResetCodeFormValues,
   requestResetCodeSchema,
-  ResetPasswordFormValues,
+  verifyCodeSchema,
   resetPasswordSchema,
-} from "../_actions/password-reset"
+  RequestResetCodeFormValues,
+  VerifyCodeFormValues,
+  ResetPasswordFormValues,
+} from "../_lib/validations/password-reset"
 
-type Step = "request" | "reset"
+type Step = "request" | "verify-code" | "reset"
 
 const ForgotPasswordDialog = () => {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>("request")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [email, setEmail] = useState("")
+  const [verifiedCode, setVerifiedCode] = useState("")
   const [visible, setVisible] = useState({ next: false, confirm: false })
 
   const requestForm = useForm<RequestResetCodeFormValues>({
     resolver: zodResolver(requestResetCodeSchema),
     defaultValues: { email: "" },
+  })
+
+  const verifyForm = useForm<VerifyCodeFormValues>({
+    resolver: zodResolver(verifyCodeSchema),
+    defaultValues: { email: "", code: "" },
   })
 
   const resetForm = useForm<ResetPasswordFormValues>({
@@ -55,8 +63,10 @@ const ForgotPasswordDialog = () => {
     if (!isOpen) {
       setStep("request")
       requestForm.reset()
+      verifyForm.reset()
       resetForm.reset()
       setEmail("")
+      setVerifiedCode("")
     }
   }
 
@@ -66,12 +76,30 @@ const ForgotPasswordDialog = () => {
     try {
       await requestPasswordReset(values)
       setEmail(values.email)
-      resetForm.setValue("email", values.email)
+      verifyForm.setValue("email", values.email)
       toast.success("Se o email existir, um código foi enviado.")
-      setStep("reset")
+      setStep("verify-code")
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Erro ao enviar código.",
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const onVerifyCodeSubmit = async (values: VerifyCodeFormValues) => {
+    setIsSubmitting(true)
+
+    try {
+      await verifyResetCode(values)
+      setVerifiedCode(values.code)
+      resetForm.setValue("email", values.email)
+      resetForm.setValue("code", values.code)
+      setStep("reset")
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao verificar código.",
       )
     } finally {
       setIsSubmitting(false)
@@ -108,7 +136,7 @@ const ForgotPasswordDialog = () => {
         )}
       />
       <DialogContent className="bg-card border-primary/50 w-[90%] border-2 shadow-xl sm:max-w-md xl:max-w-lg xl:p-8">
-        {step === "request" ? (
+        {step === "request" && (
           <>
             <DialogHeader>
               <DialogTitle className="xl:text-lg">Redefinir senha</DialogTitle>
@@ -152,7 +180,9 @@ const ForgotPasswordDialog = () => {
               </Button>
             </form>
           </>
-        ) : (
+        )}
+
+        {step === "verify-code" && (
           <>
             <DialogHeader>
               <DialogTitle className="xl:text-lg">Digite o código</DialogTitle>
@@ -163,28 +193,65 @@ const ForgotPasswordDialog = () => {
 
             <form
               className="space-y-3 text-left xl:space-y-5"
-              onSubmit={resetForm.handleSubmit(onResetSubmit)}
+              onSubmit={verifyForm.handleSubmit(onVerifyCodeSubmit)}
               noValidate
             >
               <div className="space-y-1">
-                <Label htmlFor="reset-code" className="xl:text-base">
+                <Label htmlFor="verify-code" className="xl:text-base">
                   Código
                 </Label>
                 <Input
-                  id="reset-code"
+                  id="verify-code"
                   type="text"
                   inputMode="numeric"
                   maxLength={6}
                   className="text-center text-lg tracking-[0.5em] xl:p-5 xl:text-xl"
-                  {...resetForm.register("code")}
+                  {...verifyForm.register("code")}
                 />
-                {resetForm.formState.errors.code && (
+                {verifyForm.formState.errors.code && (
                   <p className="text-destructive text-xs">
-                    {resetForm.formState.errors.code.message}
+                    {verifyForm.formState.errors.code.message}
                   </p>
                 )}
               </div>
 
+              <Button
+                type="submit"
+                className="w-full cursor-pointer gap-2 p-4 font-bold xl:p-6 xl:text-base"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2Icon className="size-4 animate-spin" />
+                ) : (
+                  "Validar código"
+                )}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => setStep("request")}
+                className="text-muted-foreground w-full cursor-pointer text-center text-xs hover:underline xl:text-sm"
+              >
+                Usar outro email
+              </button>
+            </form>
+          </>
+        )}
+
+        {step === "reset" && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="xl:text-lg">Nova senha</DialogTitle>
+              <DialogDescription className="xl:text-base">
+                Código verificado. Defina sua nova senha.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form
+              className="space-y-3 text-left xl:space-y-5"
+              onSubmit={resetForm.handleSubmit(onResetSubmit)}
+              noValidate
+            >
               <div className="space-y-1">
                 <Label htmlFor="reset-new-password" className="xl:text-base">
                   Nova senha
@@ -268,14 +335,6 @@ const ForgotPasswordDialog = () => {
                   "Redefinir senha"
                 )}
               </Button>
-
-              <button
-                type="button"
-                onClick={() => setStep("request")}
-                className="text-muted-foreground w-full cursor-pointer text-center text-xs hover:underline xl:text-sm"
-              >
-                Usar outro email
-              </button>
             </form>
           </>
         )}
