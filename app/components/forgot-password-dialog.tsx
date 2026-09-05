@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
@@ -27,6 +27,7 @@ import {
   VerifyCodeFormValues,
   ResetPasswordFormValues,
 } from "../_lib/validations/password-reset"
+import CodeInput from "./code-input"
 
 type Step = "request" | "verify-code" | "reset"
 
@@ -197,19 +198,15 @@ const ForgotPasswordDialog = () => {
               noValidate
             >
               <div className="space-y-1">
-                <Label htmlFor="verify-code" className="xl:text-base">
-                  Código
-                </Label>
-                <Input
-                  id="verify-code"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  className="text-center text-lg tracking-[0.5em] xl:p-5 xl:text-xl"
-                  {...verifyForm.register("code")}
+                <Controller
+                  control={verifyForm.control}
+                  name="code"
+                  render={({ field }) => (
+                    <CodeInput value={field.value} onChange={field.onChange} />
+                  )}
                 />
                 {verifyForm.formState.errors.code && (
-                  <p className="text-destructive text-xs">
+                  <p className="text-destructive text-center text-xs">
                     {verifyForm.formState.errors.code.message}
                   </p>
                 )}
