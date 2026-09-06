@@ -12,8 +12,15 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: "Vig Barber",
-  description: "Agende seu horário com os melhores barbeiros",
+  title: {
+    default: "Vig Barber",
+    template: "%s | Vig Barber",
+  },
+  description:
+    "Agende seu horário com os melhores barbeiros da região. Cortes, barba e cuidados personalizados.",
+  icons: {
+    icon: "/scissor-icon.svg",
+  },
 }
 
 export default function RootLayout({
