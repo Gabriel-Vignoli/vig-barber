@@ -49,6 +49,7 @@ export const authOptions: AuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
+          role: user.role,
         }
       },
     }),
@@ -57,6 +58,8 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        token.role = (user as any).role
       }
       return token
     },
@@ -64,6 +67,7 @@ export const authOptions: AuthOptions = {
       session.user = {
         ...session.user,
         id: token.id,
+        role: token.role,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
       return session
