@@ -27,6 +27,8 @@ import { ptBR } from "date-fns/locale"
 import { Barbershop, BarbershopService, Booking } from "@prisma/client"
 import { format, set } from "date-fns"
 import { createBooking } from "../_actions/create-booking"
+import { getConflictingBooking } from "../_actions/get-conflicting-booking"
+import { replaceBooking } from "../_actions/replace-booking"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { getBookings } from "../_actions/get-bookings"
@@ -43,6 +45,12 @@ interface ServiceItemProps {
   employeeName: string
 }
 
+interface ConflictingBooking {
+  id: string
+  employee: { user: { name: string | null } }
+  barbershopService: { name: string }
+}
+
 const ServiceItem = ({
   service,
   employeeId,
@@ -57,6 +65,9 @@ const ServiceItem = ({
   const [dayBookings, setDayBookings] = useState<Booking[]>([])
   const [bookingSheetIsOpen, setBookingSheetIsOpen] = useState(false)
   const [confirmDialogIsOpen, setConfirmDialogIsOpen] = useState(false)
+  const [conflictDialogIsOpen, setConflictDialogIsOpen] = useState(false)
+  const [conflictingBooking, setConflictingBooking] =
+    useState<ConflictingBooking | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -102,6 +113,18 @@ const ServiceItem = ({
     setSelectedTime(time)
   }
 
+  const performBooking = async (bookingDate: Date) => {
+    await createBooking({
+      barbershopServiceId: service.id,
+      employeeId,
+      bookingDate,
+    })
+
+    setConfirmDialogIsOpen(false)
+    setBookingSheetIsOpen(false)
+    showBookingSuccessToast()
+  }
+
   const handleConfirmBooking = async () => {
     try {
       if (!selectedDay || !selectedTime) return
@@ -124,18 +147,48 @@ const ServiceItem = ({
         hours: hour,
       })
 
-      await createBooking({
+      const conflict = await getConflictingBooking(newDate)
+
+      if (conflict) {
+        setConflictingBooking(conflict)
+        setConfirmDialogIsOpen(false)
+        setConflictDialogIsOpen(true)
+        return
+      }
+
+      await performBooking(newDate)
+    } catch (error) {
+      console.log(error)
+      toast.error("Erro ao criar reserva!")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleReplaceBooking = async () => {
+    if (!conflictingBooking || !selectedDay || !selectedTime) return
+
+    try {
+      setIsSubmitting(true)
+
+      const hour = Number(selectedTime.split(":")[0])
+      const minute = Number(selectedTime.split(":")[1])
+      const newDate = set(selectedDay, { hours: hour, minutes: minute })
+
+      await replaceBooking({
+        oldBookingId: conflictingBooking.id,
         barbershopServiceId: service.id,
         employeeId,
         bookingDate: newDate,
       })
 
-      setConfirmDialogIsOpen(false)
+      setConflictDialogIsOpen(false)
+      setConflictingBooking(null)
       setBookingSheetIsOpen(false)
       showBookingSuccessToast()
     } catch (error) {
       console.log(error)
-      toast.error("Erro ao criar reserva!")
+      toast.error("Erro ao substituir reserva!")
     } finally {
       setIsSubmitting(false)
     }
@@ -313,6 +366,63 @@ const ServiceItem = ({
                             }}
                           >
                             {isSubmitting ? "Confirmando..." : "Confirmar"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog
+                      open={conflictDialogIsOpen}
+                      onOpenChange={setConflictDialogIsOpen}
+                    >
+                      <AlertDialogContent
+                        size="sm"
+                        className="w-[90%] max-w-[90%] lg:w-auto lg:max-w-md"
+                      >
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="lg:text-xl">
+                            Você já tem uma reserva nesse horário
+                          </AlertDialogTitle>
+                          <AlertDialogDescription className="lg:text-base">
+                            Você já possui um agendamento de{" "}
+                            {conflictingBooking?.barbershopService.name} com{" "}
+                            {conflictingBooking?.employee.user.name ??
+                              "Funcionário"}{" "}
+                            para{" "}
+                            {selectedDate
+                              ? format(
+                                  selectedDate,
+                                  "dd 'de' MMMM 'às' HH:mm",
+                                  {
+                                    locale: ptBR,
+                                  },
+                                )
+                              : ""}
+                            . Deseja cancelar essa reserva e agendar{" "}
+                            {service.name} com {employeeName} nesse mesmo
+                            horário?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="lg:p-6">
+                          <AlertDialogCancel
+                            className="cursor-pointer py-5 lg:py-6 lg:text-base"
+                            disabled={isSubmitting}
+                            onClick={() => setConflictingBooking(null)}
+                          >
+                            Manter reserva atual
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            variant="destructive"
+                            className="cursor-pointer py-5 lg:py-6 lg:text-base"
+                            disabled={isSubmitting}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              handleReplaceBooking()
+                            }}
+                          >
+                            {isSubmitting
+                              ? "Substituindo..."
+                              : "Cancelar e agendar novo"}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
