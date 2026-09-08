@@ -79,13 +79,25 @@ function AlertDialogHeader({
 
 function AlertDialogFooter({
   className,
+  display = "row",
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & {
+  display?: "row" | "col" | "col-reverse"
+}) {
+  const displayClasses = {
+    row: "flex-row sm:flex-row justify-end",
+    col: "flex-col sm:flex-col",
+    "col-reverse": "flex-col-reverse sm:flex-col-reverse",
+  }
+
   return (
     <div
       data-slot="alert-dialog-footer"
       className={cn(
-        "bg-muted/50 -mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t p-4 group-data-[size=sm]/alert-dialog-content:grid group-data-[size=sm]/alert-dialog-content:grid-cols-2 sm:flex-row sm:justify-end",
+        "bg-muted/50 -mx-4 -mb-4 flex gap-2 rounded-b-xl border-t p-4",
+        display === "row" &&
+          "group-data-[size=sm]/alert-dialog-content:grid group-data-[size=sm]/alert-dialog-content:grid-cols-2",
+        displayClasses[display],
         className,
       )}
       {...props}

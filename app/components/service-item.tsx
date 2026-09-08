@@ -403,9 +403,9 @@ const ServiceItem = ({
                             horário?
                           </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter className="lg:p-6">
+                        <AlertDialogFooter className="lg:p-6" display="col">
                           <AlertDialogCancel
-                            className="cursor-pointer py-5 lg:py-6 lg:text-base"
+                            className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
                             disabled={isSubmitting}
                             onClick={() => setConflictingBooking(null)}
                           >
@@ -413,7 +413,7 @@ const ServiceItem = ({
                           </AlertDialogCancel>
                           <AlertDialogAction
                             variant="destructive"
-                            className="cursor-pointer py-5 lg:py-6 lg:text-base"
+                            className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
                             disabled={isSubmitting}
                             onClick={(e) => {
                               e.preventDefault()
