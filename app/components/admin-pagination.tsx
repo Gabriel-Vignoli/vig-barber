@@ -7,9 +7,14 @@ import { Button } from "./ui/button"
 interface AdminPaginationProps {
   currentPage: number
   totalPages: number
+  basePath: string
 }
 
-const AdminPagination = ({ currentPage, totalPages }: AdminPaginationProps) => {
+const AdminPagination = ({
+  currentPage,
+  totalPages,
+  basePath,
+}: AdminPaginationProps) => {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -18,11 +23,9 @@ const AdminPagination = ({ currentPage, totalPages }: AdminPaginationProps) => {
   const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set("page", page.toString())
-    router.push(`/admin/bookings?${params.toString()}`)
+    router.push(`${basePath}?${params.toString()}`)
   }
 
-  // Build a compact page list: first, last, current, and neighbors — with
-  // "…" gaps for anything skipped, so a 40-page list doesn't render 40 buttons.
   const pages: (number | "ellipsis")[] = []
   for (let i = 1; i <= totalPages; i++) {
     if (

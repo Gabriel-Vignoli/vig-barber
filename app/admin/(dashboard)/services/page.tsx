@@ -25,7 +25,11 @@ const AdminServicesPage = async ({ searchParams }: AdminServicesPageProps) => {
 
       <AdminServicesTable services={services} />
 
-      <AdminPagination currentPage={currentPage} totalPages={totalPages} />
+      <AdminPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        basePath="/admin/services"
+      />
     </div>
   )
 }
