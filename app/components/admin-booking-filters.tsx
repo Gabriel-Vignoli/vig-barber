@@ -18,6 +18,7 @@ const AdminBookingFilters = () => {
   const handleFilterClick = (filter: string) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set("filter", filter)
+    params.set("page", "1")
     router.push(`/admin/bookings?${params.toString()}`)
   }
 
@@ -28,7 +29,7 @@ const AdminBookingFilters = () => {
           key={filter.value}
           size="sm"
           variant={activeFilter === filter.value ? "default" : "outline"}
-          className="cursor-pointer xl:text-sm"
+          className="cursor-pointer lg:text-base"
           onClick={() => handleFilterClick(filter.value)}
         >
           {filter.label}
