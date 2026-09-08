@@ -91,24 +91,31 @@ const ServiceFormDialog = ({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={renderTrigger} />
-      <DialogContent className="w-[90%] sm:max-w-lg">
+      <DialogContent className="w-[90%] sm:max-w-lg xl:max-w-2xl xl:p-8">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="xl:text-xl">
             {mode === "create" ? "Novo serviço" : "Editar serviço"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="xl:text-base">
             Preencha as informações do serviço.
           </DialogDescription>
         </DialogHeader>
 
         <form
-          className="space-y-4 text-left"
+          className="space-y-4 text-left xl:space-y-6"
           onSubmit={handleSubmit(onSubmit)}
           noValidate
         >
           <div className="space-y-1">
-            <Label htmlFor="service-name">Nome</Label>
-            <Input id="service-name" type="text" {...register("name")} />
+            <Label htmlFor="service-name" className="xl:text-base">
+              Nome
+            </Label>
+            <Input
+              id="service-name"
+              type="text"
+              className="xl:p-5 xl:text-base"
+              {...register("name")}
+            />
             {formState.errors.name && (
               <p className="text-destructive text-xs">
                 {formState.errors.name.message}
@@ -117,10 +124,13 @@ const ServiceFormDialog = ({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="service-description">Descrição</Label>
+            <Label htmlFor="service-description" className="xl:text-base">
+              Descrição
+            </Label>
             <Textarea
               id="service-description"
               rows={3}
+              className="xl:p-5 xl:text-base"
               {...register("description")}
             />
             {formState.errors.description && (
@@ -130,14 +140,17 @@ const ServiceFormDialog = ({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 xl:gap-6">
             <div className="space-y-1">
-              <Label htmlFor="service-price">Preço (R$)</Label>
+              <Label htmlFor="service-price" className="xl:text-base">
+                Preço (R$)
+              </Label>
               <Input
                 id="service-price"
                 type="number"
                 step="0.01"
                 min="0"
+                className="xl:p-5 xl:text-base"
                 {...register("price")}
               />
               {formState.errors.price && (
@@ -148,11 +161,14 @@ const ServiceFormDialog = ({
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="service-duration">Duração (min)</Label>
+              <Label htmlFor="service-duration" className="xl:text-base">
+                Duração (min)
+              </Label>
               <Input
                 id="service-duration"
                 type="number"
                 min="1"
+                className="xl:p-5 xl:text-base"
                 {...register("durationInMinutes")}
               />
               {formState.errors.durationInMinutes && (
@@ -164,11 +180,14 @@ const ServiceFormDialog = ({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="service-image">URL da imagem</Label>
+            <Label htmlFor="service-image" className="xl:text-base">
+              URL da imagem
+            </Label>
             <Input
               id="service-image"
               type="text"
               placeholder="https://..."
+              className="xl:p-5 xl:text-base"
               {...register("imageUrl")}
             />
             {formState.errors.imageUrl && (
@@ -180,7 +199,7 @@ const ServiceFormDialog = ({
 
           <Button
             type="submit"
-            className="w-full cursor-pointer py-5"
+            className="w-full cursor-pointer gap-2 py-5 xl:p-6 xl:text-base"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

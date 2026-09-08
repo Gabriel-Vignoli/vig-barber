@@ -73,16 +73,16 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
       </div>
 
       {services.length === 0 ? (
-        <p className="text-muted-foreground py-8 text-center text-sm">
+        <p className="text-muted-foreground py-8 text-center text-sm xl:text-base">
           Nenhum serviço cadastrado.
         </p>
       ) : (
         <div className="space-y-3">
           {services.map((service) => (
             <Card key={service.id}>
-              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <CardContent className="flex flex-col gap-3 px-3 py-1 sm:flex-row sm:items-center sm:justify-between lg:px-4">
                 <div className="flex items-center gap-3">
-                  <div className="relative size-14 shrink-0 overflow-hidden rounded-lg">
+                  <div className="relative size-14 shrink-0 overflow-hidden rounded-lg lg:size-16">
                     <Image
                       src={service.imageUrl}
                       alt={service.name}
@@ -91,8 +91,8 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
                     />
                   </div>
                   <div>
-                    <p className="font-semibold">{service.name}</p>
-                    <p className="text-muted-foreground line-clamp-1 text-xs">
+                    <p className="font-semibold lg:text-base">{service.name}</p>
+                    <p className="text-muted-foreground line-clamp-1 text-xs lg:text-sm">
                       {service.description}
                     </p>
                   </div>
@@ -100,13 +100,13 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
 
                 <div className="flex items-center justify-between gap-4 sm:gap-6">
                   <div className="text-right">
-                    <p className="text-primary text-sm font-bold">
+                    <p className="text-primary text-sm font-bold lg:text-base">
                       {Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
                       }).format(service.price)}
                     </p>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-muted-foreground text-xs lg:text-sm">
                       {service.durationInMinutes} min
                     </p>
                   </div>
