@@ -32,6 +32,8 @@ import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { getBookings } from "../_actions/get-bookings"
 import { createBooking } from "../_actions/create-booking"
+import { getConflictingBooking } from "../_actions/get-conflicting-booking"
+import { replaceBooking } from "../_actions/replace-booking"
 import { getEmployeesForService } from "../_actions/get-employees-for-service"
 import { getTimeList } from "../_lib/time-list"
 import { showBookingSuccessToast } from "./booking-success-toast"
@@ -54,12 +56,21 @@ interface EmployeeOption {
   imageUrl: string
 }
 
+interface ConflictingBooking {
+  id: string
+  employee: { user: { name: string | null } }
+  barbershopService: { name: string }
+}
+
 const ServiceCard = ({ service }: ServiceCardProps) => {
   const { data } = useSession()
 
   const [signInDialogIsOpen, setSignInDialogIsOpen] = useState(false)
   const [bookingSheetIsOpen, setBookingSheetIsOpen] = useState(false)
   const [confirmDialogIsOpen, setConfirmDialogIsOpen] = useState(false)
+  const [conflictDialogIsOpen, setConflictDialogIsOpen] = useState(false)
+  const [conflictingBooking, setConflictingBooking] =
+    useState<ConflictingBooking | null>(null)
 
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<
@@ -132,6 +143,24 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     setSelectedTime(undefined)
   }
 
+  const performBooking = async () => {
+    if (!selectedDay || !selectedTime || !selectedEmployeeId) return
+
+    const hour = Number(selectedTime.split(":")[0])
+    const minute = Number(selectedTime.split(":")[1])
+    const bookingDate = set(selectedDay, { hours: hour, minutes: minute })
+
+    await createBooking({
+      barbershopServiceId: service.id,
+      employeeId: selectedEmployeeId,
+      bookingDate,
+    })
+
+    setConfirmDialogIsOpen(false)
+    handleSheetOpenChange(false)
+    showBookingSuccessToast()
+  }
+
   const handleConfirmBooking = async () => {
     try {
       if (!selectedDay || !selectedTime || !selectedEmployeeId) return
@@ -150,15 +179,16 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       const minute = Number(selectedTime.split(":")[1])
       const bookingDate = set(selectedDay, { hours: hour, minutes: minute })
 
-      await createBooking({
-        barbershopServiceId: service.id,
-        employeeId: selectedEmployeeId,
-        bookingDate,
-      })
+      const conflict = await getConflictingBooking(bookingDate)
 
-      setConfirmDialogIsOpen(false)
-      handleSheetOpenChange(false)
-      showBookingSuccessToast()
+      if (conflict) {
+        setConflictingBooking(conflict)
+        setConfirmDialogIsOpen(false)
+        setConflictDialogIsOpen(true)
+        return
+      }
+
+      await performBooking()
     } catch (error) {
       console.log(error)
       toast.error("Erro ao criar reserva!")
@@ -167,9 +197,44 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     }
   }
 
+  const handleReplaceBooking = async () => {
+    if (
+      !conflictingBooking ||
+      !selectedDay ||
+      !selectedTime ||
+      !selectedEmployeeId
+    )
+      return
+
+    try {
+      setIsSubmitting(true)
+
+      const hour = Number(selectedTime.split(":")[0])
+      const minute = Number(selectedTime.split(":")[1])
+      const bookingDate = set(selectedDay, { hours: hour, minutes: minute })
+
+      await replaceBooking({
+        oldBookingId: conflictingBooking.id,
+        barbershopServiceId: service.id,
+        employeeId: selectedEmployeeId,
+        bookingDate,
+      })
+
+      setConflictDialogIsOpen(false)
+      setConflictingBooking(null)
+      handleSheetOpenChange(false)
+      showBookingSuccessToast()
+    } catch (error) {
+      console.log(error)
+      toast.error("Erro ao substituir reserva!")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <>
-      <Card className="w-32 shrink-0 p-0 md:w-52 lg:w-60">
+      <Card className="min-w-32 p-0 md:min-w-52 lg:min-w-60">
         <CardContent className="p-0">
           <div className="relative h-32 w-full md:h-48 lg:h-56">
             <Image
@@ -211,7 +276,6 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto px-0 [&::-webkit-scrollbar]:hidden">
-            {/* Step 1: choose employee */}
             <div className="border-b px-4 pb-4">
               <h3 className="mb-3 text-sm font-semibold text-gray-400 uppercase">
                 Escolha o profissional
@@ -247,7 +311,6 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
               )}
             </div>
 
-            {/* Step 2: calendar */}
             {selectedEmployeeId && (
               <div className="flex justify-center border-b bg-transparent pb-6 lg:pb-8">
                 <Calendar
@@ -286,7 +349,6 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
               </div>
             )}
 
-            {/* Step 3: time list */}
             {selectedDay && (
               <div className="flex gap-3 overflow-x-auto border-b p-4 lg:gap-4 lg:p-6 [&::-webkit-scrollbar]:hidden">
                 {getTimeList(dayBookings, selectedDay).map((time) => (
@@ -302,7 +364,6 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
               </div>
             )}
 
-            {/* Step 4: summary */}
             {selectedTime && selectedDay && selectedEmployee && (
               <div className="p-4 lg:p-6">
                 <BookingSummary
@@ -368,6 +429,57 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
                     }}
                   >
                     {isSubmitting ? "Confirmando..." : "Confirmar"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+              open={conflictDialogIsOpen}
+              onOpenChange={setConflictDialogIsOpen}
+            >
+              <AlertDialogContent
+                size="sm"
+                className="w-[90%] max-w-[90%] lg:w-auto lg:max-w-md"
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="lg:text-xl">
+                    Você já tem uma reserva nesse horário
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="lg:text-base">
+                    Você já possui um agendamento de{" "}
+                    {conflictingBooking?.barbershopService.name} com{" "}
+                    {conflictingBooking?.employee.user.name ?? "Funcionário"}{" "}
+                    para{" "}
+                    {selectedDate
+                      ? format(selectedDate, "dd 'de' MMMM 'às' HH:mm", {
+                          locale: ptBR,
+                        })
+                      : ""}
+                    . Deseja cancelar essa reserva e agendar {service.name} com{" "}
+                    {selectedEmployee?.name} nesse mesmo horário?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="lg:p-6">
+                  <AlertDialogCancel
+                    className="cursor-pointer py-5 lg:py-6 lg:text-base"
+                    disabled={isSubmitting}
+                    onClick={() => setConflictingBooking(null)}
+                  >
+                    Manter reserva atual
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    className="cursor-pointer py-5 lg:py-6 lg:text-base"
+                    disabled={isSubmitting}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleReplaceBooking()
+                    }}
+                  >
+                    {isSubmitting
+                      ? "Substituindo..."
+                      : "Cancelar e agendar novo"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
