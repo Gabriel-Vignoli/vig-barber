@@ -8,11 +8,14 @@ import {
   CalendarIcon,
   LayoutDashboardIcon,
   LogOutIcon,
+  MenuIcon,
   ScissorsIcon,
   UsersIcon,
 } from "lucide-react"
 import { Card, CardContent } from "./ui/card"
 import { Button } from "./ui/button"
+import { Sheet, SheetTrigger } from "./ui/sheet"
+import AdminSidebarSheet from "./admin-sidebar-sheet"
 import Image from "next/image"
 
 interface AdminHeaderProps {
@@ -71,45 +74,37 @@ const AdminHeader = ({ adminName }: AdminHeaderProps) => {
           })}
         </nav>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
           <span className="text-muted-foreground hidden text-sm md:inline">
             {adminName}
           </span>
+
           <Button
             variant="ghost"
             size="icon"
-            className="cursor-pointer text-red-400"
+            className="hidden cursor-pointer text-red-400 md:flex"
             onClick={handleLogoutClick}
           >
             <LogOutIcon size={18} />
           </Button>
-        </div>
-      </CardContent>
 
-      <nav className="flex items-center gap-1 overflow-x-auto border-t p-2 md:hidden [&::-webkit-scrollbar]:hidden">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
-              : pathname.startsWith(item.href)
-
-          return (
-            <Button
-              key={item.href}
-              variant={isActive ? "default" : "ghost"}
-              size="sm"
-              className="shrink-0 cursor-pointer gap-1.5"
-              nativeButton={false}
-              render={(buttonProps) => (
-                <Link href={item.href} {...buttonProps}>
-                  <item.icon size={14} />
-                  {item.label}
-                </Link>
+          <Sheet>
+            <SheetTrigger
+              render={(triggerProps) => (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="cursor-pointer md:hidden"
+                  {...triggerProps}
+                >
+                  <MenuIcon size={20} />
+                </Button>
               )}
             />
-          )
-        })}
-      </nav>
+            <AdminSidebarSheet adminName={adminName} />
+          </Sheet>
+        </div>
+      </CardContent>
     </Card>
   )
 }
