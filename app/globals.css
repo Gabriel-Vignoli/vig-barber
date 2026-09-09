@@ -67,11 +67,14 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+
+  /* Chart colors — blue family matching primary */
+  --chart-1: hsl(217, 91%, 60%);
+  --chart-2: hsl(217, 70%, 70%);
+  --chart-3: hsl(210, 80%, 50%);
+  --chart-4: hsl(198, 75%, 50%);
+  --chart-5: hsl(230, 65%, 50%);
+
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -102,11 +105,14 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+
+  /* Dark mode chart colors — blue family matching primary */
+  --chart-1: hsl(217, 91%, 65%);
+  --chart-2: hsl(217, 70%, 75%);
+  --chart-3: hsl(210, 85%, 58%);
+  --chart-4: hsl(198, 80%, 58%);
+  --chart-5: hsl(230, 70%, 62%);
+
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);

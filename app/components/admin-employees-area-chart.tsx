@@ -30,7 +30,7 @@ import {
 import {
   EmployeesOverviewRange,
   getEmployeesOverview,
-} from "./get-employees-overview"
+} from "../_actions/get-employees-overview"
 
 const CHART_COLORS = [
   "var(--chart-1)",

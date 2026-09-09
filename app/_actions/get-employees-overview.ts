@@ -26,13 +26,11 @@ export const getEmployeesOverview = async (
   const rangeStart = startOfDay(subDays(new Date(), days - 1))
   const rangeEnd = endOfDay(new Date())
 
-  // Get all active employees
   const allEmployees = await prisma.employee.findMany({
     where: { isActive: true },
     include: { user: { select: { name: true } } },
   })
 
-  // Get bookings in the date range
   const bookings = await prisma.booking.findMany({
     where: {
       bookingDate: { gte: rangeStart, lte: rangeEnd },
@@ -43,17 +41,14 @@ export const getEmployeesOverview = async (
     },
   })
 
-  // Get employee names from all active employees
   const employeeNames = allEmployees.map(
     (employee) => (employee.user.name ?? "Funcionário").split(" ")[0],
   )
 
-  // If no active employees, return empty result
   if (employeeNames.length === 0) {
     return { data: [], employeeNames: [] }
   }
 
-  // Initialize map with all employees having 0
   const byDate = new Map<string, Record<string, number>>()
 
   for (let i = 0; i < days; i++) {
@@ -65,7 +60,6 @@ export const getEmployeesOverview = async (
     byDate.set(date, emptyRow)
   }
 
-  // Fill in booking counts
   for (const booking of bookings) {
     const dateKey = format(booking.bookingDate, "yyyy-MM-dd")
     const employeeName = (booking.employee.user.name ?? "Funcionário").split(
