@@ -1,18 +1,21 @@
-import { requireAdmin } from "../../_lib/require-admin"
+import { requireAdmin } from "@/app/_lib/require-admin"
+import AdminDashboard from "@/app/components/admin-dashboard"
 
-const AdminPage = async () => {
+const AdminDashboardPage = async () => {
   const admin = await requireAdmin()
 
   return (
-    <>
-      <div className="mx-auto max-w-5xl space-y-6 p-4 lg:p-8">
-        <h1 className="text-xl font-bold lg:text-2xl">Painel Admin</h1>
-        <p className="text-muted-foreground">
-          Bem-vindo, {admin.name}. Área restrita a administradores.
+    <div className="mx-auto max-w-6xl space-y-6 p-4 lg:p-8">
+      <div>
+        <h1 className="text-xl font-bold lg:text-2xl">Dashboard</h1>
+        <p className="text-muted-foreground text-sm">
+          Bem-vindo, {admin.name}.
         </p>
       </div>
-    </>
+
+      <AdminDashboard />
+    </div>
   )
 }
 
-export default AdminPage
+export default AdminDashboardPage
