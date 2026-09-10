@@ -12,8 +12,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from "./ui/chart"
 import { ServiceStat } from "../_actions/get-dashboard-stats"
@@ -35,13 +33,15 @@ const AdminBookingsPieChart = ({
   serviceStats,
   rangeLabel,
 }: AdminBookingsPieChartProps) => {
-  const chartData = serviceStats.map((service, index) => ({
+  const sortedStats = [...serviceStats].sort((a, b) => b.bookings - a.bookings)
+
+  const chartData = sortedStats.map((service, index) => ({
     name: service.serviceName,
     bookings: service.bookings,
     fill: COLORS[index % COLORS.length],
   }))
 
-  const chartConfig = serviceStats.reduce((config, service, index) => {
+  const chartConfig = sortedStats.reduce((config, service, index) => {
     config[service.serviceName] = {
       label: service.serviceName,
       color: COLORS[index % COLORS.length],
@@ -61,22 +61,44 @@ const AdminBookingsPieChart = ({
             Nenhum agendamento nesse período.
           </p>
         ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="mx-auto aspect-square max-h-[280px]"
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel nameKey="name" />}
-              />
-              <Pie data={chartData} dataKey="bookings" nameKey="name" />
-              <ChartLegend
-                content={<ChartLegendContent nameKey="name" />}
-                className="flex-wrap gap-2"
-              />
-            </PieChart>
-          </ChartContainer>
+          <>
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto aspect-square max-h-[280px]"
+            >
+              <PieChart>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel nameKey="name" />}
+                />
+                <Pie data={chartData} dataKey="bookings" nameKey="name" />
+              </PieChart>
+            </ChartContainer>
+
+            <div className="mt-4 space-y-2 pb-4">
+              {chartData.map((service, index) => (
+                <div
+                  key={service.name}
+                  className="flex items-center justify-between rounded-lg border px-3 py-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground w-4 text-xs font-medium">
+                      {index + 1}º
+                    </span>
+                    <span
+                      className="size-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: service.fill }}
+                    />
+                    <span className="text-sm font-medium">{service.name}</span>
+                  </div>
+                  <span className="text-muted-foreground text-sm font-semibold">
+                    {service.bookings}{" "}
+                    {service.bookings === 1 ? "agendamento" : "agendamentos"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
