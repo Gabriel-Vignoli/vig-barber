@@ -5,6 +5,8 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
   CalendarIcon,
+  CheckCircle2Icon,
+  ClockIcon,
   DollarSignIcon,
   Loader2Icon,
   ScissorsIcon,
@@ -99,44 +101,94 @@ const AdminDashboard = () => {
         </Popover>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="bg-primary/10 flex size-12 shrink-0 items-center justify-center rounded-full">
-              <ScissorsIcon size={22} className="text-primary" />
-            </div>
-            <div>
+          <CardContent className="space-y-4 p-4">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 flex size-9 items-center justify-center rounded-full">
+                <ScissorsIcon size={18} className="text-primary" />
+              </div>
               <p className="text-muted-foreground text-xs uppercase">
                 Agendamentos — {rangeLabel}
               </p>
-              <p className="text-2xl font-bold">
-                {isPending ? (
-                  <Loader2Icon className="size-5 animate-spin" />
-                ) : (
-                  (stats?.totalBookings ?? 0)
-                )}
-              </p>
             </div>
+
+            {isPending ? (
+              <div className="flex justify-center py-4">
+                <Loader2Icon className="size-5 animate-spin" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                    <CheckCircle2Icon size={12} />
+                    Concluídos
+                  </div>
+                  <p className="text-xl font-bold">
+                    {stats?.bookingsBreakdown.concluded ?? 0}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                    <ClockIcon size={12} />A concluir
+                  </div>
+                  <p className="text-xl font-bold">
+                    {stats?.bookingsBreakdown.upcoming ?? 0}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground text-xs">Total</p>
+                  <p className="text-primary text-xl font-bold">
+                    {stats?.bookingsBreakdown.total ?? 0}
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="bg-primary/10 flex size-12 shrink-0 items-center justify-center rounded-full">
-              <DollarSignIcon size={22} className="text-primary" />
-            </div>
-            <div>
+          <CardContent className="space-y-4 p-4">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 flex size-9 items-center justify-center rounded-full">
+                <DollarSignIcon size={18} className="text-primary" />
+              </div>
               <p className="text-muted-foreground text-xs uppercase">
                 Faturamento — {rangeLabel}
               </p>
-              <p className="text-primary text-2xl font-bold">
-                {isPending ? (
-                  <Loader2Icon className="size-5 animate-spin" />
-                ) : (
-                  currency(stats?.totalRevenue ?? 0)
-                )}
-              </p>
             </div>
+
+            {isPending ? (
+              <div className="flex justify-center py-4">
+                <Loader2Icon className="size-5 animate-spin" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                    <CheckCircle2Icon size={12} />
+                    Concluído
+                  </div>
+                  <p className="text-lg font-bold">
+                    {currency(stats?.revenueBreakdown.concluded ?? 0)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                    <ClockIcon size={12} />A receber
+                  </div>
+                  <p className="text-lg font-bold">
+                    {currency(stats?.revenueBreakdown.upcoming ?? 0)}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground text-xs">Total</p>
+                  <p className="text-primary text-lg font-bold">
+                    {currency(stats?.revenueBreakdown.total ?? 0)}
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

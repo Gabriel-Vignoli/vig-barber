@@ -25,9 +25,21 @@ export interface EmployeeStat {
   revenue: number
 }
 
+export interface CountBreakdown {
+  concluded: number
+  upcoming: number
+  total: number
+}
+
+export interface RevenueBreakdown {
+  concluded: number
+  upcoming: number
+  total: number
+}
+
 export interface DashboardStats {
-  totalBookings: number
-  totalRevenue: number
+  bookingsBreakdown: CountBreakdown
+  revenueBreakdown: RevenueBreakdown
   rangeStart: Date
   rangeEnd: Date
   employeeStats: EmployeeStat[]
@@ -64,15 +76,26 @@ export const getDashboardStats = async ({
     },
   })
 
+  const now = new Date()
   const statsByEmployee = new Map<string, EmployeeStat>()
 
-  let totalBookings = 0
-  let totalRevenue = 0
+  let concludedBookings = 0
+  let upcomingBookings = 0
+  let concludedRevenue = 0
+  let upcomingRevenue = 0
 
   for (const booking of bookings) {
     const price = Number(booking.barbershopService.price)
-    totalBookings += 1
-    totalRevenue += price
+    const isConcluded =
+      booking.status === "COMPLETED" || booking.bookingDate < now
+
+    if (isConcluded) {
+      concludedBookings += 1
+      concludedRevenue += price
+    } else {
+      upcomingBookings += 1
+      upcomingRevenue += price
+    }
 
     const employeeName = booking.employee.user.name ?? "Funcionário"
     const existing = statsByEmployee.get(booking.employeeId)
@@ -94,5 +117,19 @@ export const getDashboardStats = async ({
     (a, b) => b.revenue - a.revenue,
   )
 
-  return { totalBookings, totalRevenue, rangeStart, rangeEnd, employeeStats }
+  return {
+    bookingsBreakdown: {
+      concluded: concludedBookings,
+      upcoming: upcomingBookings,
+      total: concludedBookings + upcomingBookings,
+    },
+    revenueBreakdown: {
+      concluded: concludedRevenue,
+      upcoming: upcomingRevenue,
+      total: concludedRevenue + upcomingRevenue,
+    },
+    rangeStart,
+    rangeEnd,
+    employeeStats,
+  }
 }
