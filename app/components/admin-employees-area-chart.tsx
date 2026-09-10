@@ -112,7 +112,7 @@ const AdminEmployeesAreaChart = () => {
                 content={
                   <ChartTooltipContent
                     labelFormatter={(value) =>
-                      format(new Date(value), "dd 'de' MMMM", {
+                      format(parseDateKey(value), "dd 'de' MMMM", {
                         locale: ptBR,
                       })
                     }
