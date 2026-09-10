@@ -20,17 +20,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "./ui/chart"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select"
-import {
-  EmployeesOverviewRange,
-  getEmployeesOverview,
-} from "../_actions/get-employees-overview"
+import { getEmployeesOverview } from "../_actions/get-employees-overview"
 
 const CHART_COLORS = [
   "var(--chart-1)",
@@ -40,25 +30,18 @@ const CHART_COLORS = [
   "var(--chart-5)",
 ]
 
-const RANGE_LABELS: Record<EmployeesOverviewRange, string> = {
-  "90d": "Últimos 3 meses",
-  "30d": "Últimos 30 dias",
-  "7d": "Últimos 7 dias",
-}
-
 const AdminEmployeesAreaChart = () => {
-  const [range, setRange] = useState<EmployeesOverviewRange>("90d")
   const [data, setData] = useState<Record<string, string | number>[]>([])
   const [employeeNames, setEmployeeNames] = useState<string[]>([])
 
   useEffect(() => {
     const fetch = async () => {
-      const result = await getEmployeesOverview(range)
+      const result = await getEmployeesOverview()
       setData(result.data)
       setEmployeeNames(result.employeeNames)
     }
     fetch()
-  }, [range])
+  }, [])
 
   const chartConfig = employeeNames.reduce((config, name, index) => {
     config[name] = {
@@ -68,42 +51,20 @@ const AdminEmployeesAreaChart = () => {
     return config
   }, {} as ChartConfig)
 
+  const monthLabel = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })
+
   return (
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          <CardTitle>Agendamentos por funcionário</CardTitle>
-          <CardDescription>
-            Comparativo de agendamentos ao longo do tempo
-          </CardDescription>
+          <CardTitle>Agendamentos concluídos por funcionário</CardTitle>
+          <CardDescription className="capitalize">{monthLabel}</CardDescription>
         </div>
-        <Select
-          value={range}
-          onValueChange={(value) => setRange(value as EmployeesOverviewRange)}
-        >
-          <SelectTrigger
-            className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
-            aria-label="Selecione o período"
-          >
-            <SelectValue placeholder={RANGE_LABELS[range]} />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="90d" className="rounded-lg">
-              Últimos 3 meses
-            </SelectItem>
-            <SelectItem value="30d" className="rounded-lg">
-              Últimos 30 dias
-            </SelectItem>
-            <SelectItem value="7d" className="rounded-lg">
-              Últimos 7 dias
-            </SelectItem>
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {employeeNames.length === 0 ? (
           <p className="text-muted-foreground py-12 text-center text-sm">
-            Nenhum agendamento nesse período.
+            Nenhum funcionário cadastrado.
           </p>
         ) : (
           <ChartContainer
@@ -140,7 +101,7 @@ const AdminEmployeesAreaChart = () => {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                minTickGap={32}
+                minTickGap={20}
                 tickFormatter={(value) =>
                   format(new Date(value), "dd/MM", { locale: ptBR })
                 }
