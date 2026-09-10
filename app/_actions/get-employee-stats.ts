@@ -1,15 +1,12 @@
 "use server"
 
-import {
-  startOfDay,
-  endOfDay,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-} from "date-fns"
 import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import {
+  getBrazilDayRange,
+  getBrazilWeekRange,
+  getBrazilMonthRange,
+} from "../_lib/timezone"
 
 export type StatsPeriod = "day" | "week" | "month"
 
@@ -20,24 +17,17 @@ export const getEmployeeStats = async (
   await requireAdmin()
 
   const now = new Date()
-  let start: Date
-  let end: Date
-
-  if (period === "day") {
-    start = startOfDay(now)
-    end = endOfDay(now)
-  } else if (period === "week") {
-    start = startOfWeek(now, { weekStartsOn: 0 })
-    end = endOfWeek(now, { weekStartsOn: 0 })
-  } else {
-    start = startOfMonth(now)
-    end = endOfMonth(now)
-  }
+  const { rangeStart, rangeEnd } =
+    period === "day"
+      ? getBrazilDayRange(now)
+      : period === "week"
+        ? getBrazilWeekRange(now)
+        : getBrazilMonthRange(now)
 
   const bookings = await prisma.booking.findMany({
     where: {
       employeeId,
-      bookingDate: { gte: start, lte: end },
+      bookingDate: { gte: rangeStart, lt: rangeEnd },
       status: { not: "CANCELLED" },
     },
     include: { barbershopService: { select: { price: true } } },

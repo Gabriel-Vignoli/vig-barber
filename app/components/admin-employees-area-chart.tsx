@@ -21,6 +21,7 @@ import {
   type ChartConfig,
 } from "./ui/chart"
 import { getEmployeesOverview } from "../_actions/get-employees-overview"
+import { parseDateKey } from "../_lib/timezone"
 
 const CHART_COLORS = [
   "var(--chart-1)",
@@ -103,7 +104,7 @@ const AdminEmployeesAreaChart = () => {
                 tickMargin={8}
                 minTickGap={20}
                 tickFormatter={(value) =>
-                  format(new Date(value), "dd/MM", { locale: ptBR })
+                  format(parseDateKey(value), "dd/MM", { locale: ptBR })
                 }
               />
               <ChartTooltip

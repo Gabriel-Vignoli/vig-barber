@@ -23,6 +23,7 @@ import {
   getMonthlyOverview,
   MonthlyOverviewDataPoint,
 } from "../_actions/get-monthly-overview"
+import { parseDateKey } from "../_lib/timezone"
 
 const bookingsChartConfig = {
   concludedBookings: {
@@ -130,7 +131,7 @@ const AdminOverviewChart = () => {
               tickMargin={8}
               minTickGap={20}
               tickFormatter={(value) =>
-                format(new Date(value), "dd/MM", { locale: ptBR })
+                format(parseDateKey(value), "dd/MM", { locale: ptBR })
               }
             />
             <ChartTooltip
@@ -138,7 +139,9 @@ const AdminOverviewChart = () => {
                 <ChartTooltipContent
                   className="w-[180px]"
                   labelFormatter={(value) =>
-                    format(new Date(value), "dd 'de' MMMM", { locale: ptBR })
+                    format(parseDateKey(value), "dd 'de' MMMM", {
+                      locale: ptBR,
+                    })
                   }
                   formatter={(value, name) => {
                     const label =

@@ -1,8 +1,12 @@
 "use server"
 
-import { startOfMonth, endOfMonth, eachDayOfInterval, format } from "date-fns"
 import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import {
+  getBrazilDateKey,
+  getBrazilMonthRange,
+  getDaysInBrazilMonth,
+} from "../_lib/timezone"
 
 export interface EmployeesOverviewResult {
   data: Record<string, string | number>[]
@@ -14,8 +18,7 @@ export const getEmployeesOverview =
     await requireAdmin()
 
     const now = new Date()
-    const rangeStart = startOfMonth(now)
-    const rangeEnd = endOfMonth(now)
+    const { rangeStart, rangeEnd, year, month } = getBrazilMonthRange(now)
 
     const allEmployees = await prisma.employee.findMany({
       where: { isActive: true },
@@ -24,7 +27,7 @@ export const getEmployeesOverview =
 
     const bookings = await prisma.booking.findMany({
       where: {
-        bookingDate: { gte: rangeStart, lte: rangeEnd },
+        bookingDate: { gte: rangeStart, lt: rangeEnd },
         status: { not: "CANCELLED" },
       },
       include: {
@@ -40,10 +43,11 @@ export const getEmployeesOverview =
       return { data: [], employeeNames: [] }
     }
 
+    const daysInMonth = getDaysInBrazilMonth(year, month)
     const byDate = new Map<string, Record<string, number>>()
 
-    for (const day of eachDayOfInterval({ start: rangeStart, end: rangeEnd })) {
-      const key = format(day, "yyyy-MM-dd")
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
       const emptyRow: Record<string, number> = {}
       employeeNames.forEach((name) => {
         emptyRow[name] = 0
@@ -57,7 +61,7 @@ export const getEmployeesOverview =
 
       if (!isConcluded) continue
 
-      const dateKey = format(booking.bookingDate, "yyyy-MM-dd")
+      const dateKey = getBrazilDateKey(booking.bookingDate)
       const employeeName = (booking.employee.user.name ?? "Funcionário").split(
         " ",
       )[0]
