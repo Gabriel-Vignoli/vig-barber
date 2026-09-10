@@ -26,22 +26,22 @@ import { parseDateKey } from "../_lib/timezone"
 const bookingsChartConfig = {
   concludedBookings: {
     label: "Concluídos",
-    color: "var(--chart-1)",
+    color: "var(--chart-6)",
   },
   upcomingBookings: {
     label: "A concluir",
-    color: "var(--chart-3)",
+    color: "var(--chart-7)",
   },
 } satisfies ChartConfig
 
 const revenueChartConfig = {
   concludedRevenue: {
     label: "Concluído",
-    color: "var(--chart-1)",
+    color: "var(--chart-6)",
   },
   upcomingRevenue: {
     label: "A receber",
-    color: "var(--chart-3)",
+    color: "var(--chart-7)",
   },
 } satisfies ChartConfig
 
@@ -99,7 +99,7 @@ const AdminOverviewChart = () => {
             key: "concludedBookings",
             label: "Concluídos",
             value: monthTotals.concludedBookings.toString(),
-            color: "var(--chart-1)",
+            color: "var(--chart-6)",
           },
           {
             key: "upcomingBookings",
@@ -113,7 +113,7 @@ const AdminOverviewChart = () => {
             key: "concludedRevenue",
             label: "Concluído",
             value: currency(monthTotals.concludedRevenue),
-            color: "var(--chart-1)",
+            color: "var(--chart-6)",
           },
           {
             key: "upcomingRevenue",
@@ -139,7 +139,7 @@ const AdminOverviewChart = () => {
             <span className="text-muted-foreground text-xs">
               Agendamentos concluídos
             </span>
-            <span className="text-lg leading-none font-bold sm:text-3xl">
+            <span className="text-primary text-lg leading-none font-bold sm:text-3xl">
               {totals.totalConcludedBookings.toLocaleString()}
             </span>
           </button>
@@ -151,7 +151,7 @@ const AdminOverviewChart = () => {
             <span className="text-muted-foreground text-xs">
               Faturamento concluído
             </span>
-            <span className="text-lg leading-none font-bold sm:text-3xl">
+            <span className="text-primary text-lg leading-none font-bold sm:text-3xl">
               {currency(totals.totalConcludedRevenue)}
             </span>
           </button>

@@ -124,7 +124,7 @@ const AdminDashboard = () => {
                     <CheckCircle2Icon size={12} />
                     Concluídos
                   </div>
-                  <p className="text-xl font-bold">
+                  <p className="text-primary text-xl font-bold">
                     {stats?.bookingsBreakdown.concluded ?? 0}
                   </p>
                 </div>
@@ -138,7 +138,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="space-y-1">
                   <p className="text-muted-foreground text-xs">Total</p>
-                  <p className="text-primary text-xl font-bold">
+                  <p className="text-xl font-bold text-[#96befe]">
                     {stats?.bookingsBreakdown.total ?? 0}
                   </p>
                 </div>
@@ -169,7 +169,7 @@ const AdminDashboard = () => {
                     <CheckCircle2Icon size={12} />
                     Concluído
                   </div>
-                  <p className="text-lg font-bold">
+                  <p className="text-primary text-lg font-bold">
                     {currency(stats?.revenueBreakdown.concluded ?? 0)}
                   </p>
                 </div>
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="space-y-1">
                   <p className="text-muted-foreground text-xs">Total</p>
-                  <p className="text-primary text-lg font-bold">
+                  <p className="text-lg font-bold text-[#96befe]">
                     {currency(stats?.revenueBreakdown.total ?? 0)}
                   </p>
                 </div>
