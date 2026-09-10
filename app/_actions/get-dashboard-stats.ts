@@ -22,6 +22,13 @@ export interface EmployeeStat {
   revenue: number
 }
 
+export interface ServiceStat {
+  serviceId: string
+  serviceName: string
+  bookings: number
+  revenue: number
+}
+
 export interface CountBreakdown {
   concluded: number
   upcoming: number
@@ -40,6 +47,7 @@ export interface DashboardStats {
   rangeStart: Date
   rangeEnd: Date
   employeeStats: EmployeeStat[]
+  serviceStats: ServiceStat[]
 }
 
 export const getDashboardStats = async ({
@@ -62,12 +70,13 @@ export const getDashboardStats = async ({
     },
     include: {
       employee: { include: { user: { select: { name: true } } } },
-      barbershopService: { select: { price: true } },
+      barbershopService: { select: { id: true, name: true, price: true } },
     },
   })
 
   const now = new Date()
   const statsByEmployee = new Map<string, EmployeeStat>()
+  const statsByService = new Map<string, ServiceStat>()
 
   let concludedBookings = 0
   let upcomingBookings = 0
@@ -88,11 +97,11 @@ export const getDashboardStats = async ({
     }
 
     const employeeName = booking.employee.user.name ?? "Funcionário"
-    const existing = statsByEmployee.get(booking.employeeId)
+    const existingEmployee = statsByEmployee.get(booking.employeeId)
 
-    if (existing) {
-      existing.bookings += 1
-      existing.revenue += price
+    if (existingEmployee) {
+      existingEmployee.bookings += 1
+      existingEmployee.revenue += price
     } else {
       statsByEmployee.set(booking.employeeId, {
         employeeId: booking.employeeId,
@@ -101,10 +110,30 @@ export const getDashboardStats = async ({
         revenue: price,
       })
     }
+
+    const serviceId = booking.barbershopService.id
+    const serviceName = booking.barbershopService.name
+    const existingService = statsByService.get(serviceId)
+
+    if (existingService) {
+      existingService.bookings += 1
+      existingService.revenue += price
+    } else {
+      statsByService.set(serviceId, {
+        serviceId,
+        serviceName,
+        bookings: 1,
+        revenue: price,
+      })
+    }
   }
 
   const employeeStats = Array.from(statsByEmployee.values()).sort(
     (a, b) => b.revenue - a.revenue,
+  )
+
+  const serviceStats = Array.from(statsByService.values()).sort(
+    (a, b) => b.bookings - a.bookings,
   )
 
   return {
@@ -121,5 +150,6 @@ export const getDashboardStats = async ({
     rangeStart,
     rangeEnd,
     employeeStats,
+    serviceStats,
   }
 }

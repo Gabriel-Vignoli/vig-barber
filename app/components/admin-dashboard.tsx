@@ -198,7 +198,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <AdminEmployeesAreaChart />
         <AdminBookingsPieChart
-          employeeStats={stats?.employeeStats ?? []}
+          serviceStats={stats?.serviceStats ?? []}
           rangeLabel={rangeLabel}
         />
       </div>

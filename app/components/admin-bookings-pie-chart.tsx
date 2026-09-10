@@ -16,7 +16,7 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "./ui/chart"
-import { EmployeeStat } from "../_actions/get-dashboard-stats"
+import { ServiceStat } from "../_actions/get-dashboard-stats"
 
 const COLORS = [
   "var(--chart-1)",
@@ -27,23 +27,23 @@ const COLORS = [
 ]
 
 interface AdminBookingsPieChartProps {
-  employeeStats: EmployeeStat[]
+  serviceStats: ServiceStat[]
   rangeLabel: string
 }
 
 const AdminBookingsPieChart = ({
-  employeeStats,
+  serviceStats,
   rangeLabel,
 }: AdminBookingsPieChartProps) => {
-  const chartData = employeeStats.map((employee, index) => ({
-    name: employee.employeeName,
-    bookings: employee.bookings,
+  const chartData = serviceStats.map((service, index) => ({
+    name: service.serviceName,
+    bookings: service.bookings,
     fill: COLORS[index % COLORS.length],
   }))
 
-  const chartConfig = employeeStats.reduce((config, employee, index) => {
-    config[employee.employeeName] = {
-      label: employee.employeeName,
+  const chartConfig = serviceStats.reduce((config, service, index) => {
+    config[service.serviceName] = {
+      label: service.serviceName,
       color: COLORS[index % COLORS.length],
     }
     return config
@@ -52,7 +52,7 @@ const AdminBookingsPieChart = ({
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Agendamentos por funcionário</CardTitle>
+        <CardTitle>Agendamentos por serviço</CardTitle>
         <CardDescription>{rangeLabel}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
