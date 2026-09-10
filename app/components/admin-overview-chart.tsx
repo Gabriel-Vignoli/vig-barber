@@ -15,8 +15,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from "./ui/chart"
 import {
@@ -78,6 +76,52 @@ const AdminOverviewChart = () => {
     activeMetric === "bookings" ? bookingsChartConfig : revenueChartConfig
 
   const monthLabel = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })
+
+  const monthTotals = data.reduce(
+    (acc, day) => ({
+      concludedBookings: acc.concludedBookings + day.concludedBookings,
+      upcomingBookings: acc.upcomingBookings + day.upcomingBookings,
+      concludedRevenue: acc.concludedRevenue + day.concludedRevenue,
+      upcomingRevenue: acc.upcomingRevenue + day.upcomingRevenue,
+    }),
+    {
+      concludedBookings: 0,
+      upcomingBookings: 0,
+      concludedRevenue: 0,
+      upcomingRevenue: 0,
+    },
+  )
+
+  const legendItems =
+    activeMetric === "bookings"
+      ? [
+          {
+            key: "concludedBookings",
+            label: "Concluídos",
+            value: monthTotals.concludedBookings.toString(),
+            color: "var(--chart-1)",
+          },
+          {
+            key: "upcomingBookings",
+            label: "A concluir",
+            value: monthTotals.upcomingBookings.toString(),
+            color: "var(--chart-3)",
+          },
+        ]
+      : [
+          {
+            key: "concludedRevenue",
+            label: "Concluído",
+            value: currency(monthTotals.concludedRevenue),
+            color: "var(--chart-1)",
+          },
+          {
+            key: "upcomingRevenue",
+            label: "A receber",
+            value: currency(monthTotals.upcomingRevenue),
+            color: "var(--chart-3)",
+          },
+        ]
 
   return (
     <Card className="py-0">
@@ -165,7 +209,6 @@ const AdminOverviewChart = () => {
                 />
               }
             />
-            <ChartLegend content={<ChartLegendContent />} />
             {activeMetric === "bookings" ? (
               <>
                 <Bar
@@ -199,6 +242,21 @@ const AdminOverviewChart = () => {
             )}
           </BarChart>
         </ChartContainer>
+
+        <div className="mt-4 flex flex-wrap justify-center gap-4 pb-2">
+          {legendItems.map((item) => (
+            <div key={item.key} className="flex items-center gap-2">
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: item.color }}
+              />
+              <span className="text-muted-foreground text-sm">
+                {item.label}
+              </span>
+              <span className="text-sm font-semibold">{item.value}</span>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   )
