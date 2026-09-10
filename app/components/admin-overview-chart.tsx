@@ -105,7 +105,7 @@ const AdminOverviewChart = () => {
             key: "upcomingBookings",
             label: "A concluir",
             value: monthTotals.upcomingBookings.toString(),
-            color: "var(--chart-3)",
+            color: "var(--chart-7)",
           },
         ]
       : [
@@ -119,7 +119,7 @@ const AdminOverviewChart = () => {
             key: "upcomingRevenue",
             label: "A receber",
             value: currency(monthTotals.upcomingRevenue),
-            color: "var(--chart-3)",
+            color: "var(--chart-7)",
           },
         ]
 
@@ -204,7 +204,18 @@ const AdminOverviewChart = () => {
                         ? currency(Number(value))
                         : String(value)
 
-                    return [`${displayValue} `, label]
+                    const isConcluded =
+                      name === "concludedBookings" ||
+                      name === "concludedRevenue"
+
+                    return (
+                      <span
+                        className={isConcluded ? "text-primary" : ""}
+                        style={isConcluded ? undefined : { color: "#96befe" }}
+                      >
+                        {displayValue} {label}
+                      </span>
+                    )
                   }}
                 />
               }
@@ -244,18 +255,33 @@ const AdminOverviewChart = () => {
         </ChartContainer>
 
         <div className="mt-4 flex flex-wrap justify-center gap-4 pb-2">
-          {legendItems.map((item) => (
-            <div key={item.key} className="flex items-center gap-2">
-              <span
-                className="size-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: item.color }}
-              />
-              <span className="text-muted-foreground text-sm">
-                {item.label}
-              </span>
-              <span className="text-sm font-semibold">{item.value}</span>
-            </div>
-          ))}
+          {legendItems.map((item) => {
+            const isConcluded =
+              item.key === "concludedBookings" ||
+              item.key === "concludedRevenue"
+
+            return (
+              <div key={item.key} className="flex items-center gap-2">
+                <span
+                  className="size-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-muted-foreground text-sm">
+                  {item.label}
+                </span>
+                <span
+                  className={
+                    isConcluded
+                      ? "text-primary text-sm font-semibold"
+                      : "text-sm font-semibold"
+                  }
+                  style={isConcluded ? undefined : { color: "#96befe" }}
+                >
+                  {item.value}
+                </span>
+              </div>
+            )
+          })}
         </div>
       </CardContent>
     </Card>
