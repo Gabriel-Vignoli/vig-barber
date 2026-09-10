@@ -163,7 +163,7 @@ const AdminDashboard = () => {
                 <Loader2Icon className="size-5 animate-spin" />
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="space-y-1">
                   <div className="text-muted-foreground flex items-center gap-1 text-xs">
                     <CheckCircle2Icon size={12} />
