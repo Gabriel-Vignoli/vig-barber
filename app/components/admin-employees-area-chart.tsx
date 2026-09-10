@@ -14,8 +14,6 @@ import {
 } from "./ui/card"
 import {
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -44,6 +42,14 @@ const AdminEmployeesAreaChart = () => {
     fetch()
   }, [])
 
+  const employeeTotals = employeeNames
+    .map((name, index) => ({
+      name,
+      total: data.reduce((sum, day) => sum + (Number(day[name]) || 0), 0),
+      color: CHART_COLORS[index % CHART_COLORS.length],
+    }))
+    .sort((a, b) => b.total - a.total)
+
   const chartConfig = employeeNames.reduce((config, name, index) => {
     config[name] = {
       label: name,
@@ -68,71 +74,96 @@ const AdminEmployeesAreaChart = () => {
             Nenhum funcionário cadastrado.
           </p>
         ) : (
-          <ChartContainer
-            config={chartConfig}
-            className="aspect-auto h-[250px] w-full"
-          >
-            <AreaChart data={data}>
-              <defs>
-                {employeeNames.map((name, index) => (
-                  <linearGradient
-                    key={name}
-                    id={`fill-${name}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={CHART_COLORS[index % CHART_COLORS.length]}
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={CHART_COLORS[index % CHART_COLORS.length]}
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={20}
-                tickFormatter={(value) =>
-                  format(parseDateKey(value), "dd/MM", { locale: ptBR })
-                }
-              />
-              <ChartTooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent
-                    labelFormatter={(value) =>
-                      format(parseDateKey(value), "dd 'de' MMMM", {
-                        locale: ptBR,
-                      })
-                    }
-                    indicator="dot"
-                  />
-                }
-              />
-              {employeeNames.map((name, index) => (
-                <Area
-                  key={name}
-                  dataKey={name}
-                  type="natural"
-                  fill={`url(#fill-${name})`}
-                  stroke={CHART_COLORS[index % CHART_COLORS.length]}
-                  stackId="a"
+          <>
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-[250px] w-full"
+            >
+              <AreaChart data={data}>
+                <defs>
+                  {employeeNames.map((name, index) => (
+                    <linearGradient
+                      key={name}
+                      id={`fill-${name}`}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor={CHART_COLORS[index % CHART_COLORS.length]}
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor={CHART_COLORS[index % CHART_COLORS.length]}
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={20}
+                  tickFormatter={(value) =>
+                    format(parseDateKey(value), "dd/MM", { locale: ptBR })
+                  }
                 />
+                <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent
+                      labelFormatter={(value) =>
+                        format(parseDateKey(value), "dd 'de' MMMM", {
+                          locale: ptBR,
+                        })
+                      }
+                      indicator="dot"
+                    />
+                  }
+                />
+                {employeeNames.map((name, index) => (
+                  <Area
+                    key={name}
+                    dataKey={name}
+                    type="natural"
+                    fill={`url(#fill-${name})`}
+                    stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                    stackId="a"
+                  />
+                ))}
+              </AreaChart>
+            </ChartContainer>
+
+            <div className="mt-4 space-y-2 pb-4">
+              {employeeTotals.map((employee, index) => (
+                <div
+                  key={employee.name}
+                  className="flex items-center justify-between rounded-lg border px-3 py-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground w-4 text-xs font-medium">
+                      {index + 1}º
+                    </span>
+                    <span
+                      className="size-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: employee.color }}
+                    />
+                    <span className="text-sm font-medium">{employee.name}</span>
+                  </div>
+                  <span className="text-muted-foreground text-sm font-semibold">
+                    {employee.total}{" "}
+                    {employee.total === 1 ? "agendamento" : "agendamentos"}
+                  </span>
+                </div>
               ))}
-              <ChartLegend content={<ChartLegendContent />} />
-            </AreaChart>
-          </ChartContainer>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
