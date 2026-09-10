@@ -121,6 +121,8 @@ const ServiceItem = ({
     })
 
     setConfirmDialogIsOpen(false)
+    setConflictDialogIsOpen(false)
+    setConflictingBooking(null)
     setBookingSheetIsOpen(false)
     showBookingSuccessToast()
   }
@@ -155,6 +157,25 @@ const ServiceItem = ({
         setConflictDialogIsOpen(true)
         return
       }
+
+      await performBooking(newDate)
+    } catch (error) {
+      console.log(error)
+      toast.error("Erro ao criar reserva!")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleBookAnyway = async () => {
+    if (!selectedDay || !selectedTime) return
+
+    setIsSubmitting(true)
+
+    try {
+      const hour = Number(selectedTime.split(":")[0])
+      const minute = Number(selectedTime.split(":")[1])
+      const newDate = set(selectedDay, { hours: hour, minutes: minute })
 
       await performBooking(newDate)
     } catch (error) {
@@ -398,19 +419,23 @@ const ServiceItem = ({
                                   },
                                 )
                               : ""}
-                            . Deseja cancelar essa reserva e agendar{" "}
-                            {service.name} com {employeeName} nesse mesmo
-                            horário?
+                            . O que você deseja fazer?
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter className="lg:p-6" display="col">
-                          <AlertDialogCancel
+                          {" "}
+                          <AlertDialogAction
                             className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
                             disabled={isSubmitting}
-                            onClick={() => setConflictingBooking(null)}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              handleBookAnyway()
+                            }}
                           >
-                            Manter reserva atual
-                          </AlertDialogCancel>
+                            {isSubmitting
+                              ? "Agendando..."
+                              : "Manter as duas reservas"}
+                          </AlertDialogAction>
                           <AlertDialogAction
                             variant="destructive"
                             className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
@@ -422,8 +447,15 @@ const ServiceItem = ({
                           >
                             {isSubmitting
                               ? "Substituindo..."
-                              : "Cancelar e agendar novo"}
+                              : "Cancelar a antiga e agendar essa"}
                           </AlertDialogAction>
+                          <AlertDialogCancel
+                            className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
+                            disabled={isSubmitting}
+                            onClick={() => setConflictingBooking(null)}
+                          >
+                            Escolher outro horário
+                          </AlertDialogCancel>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
