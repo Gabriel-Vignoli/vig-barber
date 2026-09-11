@@ -9,6 +9,7 @@ import {
   LayoutDashboardIcon,
   LogOutIcon,
   MenuIcon,
+  ReceiptIcon,
   ScissorsIcon,
   UsersIcon,
 } from "lucide-react"
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { href: "/admin/bookings", label: "Agendamentos", icon: CalendarIcon },
   { href: "/admin/services", label: "Serviços", icon: BriefcaseIcon },
   { href: "/admin/employees", label: "Funcionários", icon: UsersIcon },
+  { href: "/admin/expenses", label: "Despesas", icon: ReceiptIcon },
 ]
 
 const AdminHeader = ({ adminName }: AdminHeaderProps) => {
