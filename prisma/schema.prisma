@@ -208,3 +208,27 @@ model PasswordResetCode {
   @@index([email])
   @@map("password_reset_codes")
 }
+
+enum ExpenseCategory {
+  ALUGUEL
+  FUNCIONARIOS
+  PRODUTOS
+  EQUIPAMENTOS
+  MARKETING
+  CONTAS
+  MANUTENCAO
+  OUTROS
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  description String
+  amount      Decimal         @db.Decimal(10, 2)
+  category    ExpenseCategory
+  date        DateTime
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([date])
+  @@map("expenses")
+}
