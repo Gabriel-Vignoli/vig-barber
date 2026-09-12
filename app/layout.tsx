@@ -5,6 +5,7 @@ import { Toaster } from "sonner"
 import Footer from "./components/footer"
 import AuthProvider from "./_providers/auth"
 import { AuthToastListener } from "./components/auth-toast-listener"
+import CookieConsentBanner from "./components/cookie-consent-banner"
 
 const nunito = Nunito({
   variable: "--font-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
         </AuthProvider>
         <Toaster></Toaster>
         <AuthToastListener></AuthToastListener>
+        <CookieConsentBanner></CookieConsentBanner>
       </body>
     </html>
   )
