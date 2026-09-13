@@ -1,10 +1,17 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Loader2Icon, TrendingDownIcon, TrendingUpIcon } from "lucide-react"
+import {
+  Loader2Icon,
+  ReceiptIcon,
+  TrendingDownIcon,
+  TrendingUpIcon,
+} from "lucide-react"
 import { Card, CardContent } from "./ui/card"
+import { Button } from "./ui/button"
 import { getNetProfit, NetProfitResult } from "../_actions/get-net-profit"
 
 const currency = (value: number) =>
@@ -76,6 +83,19 @@ const AdminNetProfitCard = () => {
                 </span>
               </div>
             </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full cursor-pointer gap-2"
+              nativeButton={false}
+              render={(buttonProps) => (
+                <Link href="/admin/expenses" {...buttonProps}>
+                  <ReceiptIcon size={16} />
+                  Ver despesas
+                </Link>
+              )}
+            />
           </div>
         )}
       </CardContent>
