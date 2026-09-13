@@ -51,13 +51,20 @@ const AdminLoginForm = () => {
 
   return (
     <form
-      className="w-full max-w-sm space-y-4"
+      className="w-full max-w-sm space-y-4 xl:max-w-md xl:space-y-6"
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >
       <div className="space-y-1">
-        <Label htmlFor="admin-login-email">Email</Label>
-        <Input id="admin-login-email" type="email" {...register("email")} />
+        <Label htmlFor="admin-login-email" className="xl:text-base">
+          Email
+        </Label>
+        <Input
+          id="admin-login-email"
+          type="email"
+          className="xl:p-5 xl:text-base"
+          {...register("email")}
+        />
         {formState.errors.email && (
           <p className="text-destructive text-xs">
             {formState.errors.email.message}
@@ -66,12 +73,14 @@ const AdminLoginForm = () => {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="admin-login-password">Senha</Label>
+        <Label htmlFor="admin-login-password" className="xl:text-base">
+          Senha
+        </Label>
         <div className="relative">
           <Input
             id="admin-login-password"
             type={visiblePassword ? "text" : "password"}
-            className="pr-10"
+            className="pr-10 xl:p-5 xl:text-base"
             {...register("password")}
           />
           <button
@@ -92,7 +101,7 @@ const AdminLoginForm = () => {
 
       <Button
         type="submit"
-        className="w-full cursor-pointer py-5"
+        className="w-full cursor-pointer py-5 xl:p-6 xl:text-base"
         disabled={isSubmitting}
       >
         {isSubmitting ? (

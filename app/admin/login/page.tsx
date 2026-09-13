@@ -22,14 +22,14 @@ const AdminLoginPage = async () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
-      <div className="bg-primary/10 flex size-14 items-center justify-center rounded-full">
-        <ShieldIcon size={26} className="text-primary" />
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4 xl:gap-8">
+      <div className="bg-primary/10 flex size-14 items-center justify-center rounded-full xl:size-18">
+        <ShieldIcon size={26} className="text-primary xl:size-8" />
       </div>
 
-      <div className="space-y-1 text-center">
-        <h1 className="text-xl font-bold">Painel Admin</h1>
-        <p className="text-muted-foreground text-sm">
+      <div className="space-y-1 text-center xl:space-y-2">
+        <h1 className="text-xl font-bold xl:text-2xl">Painel Admin</h1>
+        <p className="text-muted-foreground text-sm xl:text-base">
           Acesso restrito a administradores.
         </p>
       </div>
