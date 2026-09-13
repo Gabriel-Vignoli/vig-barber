@@ -25,6 +25,7 @@ import AdminBookingsPieChart from "./admin-bookings-pie-chart"
 import AdminOverviewChart from "./admin-overview-chart"
 import AdminEmployeesAreaChart from "./admin-employees-area-chart"
 import AdminExpensesChart from "./admin-expenses-chart"
+import AdminNetProfitCard from "./admin-net-profit-card"
 
 const PERIODS: { value: DashboardPeriod; label: string }[] = [
   { value: "day", label: "Dia" },
@@ -203,7 +204,10 @@ const AdminDashboard = () => {
           rangeLabel={rangeLabel}
         />
       </div>
-      <AdminExpensesChart />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <AdminExpensesChart />
+        <AdminNetProfitCard />
+      </div>
     </div>
   )
 }
