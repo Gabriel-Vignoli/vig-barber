@@ -550,6 +550,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
       <PhoneCollectionDialog
         open={phoneDialogIsOpen}
+        onOpenChange={setPhoneDialogIsOpen}
         onSuccess={handlePhoneSaved}
       />
 

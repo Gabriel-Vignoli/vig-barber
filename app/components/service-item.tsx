@@ -503,6 +503,7 @@ const ServiceItem = ({
 
       <PhoneCollectionDialog
         open={phoneDialogIsOpen}
+        onOpenChange={setPhoneDialogIsOpen}
         onSuccess={handlePhoneSaved}
       />
 

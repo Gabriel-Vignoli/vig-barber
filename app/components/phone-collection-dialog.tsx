@@ -20,11 +20,13 @@ import { phoneFormSchema, PhoneFormValues } from "../_lib/validations/phone"
 
 interface PhoneCollectionDialogProps {
   open: boolean
+  onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
 const PhoneCollectionDialog = ({
   open,
+  onOpenChange,
   onSuccess,
 }: PhoneCollectionDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -51,8 +53,8 @@ const PhoneCollectionDialog = ({
   }
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="w-[90%] sm:max-w-md" showCloseButton={false}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[90%] sm:max-w-md">
         <DialogHeader>
           <div className="bg-primary/10 mb-2 flex size-12 items-center justify-center rounded-full">
             <PhoneIcon size={22} className="text-primary" />
