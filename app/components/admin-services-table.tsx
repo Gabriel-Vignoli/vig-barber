@@ -4,9 +4,10 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { toast } from "sonner"
-import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ClockIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { Card, CardContent } from "./ui/card"
 import { Button } from "./ui/button"
+import { Badge } from "./ui/badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,10 +80,13 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
       ) : (
         <div className="space-y-3">
           {services.map((service) => (
-            <Card key={service.id}>
-              <CardContent className="flex flex-col gap-3 px-3 py-1 sm:flex-row sm:items-center sm:justify-between lg:px-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative size-14 shrink-0 overflow-hidden rounded-lg lg:size-16">
+            <Card
+              key={service.id}
+              className="hover:bg-muted/40 transition-colors"
+            >
+              <CardContent className="flex flex-col gap-4 p-3 sm:flex-row sm:items-center lg:p-4">
+                <div className="flex flex-1 items-center gap-4">
+                  <div className="relative size-16 shrink-0 overflow-hidden rounded-xl lg:size-20">
                     <Image
                       src={service.imageUrl}
                       alt={service.name}
@@ -90,28 +94,33 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
                       className="object-cover"
                     />
                   </div>
-                  <div>
-                    <p className="font-semibold lg:text-base">{service.name}</p>
-                    <p className="text-muted-foreground line-clamp-1 text-xs lg:text-sm">
+
+                  <div className="min-w-0 space-y-1">
+                    <p className="truncate font-semibold lg:text-lg">
+                      {service.name}
+                    </p>
+                    <p className="text-muted-foreground line-clamp-2 text-sm">
                       {service.description}
                     </p>
+                    <Badge
+                      variant="outline"
+                      className="text-muted-foreground gap-1 font-normal"
+                    >
+                      <ClockIcon size={12} />
+                      {service.durationInMinutes} min
+                    </Badge>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-4 sm:gap-6">
-                  <div className="text-right">
-                    <p className="text-primary text-sm font-bold lg:text-base">
-                      {Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      }).format(service.price)}
-                    </p>
-                    <p className="text-muted-foreground text-xs lg:text-sm">
-                      {service.durationInMinutes} min
-                    </p>
-                  </div>
+                <div className="flex items-center justify-between gap-4 border-t pt-3 sm:justify-end sm:border-t-0 sm:pt-0">
+                  <p className="text-primary text-lg font-bold lg:text-xl">
+                    {Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(service.price)}
+                  </p>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <ServiceFormDialog
                       mode="edit"
                       serviceId={service.id}
