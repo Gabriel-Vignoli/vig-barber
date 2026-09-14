@@ -54,13 +54,15 @@ const PhoneCollectionDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] sm:max-w-md">
+      <DialogContent className="w-[90%] sm:max-w-md lg:max-w-lg">
         <DialogHeader>
-          <div className="bg-primary/10 mb-2 flex size-12 items-center justify-center rounded-full">
-            <PhoneIcon size={22} className="text-primary" />
+          <div className="bg-primary/10 mb-2 flex size-12 items-center justify-center rounded-full lg:size-14">
+            <PhoneIcon size={22} className="text-primary lg:size-6" />
           </div>
-          <DialogTitle>Precisamos do seu telefone</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="lg:text-xl">
+            Precisamos do seu telefone
+          </DialogTitle>
+          <DialogDescription className="lg:text-base">
             Para confirmar seu agendamento, informe um número de contato. A
             barbearia pode usá-lo para falar com você sobre sua reserva.
           </DialogDescription>
@@ -72,15 +74,18 @@ const PhoneCollectionDialog = ({
           noValidate
         >
           <div className="space-y-1">
-            <Label htmlFor="user-phone">Telefone</Label>
+            <Label htmlFor="user-phone" className="lg:bb-3 mb-2 lg:text-base">
+              Telefone
+            </Label>
             <Input
               id="user-phone"
               type="tel"
               placeholder="(35) 99201-1313"
+              className="lg:h-11 lg:text-base"
               {...register("phone")}
             />
             {formState.errors.phone && (
-              <p className="text-destructive text-xs">
+              <p className="text-destructive text-xs lg:text-sm">
                 {formState.errors.phone.message}
               </p>
             )}
@@ -88,7 +93,7 @@ const PhoneCollectionDialog = ({
 
           <Button
             type="submit"
-            className="w-full cursor-pointer py-5"
+            className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
