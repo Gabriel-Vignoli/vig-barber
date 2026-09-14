@@ -8,6 +8,66 @@ export const getAdminBookings = async (
   filter: AdminBookingFilter = "all",
   page: number = 1,
 ) => {
+  const include = {
+    user: { select: { id: true, name: true, email: true, image: true } },
+    employee: {
+      include: { user: { select: { name: true } } },
+    },
+    barbershopService: { select: { name: true, price: true } },
+  }
+
+  const serialize = <T extends { barbershopService: { price: unknown } }>(
+    booking: T,
+  ) => ({
+    ...booking,
+    barbershopService: {
+      ...booking.barbershopService,
+      price: Number(booking.barbershopService.price),
+    },
+  })
+
+  if (filter === "all") {
+    const now = new Date()
+
+    const pendingWhere = {
+      status: "PENDING" as const,
+      bookingDate: { gte: now },
+    }
+    const concludedWhere = {
+      status: { not: "CANCELLED" as const },
+      OR: [{ status: "COMPLETED" as const }, { bookingDate: { lt: now } }],
+    }
+
+    const [pendingBookings, concludedBookings] = await Promise.all([
+      prisma.booking.findMany({
+        where: pendingWhere,
+        include,
+        orderBy: { bookingDate: "asc" },
+      }),
+      prisma.booking.findMany({
+        where: concludedWhere,
+        include,
+        orderBy: { bookingDate: "desc" },
+      }),
+    ])
+
+    const allBookings = [...pendingBookings, ...concludedBookings]
+    const totalCount = allBookings.length
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+    const currentPage = Math.min(Math.max(1, page), totalPages)
+
+    const pageBookings = allBookings
+      .slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+      .map(serialize)
+
+    return {
+      bookings: pageBookings,
+      totalCount,
+      totalPages,
+      currentPage,
+    }
+  }
+
   const where =
     filter === "upcoming"
       ? {
@@ -19,9 +79,7 @@ export const getAdminBookings = async (
             bookingDate: { lt: new Date() },
             status: { not: "CANCELLED" as const },
           }
-        : filter === "cancelled"
-          ? { status: "CANCELLED" as const }
-          : {}
+        : { status: "CANCELLED" as const }
 
   const totalCount = await prisma.booking.count({ where })
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
@@ -29,28 +87,14 @@ export const getAdminBookings = async (
 
   const bookings = await prisma.booking.findMany({
     where,
-    include: {
-      user: { select: { id: true, name: true, email: true, image: true } },
-      employee: {
-        include: { user: { select: { name: true } } },
-      },
-      barbershopService: { select: { name: true, price: true } },
-    },
-    orderBy: { bookingDate: "desc" },
+    include,
+    orderBy: { bookingDate: "asc" },
     skip: (currentPage - 1) * PAGE_SIZE,
     take: PAGE_SIZE,
   })
 
-  const serializedBookings = bookings.map((booking) => ({
-    ...booking,
-    barbershopService: {
-      ...booking.barbershopService,
-      price: Number(booking.barbershopService.price),
-    },
-  }))
-
   return {
-    bookings: serializedBookings,
+    bookings: bookings.map(serialize),
     totalCount,
     totalPages,
     currentPage,
