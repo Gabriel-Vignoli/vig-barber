@@ -20,7 +20,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "./ui/alert-dialog"
 import { Calendar } from "./ui/calendar"
 import { ptBR } from "date-fns/locale"
@@ -37,6 +36,8 @@ import SignInDialog from "./sign-in-dialog"
 import BookingSummary from "./booking-summary"
 import { getTimeList } from "../_lib/time-list"
 import { showBookingSuccessToast } from "./booking-success-toast"
+import { checkUserPhone } from "../_actions/check-user-phone"
+import PhoneCollectionDialog from "./phone-collection-dialog"
 
 interface ServiceItemProps {
   service: Omit<BarbershopService, "price"> & { price: number }
@@ -69,6 +70,10 @@ const ServiceItem = ({
   const [conflictingBooking, setConflictingBooking] =
     useState<ConflictingBooking | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [phoneDialogIsOpen, setPhoneDialogIsOpen] = useState(false)
+  const [phoneChecked, setPhoneChecked] = useState(false)
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false)
 
   useEffect(() => {
     const fetch = async () => {
@@ -125,6 +130,38 @@ const ServiceItem = ({
     setConflictingBooking(null)
     setBookingSheetIsOpen(false)
     showBookingSuccessToast()
+  }
+
+  const handleConfirmClick = async () => {
+    if (phoneChecked) {
+      setConfirmDialogIsOpen(true)
+      return
+    }
+
+    setIsCheckingPhone(true)
+
+    try {
+      const { hasPhone } = await checkUserPhone()
+
+      if (!hasPhone) {
+        setPhoneDialogIsOpen(true)
+        return
+      }
+
+      setPhoneChecked(true)
+      setConfirmDialogIsOpen(true)
+    } catch (error) {
+      console.log(error)
+      toast.error("Erro ao verificar seus dados.")
+    } finally {
+      setIsCheckingPhone(false)
+    }
+  }
+
+  const handlePhoneSaved = () => {
+    setPhoneDialogIsOpen(false)
+    setPhoneChecked(true)
+    setConfirmDialogIsOpen(true)
   }
 
   const handleConfirmBooking = async () => {
@@ -332,22 +369,20 @@ const ServiceItem = ({
                   </div>
 
                   <SheetFooter className="shrink-0 border-t p-4 lg:p-6">
+                    <Button
+                      className="cursor-pointer py-5 lg:py-6 lg:text-base"
+                      disabled={
+                        !selectedTime || !selectedDay || isCheckingPhone
+                      }
+                      onClick={handleConfirmClick}
+                    >
+                      {isCheckingPhone ? "Verificando..." : "Confirmar"}
+                    </Button>
+
                     <AlertDialog
                       open={confirmDialogIsOpen}
                       onOpenChange={setConfirmDialogIsOpen}
                     >
-                      <AlertDialogTrigger
-                        render={
-                          <Button
-                            className="cursor-pointer py-5 lg:py-6 lg:text-base"
-                            disabled={!selectedTime || !selectedDay}
-                          >
-                            Confirmar
-                          </Button>
-                        }
-                      >
-                        Show Dialog
-                      </AlertDialogTrigger>
                       <AlertDialogContent
                         size="sm"
                         className="w-[90%] max-w-[90%] lg:w-auto lg:max-w-md"
@@ -422,8 +457,7 @@ const ServiceItem = ({
                             . O que você deseja fazer?
                           </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter className="lg:p-6" display="col">
-                          {" "}
+                        <AlertDialogFooter className="flex-col gap-2 lg:p-6">
                           <AlertDialogAction
                             className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
                             disabled={isSubmitting}
@@ -466,6 +500,11 @@ const ServiceItem = ({
           </div>
         </CardContent>
       </Card>
+
+      <PhoneCollectionDialog
+        open={phoneDialogIsOpen}
+        onSuccess={handlePhoneSaved}
+      />
 
       <Dialog
         open={signInDialogIsOpen}

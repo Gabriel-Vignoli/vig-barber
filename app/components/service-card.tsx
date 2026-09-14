@@ -22,7 +22,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "./ui/alert-dialog"
 import { Dialog, DialogContent } from "./ui/dialog"
 import { ptBR } from "date-fns/locale"
@@ -35,10 +34,12 @@ import { createBooking } from "../_actions/create-booking"
 import { getConflictingBooking } from "../_actions/get-conflicting-booking"
 import { replaceBooking } from "../_actions/replace-booking"
 import { getEmployeesForService } from "../_actions/get-employees-for-service"
+import { checkUserPhone } from "../_actions/check-user-phone"
 import { getTimeList } from "../_lib/time-list"
 import { showBookingSuccessToast } from "./booking-success-toast"
 import SignInDialog from "./sign-in-dialog"
 import BookingSummary from "./booking-summary"
+import PhoneCollectionDialog from "./phone-collection-dialog"
 
 interface ServiceCardProps {
   service: {
@@ -82,6 +83,10 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   )
   const [dayBookings, setDayBookings] = useState<Booking[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [phoneDialogIsOpen, setPhoneDialogIsOpen] = useState(false)
+  const [phoneChecked, setPhoneChecked] = useState(false)
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false)
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -141,6 +146,38 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDay(date)
     setSelectedTime(undefined)
+  }
+
+  const handleConfirmClick = async () => {
+    if (phoneChecked) {
+      setConfirmDialogIsOpen(true)
+      return
+    }
+
+    setIsCheckingPhone(true)
+
+    try {
+      const { hasPhone } = await checkUserPhone()
+
+      if (!hasPhone) {
+        setPhoneDialogIsOpen(true)
+        return
+      }
+
+      setPhoneChecked(true)
+      setConfirmDialogIsOpen(true)
+    } catch (error) {
+      console.log(error)
+      toast.error("Erro ao verificar seus dados.")
+    } finally {
+      setIsCheckingPhone(false)
+    }
+  }
+
+  const handlePhoneSaved = () => {
+    setPhoneDialogIsOpen(false)
+    setPhoneChecked(true)
+    setConfirmDialogIsOpen(true)
   }
 
   const performBooking = async () => {
@@ -391,24 +428,23 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           </div>
 
           <SheetFooter className="shrink-0 border-t p-4 lg:p-6">
+            <Button
+              className="cursor-pointer py-5 lg:py-6 lg:text-base"
+              disabled={
+                !selectedTime ||
+                !selectedDay ||
+                !selectedEmployeeId ||
+                isCheckingPhone
+              }
+              onClick={handleConfirmClick}
+            >
+              {isCheckingPhone ? "Verificando..." : "Confirmar"}
+            </Button>
+
             <AlertDialog
               open={confirmDialogIsOpen}
               onOpenChange={setConfirmDialogIsOpen}
             >
-              <AlertDialogTrigger
-                render={
-                  <Button
-                    className="cursor-pointer py-5 lg:py-6 lg:text-base"
-                    disabled={
-                      !selectedTime || !selectedDay || !selectedEmployeeId
-                    }
-                  >
-                    Confirmar
-                  </Button>
-                }
-              >
-                Show Dialog
-              </AlertDialogTrigger>
               <AlertDialogContent
                 size="sm"
                 className="w-[90%] max-w-[90%] lg:w-auto lg:max-w-md"
@@ -474,8 +510,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
                     . O que você deseja fazer?
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter className="lg:p-6" display="col">
-                  {" "}
+                <AlertDialogFooter className="flex-col gap-2 lg:p-6">
                   <AlertDialogAction
                     className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
                     disabled={isSubmitting}
@@ -484,7 +519,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
                       handleBookAnyway()
                     }}
                   >
-                    {isSubmitting ? "Agendando..." : `Manter as duas reservas`}
+                    {isSubmitting ? "Agendando..." : "Manter as duas reservas"}
                   </AlertDialogAction>
                   <AlertDialogAction
                     variant="destructive"
@@ -512,6 +547,11 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      <PhoneCollectionDialog
+        open={phoneDialogIsOpen}
+        onSuccess={handlePhoneSaved}
+      />
 
       <Dialog
         open={signInDialogIsOpen}
