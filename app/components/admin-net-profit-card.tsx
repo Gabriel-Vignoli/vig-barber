@@ -87,7 +87,7 @@ const AdminNetProfitCard = () => {
             <Button
               variant="outline"
               size="sm"
-              className="w-full cursor-pointer gap-2"
+              className="w-full cursor-pointer gap-2 p-4 lg:p-5 xl:text-base"
               nativeButton={false}
               render={(buttonProps) => (
                 <Link href="/admin/expenses" {...buttonProps}>
