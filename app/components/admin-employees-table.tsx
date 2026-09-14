@@ -99,10 +99,13 @@ const AdminEmployeesTable = ({
             const employeeImage = employee.imageUrl ?? employee.user.image
 
             return (
-              <Card key={employee.id}>
+              <Card
+                key={employee.id}
+                className="hover:bg-muted/40 transition-colors"
+              >
                 <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar>
+                    <Avatar className="size-11">
                       <AvatarImage
                         src={employeeImage ?? ""}
                         alt={employeeName}
@@ -112,29 +115,31 @@ const AdminEmployeesTable = ({
                         {getInitials(employeeName)}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-semibold">{employeeName}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {employee.user.email}
-                      </p>
+                    <div className="min-w-0 space-y-1.5">
+                      <div>
+                        <p className="truncate font-semibold">{employeeName}</p>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {employee.user.email}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1">
+                        {employee.services.length === 0 ? (
+                          <span className="text-muted-foreground text-xs">
+                            Nenhum serviço
+                          </span>
+                        ) : (
+                          employee.services.map(({ service }) => (
+                            <Badge key={service.id} variant="secondary">
+                              {service.name}
+                            </Badge>
+                          ))
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-1">
-                    {employee.services.length === 0 ? (
-                      <span className="text-muted-foreground text-xs">
-                        Nenhum serviço
-                      </span>
-                    ) : (
-                      employee.services.map(({ service }) => (
-                        <Badge key={service.id} variant="secondary">
-                          {service.name}
-                        </Badge>
-                      ))
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 border-t pt-3 sm:border-t-0 sm:pt-0">
                     <EmployeeStatsDialog
                       employeeId={employee.id}
                       employeeName={employeeName}
