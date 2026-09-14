@@ -36,8 +36,8 @@ const AdminNetProfitCard = () => {
   const isPositive = (data?.netProfit ?? 0) >= 0
 
   return (
-    <Card>
-      <CardContent className="space-y-4 p-4 lg:p-6">
+    <Card className="h-full">
+      <CardContent className="flex h-full flex-col space-y-4 p-4 lg:p-6">
         <div className="flex items-center gap-2">
           <div
             className={`flex size-9 items-center justify-center rounded-full ${
@@ -56,11 +56,11 @@ const AdminNetProfitCard = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-4">
+          <div className="flex flex-1 items-center justify-center py-4">
             <Loader2Icon className="size-5 animate-spin" />
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="flex-1 space-y-3">
             <p
               className={`text-3xl font-bold lg:text-4xl ${
                 isPositive ? "text-primary" : "text-destructive"
@@ -83,21 +83,21 @@ const AdminNetProfitCard = () => {
                 </span>
               </div>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full cursor-pointer gap-2 p-4 lg:p-5 xl:text-base"
-              nativeButton={false}
-              render={(buttonProps) => (
-                <Link href="/admin/expenses" {...buttonProps}>
-                  <ReceiptIcon size={16} />
-                  Ver despesas
-                </Link>
-              )}
-            />
           </div>
         )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-auto w-full cursor-pointer gap-2 p-4 lg:p-5 xl:text-base"
+          nativeButton={false}
+          render={(buttonProps) => (
+            <Link href="/admin/expenses" {...buttonProps}>
+              <ReceiptIcon size={16} />
+              Ver despesas
+            </Link>
+          )}
+        />
       </CardContent>
     </Card>
   )
