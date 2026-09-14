@@ -9,7 +9,9 @@ export const getAdminBookings = async (
   page: number = 1,
 ) => {
   const include = {
-    user: { select: { id: true, name: true, email: true, image: true } },
+    user: {
+      select: { id: true, name: true, email: true, image: true, phone: true },
+    },
     employee: {
       include: { user: { select: { name: true } } },
     },
