@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -25,7 +25,6 @@ import {
   LoginFormValues,
   SignUpFormValues,
 } from "../_lib/validations/auth"
-import { showLoginErrorToast } from "./login-error-toast"
 import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
 import ForgotPasswordDialog from "./forgot-password-dialog"
 
@@ -35,12 +34,27 @@ interface SignInDialogProps {
   initialMode?: Mode
 }
 
+interface LockoutState {
+  email: string
+  until: number // epoch ms
+}
+
 const AUTH_TOAST_KEY = "pending-auth-toast"
+const LOCKOUT_ERROR_PREFIX = "LOCKED_UNTIL:"
+
+const formatCountdown = (totalSeconds: number) => {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`
+}
 
 const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPolicyOpen, setIsPolicyOpen] = useState(false)
+  const [lockout, setLockout] = useState<LockoutState | null>(null)
+  const [now, setNow] = useState(() => Date.now())
+  const [loginError, setLoginError] = useState<string | null>(null)
 
   const [visiblePasswords, setVisiblePasswords] = useState({
     loginPassword: false,
@@ -68,6 +82,30 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     },
   })
 
+  const loginEmail = loginForm.watch("email")
+
+  // Tick every second while a lockout is active so the countdown stays live.
+  useEffect(() => {
+    if (!lockout) return
+
+    const interval = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(interval)
+  }, [lockout])
+
+  // Clear the lockout automatically once it expires.
+  useEffect(() => {
+    if (lockout && now >= lockout.until) {
+      setLockout(null)
+    }
+  }, [now, lockout])
+
+  const isLockedForCurrentEmail =
+    lockout !== null && lockout.email === loginEmail && now < lockout.until
+
+  const remainingSeconds = isLockedForCurrentEmail
+    ? Math.max(0, Math.ceil((lockout!.until - now) / 1000))
+    : 0
+
   const handleLoginWithGoogleClick = () => {
     sessionStorage.setItem(AUTH_TOAST_KEY, "google")
     signIn("google")
@@ -78,10 +116,12 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     loginForm.reset()
     signUpForm.reset()
     setIsPolicyOpen(false)
+    setLoginError(null)
   }
 
   const handleLoginSubmit = async (values: LoginFormValues) => {
     setIsSubmitting(true)
+    setLoginError(null)
 
     try {
       const result = await signIn("credentials", {
@@ -91,14 +131,24 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       })
 
       if (result?.error) {
-        showLoginErrorToast()
+        if (result.error.startsWith(LOCKOUT_ERROR_PREFIX)) {
+          const until = new Date(
+            result.error.slice(LOCKOUT_ERROR_PREFIX.length),
+          ).getTime()
+          setLockout({ email: values.email, until })
+          setNow(Date.now())
+        } else {
+          setLockout(null)
+          setLoginError("Email ou senha inválidos.")
+        }
         return
       }
 
+      setLockout(null)
       sessionStorage.setItem(AUTH_TOAST_KEY, "login")
       window.location.reload()
     } catch (error) {
-      toast.error("Erro ao fazer login. Tente novamente.")
+      setLoginError("Erro ao fazer login. Tente novamente.")
     } finally {
       setIsSubmitting(false)
     }
@@ -225,12 +275,21 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
                 {loginForm.formState.errors.password.message}
               </p>
             )}
+            {loginError && !isLockedForCurrentEmail && (
+              <p className="text-destructive text-xs">{loginError}</p>
+            )}
+            {isLockedForCurrentEmail && (
+              <p className="text-destructive text-xs">
+                Muitas tentativas de login. Tente novamente em{" "}
+                {formatCountdown(remainingSeconds)}.
+              </p>
+            )}
           </div>
 
           <Button
             type="submit"
             className="w-full cursor-pointer gap-2 p-4 font-bold xl:p-5 xl:text-base"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLockedForCurrentEmail}
           >
             {isSubmitting ? (
               <Loader2Icon className="size-4 animate-spin" />
