@@ -547,19 +547,30 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       </div>
 
       <AlertDialog open={isAdminPromptOpen} onOpenChange={setIsAdminPromptOpen}>
-        <AlertDialogContent size="default">
+        <AlertDialogContent
+          size="sm"
+          className="w-[90%] max-w-[90%] lg:w-auto lg:max-w-md"
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle>Conta de administrador</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="lg:text-xl">
+              Conta de administrador
+            </AlertDialogTitle>
+            <AlertDialogDescription className="lg:text-base">
               Essa conta pertence a um administrador. Deseja acessar o painel
               administrativo ou tentar novamente com outro email?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleTryAnotherEmail}>
+          <AlertDialogFooter display="col" className="lg:p-6">
+            <AlertDialogCancel
+              className="cursor-pointer py-5 lg:py-6 lg:text-base"
+              onClick={handleTryAnotherEmail}
+            >
               Tentar outro email
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleGoToAdminLogin}>
+            <AlertDialogAction
+              className="cursor-pointer py-5 lg:py-6 lg:text-base"
+              onClick={handleGoToAdminLogin}
+            >
               Ir para o painel admin
             </AlertDialogAction>
           </AlertDialogFooter>
