@@ -72,6 +72,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   const [conflictDialogIsOpen, setConflictDialogIsOpen] = useState(false)
   const [conflictingBooking, setConflictingBooking] =
     useState<ConflictingBooking | null>(null)
+  const [adminBlockDialogIsOpen, setAdminBlockDialogIsOpen] = useState(false)
 
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<
@@ -121,10 +122,17 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   }, [selectedDay, selectedTime])
 
   const handleReservarClick = () => {
-    if (data?.user) {
-      return setBookingSheetIsOpen(true)
+    if (!data?.user) {
+      return setSignInDialogIsOpen(true)
     }
-    return setSignInDialogIsOpen(true)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((data.user as any).role === "ADMIN") {
+      setAdminBlockDialogIsOpen(true)
+      return
+    }
+
+    return setBookingSheetIsOpen(true)
   }
 
   const handleSheetOpenChange = (isOpen: boolean) => {
@@ -230,7 +238,9 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       await performBooking()
     } catch (error) {
       console.log(error)
-      toast.error("Erro ao criar reserva!")
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao criar reserva!",
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -243,7 +253,9 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       await performBooking()
     } catch (error) {
       console.log(error)
-      toast.error("Erro ao criar reserva!")
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao criar reserva!",
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -278,7 +290,9 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       showBookingSuccessToast()
     } catch (error) {
       console.log(error)
-      toast.error("Erro ao substituir reserva!")
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao substituir reserva!",
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -547,6 +561,30 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      <AlertDialog
+        open={adminBlockDialogIsOpen}
+        onOpenChange={setAdminBlockDialogIsOpen}
+      >
+        <AlertDialogContent
+          size="sm"
+          className="w-[90%] max-w-[90%] lg:w-auto lg:max-w-md"
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle className="lg:text-xl">
+              Ação não permitida
+            </AlertDialogTitle>
+            <AlertDialogDescription className="lg:text-base">
+              Contas de administrador não podem realizar agendamentos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="lg:p-6">
+            <AlertDialogCancel className="cursor-pointer py-5 lg:py-6 lg:text-base">
+              Entendi
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PhoneCollectionDialog
         open={phoneDialogIsOpen}
