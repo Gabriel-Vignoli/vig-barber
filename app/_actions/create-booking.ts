@@ -16,17 +16,24 @@ export const createBooking = async ({
   employeeId,
   bookingDate,
 }: CreateBookingParams) => {
-  const user = await getServerSession(authOptions)
-  if (!user) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
     throw new Error("Usuário não autenticado")
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sessionUser = session.user as any
+
+  if (sessionUser.role === "ADMIN") {
+    throw new Error("Administradores não podem realizar agendamentos.")
+  }
+
   await prisma.booking.create({
     data: {
       barbershopServiceId,
       employeeId,
       bookingDate,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      userId: (user.user as any).id,
+      userId: sessionUser.id,
     },
   })
   revalidatePath("/barbershops/[id]")
