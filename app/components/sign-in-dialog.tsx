@@ -27,6 +27,7 @@ import {
 } from "../_lib/validations/auth"
 import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
 import ForgotPasswordDialog from "./forgot-password-dialog"
+import { checkLoginAttempt } from "../_actions/check-login-attempt"
 
 type Mode = "login" | "signup"
 
@@ -124,6 +125,26 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     setLoginError(null)
 
     try {
+      const attemptResult = await checkLoginAttempt(
+        values.email,
+        values.password,
+      )
+
+      if (attemptResult.status === "locked") {
+        setLockout({
+          email: values.email,
+          until: new Date(attemptResult.lockedUntil).getTime(),
+        })
+        setNow(Date.now())
+        return
+      }
+
+      if (attemptResult.status === "invalid") {
+        setLockout(null)
+        setLoginError("Email ou senha inválidos.")
+        return
+      }
+
       const result = await signIn("credentials", {
         email: values.email,
         password: values.password,
@@ -131,16 +152,8 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       })
 
       if (result?.error) {
-        if (result.error.startsWith(LOCKOUT_ERROR_PREFIX)) {
-          const until = new Date(
-            result.error.slice(LOCKOUT_ERROR_PREFIX.length),
-          ).getTime()
-          setLockout({ email: values.email, until })
-          setNow(Date.now())
-        } else {
-          setLockout(null)
-          setLoginError("Email ou senha inválidos.")
-        }
+        setLockout(null)
+        setLoginError("Email ou senha inválidos.")
         return
       }
 
