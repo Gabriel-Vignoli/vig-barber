@@ -531,8 +531,8 @@ const ServiceItem = ({
               Contas de administrador não podem realizar agendamentos.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="lg:p-6">
-            <AlertDialogCancel className="cursor-pointer py-5 lg:py-6 lg:text-base">
+          <AlertDialogFooter display="col" className="lg:p-6">
+            <AlertDialogCancel className="w-full cursor-pointer py-5 lg:py-6 lg:text-base">
               Entendi
             </AlertDialogCancel>
           </AlertDialogFooter>
