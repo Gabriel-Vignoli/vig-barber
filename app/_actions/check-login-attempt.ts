@@ -7,7 +7,7 @@ const MAX_LOGIN_ATTEMPTS = 5
 const LOCK_DURATION_MS = 10 * 60 * 1000 // 10 minutes
 
 type CheckLoginAttemptResult =
-  | { status: "ok" }
+  | { status: "ok"; role: string }
   | { status: "invalid" }
   | { status: "locked"; lockedUntil: string }
 
@@ -51,12 +51,10 @@ export async function checkLoginAttempt(
     return { status: "invalid" }
   }
 
-  // Correct password — reset the counter now. authorize() will re-verify
-  // the password again right after, which is redundant but harmless.
   await prisma.user.update({
     where: { id: user.id },
     data: { failedLoginAttempts: 0, lockedUntil: null },
   })
 
-  return { status: "ok" }
+  return { status: "ok", role: user.role }
 }

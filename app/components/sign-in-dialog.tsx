@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -18,7 +19,18 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Checkbox } from "./ui/checkbox"
 import { DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog"
 import { signUp } from "../_actions/sign-up"
+import { checkLoginAttempt } from "../_actions/check-login-attempt"
 import {
   loginSchema,
   signUpFormSchema,
@@ -27,7 +39,6 @@ import {
 } from "../_lib/validations/auth"
 import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
 import ForgotPasswordDialog from "./forgot-password-dialog"
-import { checkLoginAttempt } from "../_actions/check-login-attempt"
 
 type Mode = "login" | "signup"
 
@@ -41,7 +52,6 @@ interface LockoutState {
 }
 
 const AUTH_TOAST_KEY = "pending-auth-toast"
-const LOCKOUT_ERROR_PREFIX = "LOCKED_UNTIL:"
 
 const formatCountdown = (totalSeconds: number) => {
   const minutes = Math.floor(totalSeconds / 60)
@@ -50,12 +60,16 @@ const formatCountdown = (totalSeconds: number) => {
 }
 
 const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
+  const router = useRouter()
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPolicyOpen, setIsPolicyOpen] = useState(false)
   const [lockout, setLockout] = useState<LockoutState | null>(null)
   const [now, setNow] = useState(() => Date.now())
   const [loginError, setLoginError] = useState<string | null>(null)
+  const [isAdminPromptOpen, setIsAdminPromptOpen] = useState(false)
+  const [pendingAdminLogin, setPendingAdminLogin] =
+    useState<LoginFormValues | null>(null)
 
   const [visiblePasswords, setVisiblePasswords] = useState({
     loginPassword: false,
@@ -85,7 +99,6 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
 
   const loginEmail = loginForm.watch("email")
 
-  // Tick every second while a lockout is active so the countdown stays live.
   useEffect(() => {
     if (!lockout) return
 
@@ -93,7 +106,6 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     return () => clearInterval(interval)
   }, [lockout])
 
-  // Clear the lockout automatically once it expires.
   useEffect(() => {
     if (lockout && now >= lockout.until) {
       setLockout(null)
@@ -118,6 +130,24 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     signUpForm.reset()
     setIsPolicyOpen(false)
     setLoginError(null)
+  }
+
+  const proceedWithCredentialsSignIn = async (values: LoginFormValues) => {
+    const result = await signIn("credentials", {
+      email: values.email,
+      password: values.password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      setLockout(null)
+      setLoginError("Email ou senha inválidos.")
+      return
+    }
+
+    setLockout(null)
+    sessionStorage.setItem(AUTH_TOAST_KEY, "login")
+    window.location.reload()
   }
 
   const handleLoginSubmit = async (values: LoginFormValues) => {
@@ -145,26 +175,30 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
         return
       }
 
-      const result = await signIn("credentials", {
-        email: values.email,
-        password: values.password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setLockout(null)
-        setLoginError("Email ou senha inválidos.")
+      if (attemptResult.role === "ADMIN") {
+        setPendingAdminLogin(values)
+        setIsAdminPromptOpen(true)
         return
       }
 
-      setLockout(null)
-      sessionStorage.setItem(AUTH_TOAST_KEY, "login")
-      window.location.reload()
+      await proceedWithCredentialsSignIn(values)
     } catch (error) {
       setLoginError("Erro ao fazer login. Tente novamente.")
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleGoToAdminLogin = () => {
+    setIsAdminPromptOpen(false)
+    setPendingAdminLogin(null)
+    router.push("/admin/login")
+  }
+
+  const handleTryAnotherEmail = () => {
+    setIsAdminPromptOpen(false)
+    setPendingAdminLogin(null)
+    loginForm.reset()
   }
 
   const handleSignUpSubmit = async (values: SignUpFormValues) => {
@@ -511,6 +545,26 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       <div className="flex justify-end">
         <ForgotPasswordDialog />
       </div>
+
+      <AlertDialog open={isAdminPromptOpen} onOpenChange={setIsAdminPromptOpen}>
+        <AlertDialogContent size="default">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conta de administrador</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa conta pertence a um administrador. Deseja acessar o painel
+              administrativo ou tentar novamente com outro email?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleTryAnotherEmail}>
+              Tentar outro email
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleGoToAdminLogin}>
+              Ir para o painel admin
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
