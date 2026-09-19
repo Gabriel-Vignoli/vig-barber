@@ -1,16 +1,17 @@
 import { prisma } from "@/app/_lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/_lib/auth"
+import { unstable_cache } from "next/cache"
 import Header from "@/app/components/header"
 import PhoneItem from "@/app/components/phone-item"
 import ServiceItem from "@/app/components/service-item"
 import EmployeeReviews from "@/app/components/employee-reviews"
-import { Button } from "@/app/components/ui/button"
+import BackButton from "@/app/components/back-button"
+import ViewLocationButton from "@/app/components/view-location-button"
 import { Card, CardContent } from "@/app/components/ui/card"
-import { ChevronLeftIcon, MapPinIcon, StarIcon } from "lucide-react"
+import { MapPinIcon, StarIcon } from "lucide-react"
 import { Weekday } from "@prisma/client"
 import Image from "next/image"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 
 interface EmployeePageProps {
@@ -49,26 +50,49 @@ const WEEKDAY_LABELS: Record<Weekday, string> = {
   SUNDAY: "Domingo",
 }
 
+// Barbershop data rarely changes, so cache it across requests instead of
+// hitting the DB on every single page view. Revalidates every hour.
+const getCachedBarbershop = unstable_cache(
+  async () => prisma.barbershop.findFirst(),
+  ["barbershop"],
+  { revalidate: 3600 },
+)
+
 const EmployeePage = async ({ params }: EmployeePageProps) => {
   const { id } = await params
   const session = await getServerSession(authOptions)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const currentUserId = (session?.user as any)?.id ?? null
 
-  const employee = await prisma.employee.findUnique({
-    where: { id },
-    include: {
-      user: { select: { name: true, image: true } },
-      services: { include: { service: true } },
-      schedules: true,
-      reviews: {
-        include: { user: { select: { name: true, image: true } } },
-        orderBy: { createdAt: "desc" },
+  // These three queries don't depend on each other's results, so run them
+  // concurrently instead of waiting on each one sequentially.
+  const [employee, barbershop, reviewableBookingCandidate] = await Promise.all([
+    prisma.employee.findUnique({
+      where: { id },
+      include: {
+        user: { select: { name: true, image: true } },
+        services: { include: { service: true } },
+        schedules: true,
+        reviews: {
+          include: { user: { select: { name: true, image: true } } },
+          orderBy: { createdAt: "desc" },
+        },
       },
-    },
-  })
-
-  const barbershop = await prisma.barbershop.findFirst()
+    }),
+    getCachedBarbershop(),
+    currentUserId
+      ? prisma.booking.findFirst({
+          where: {
+            employeeId: id,
+            userId: currentUserId,
+            bookingDate: { lt: new Date() },
+            status: { not: "CANCELLED" },
+            review: null,
+          },
+          orderBy: { bookingDate: "desc" },
+        })
+      : Promise.resolve(null),
+  ])
 
   if (!employee || !barbershop) {
     return notFound()
@@ -78,23 +102,10 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
     ? employee.reviews.some((review) => review.userId === currentUserId)
     : false
 
-  const reviewableBooking =
-    currentUserId && !hasReviewed
-      ? await prisma.booking.findFirst({
-          where: {
-            employeeId: employee.id,
-            userId: currentUserId,
-            bookingDate: { lt: new Date() },
-            status: { not: "CANCELLED" },
-            review: null,
-          },
-          orderBy: { bookingDate: "desc" },
-        })
-      : null
+  const reviewableBooking = hasReviewed ? null : reviewableBookingCandidate
 
   const employeeName = employee.user.name ?? "Funcionário"
-  const employeeImage =
-    employee.imageUrl ?? employee.user.image ?? "/avatar-placeholder.png"
+  const employeeImage = employee.imageUrl ?? employee.user.image ?? null
 
   const servicesSerialized = employee.services.map(({ service }) => ({
     ...service,
@@ -120,24 +131,22 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
           {/* Main column */}
           <div className="lg:col-start-1">
             {/* Image */}
-            <div className="relative h-62.5 w-full lg:mx-auto lg:h-96 lg:max-w-md lg:overflow-hidden lg:rounded-xl">
-              <Image
-                src={employeeImage}
-                alt={employeeName}
-                fill
-                sizes="(min-width: 1024px) 448px, 100vw"
-                className="object-cover"
-              />
+            <div className="bg-muted relative flex h-62.5 w-full items-center justify-center lg:mx-auto lg:h-96 lg:max-w-md lg:overflow-hidden lg:rounded-xl">
+              {employeeImage ? (
+                <Image
+                  src={employeeImage}
+                  alt={employeeName}
+                  fill
+                  sizes="(min-width: 1024px) 448px, 100vw"
+                  className="object-cover"
+                />
+              ) : (
+                <p className="text-muted-foreground px-4 text-center text-sm">
+                  Esse barbeiro ainda não possui uma imagem
+                </p>
+              )}
 
-              <Button
-                size="icon"
-                variant="secondary"
-                className="absolute top-3 left-3 cursor-pointer lg:hidden"
-              >
-                <Link href="/">
-                  <ChevronLeftIcon />
-                </Link>
-              </Button>
+              <BackButton href="/" />
             </div>
 
             {/* Info */}
@@ -271,13 +280,15 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                 <Card className="z-10 mx-3 mb-3 w-full rounded-xl">
                   <CardContent className="flex flex-col items-center gap-3 px-3 py-1">
                     <div className="flex gap-3">
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
-                        <Image
-                          src={barbershop.imageUrl}
-                          alt={barbershop.name}
-                          fill
-                          className="object-cover"
-                        />
+                      <div className="bg-muted relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                        {barbershop.imageUrl ? (
+                          <Image
+                            src={barbershop.imageUrl}
+                            alt={barbershop.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : null}
                       </div>
                       <div>
                         <h3 className="text-sm font-bold">{barbershop.name}</h3>
@@ -287,14 +298,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                       </div>
                     </div>
 
-                    <Link
-                      href="https://www.google.com.br/maps/@-21.3657277,-46.935593,15z?hl=pt-BR&entry=ttu&g_ep=EgoyMDI2MDgyNi4wIKXMDSoASAFQAw%3D%3D"
-                      target="_blank"
-                    >
-                      <Button className="cursor-pointer">
-                        Ver Localização
-                      </Button>
-                    </Link>
+                    <ViewLocationButton href="https://www.google.com.br/maps/@-21.3657277,-46.935593,15z?hl=pt-BR&entry=ttu&g_ep=EgoyMDI2MDgyNi4wIKXMDSoASAFQAw%3D%3D" />
                   </CardContent>
                 </Card>
               </div>
