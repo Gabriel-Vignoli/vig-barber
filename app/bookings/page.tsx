@@ -21,8 +21,12 @@ const Bookings = async () => {
     )
   }
 
-  const confirmedBookings = await getConfirmedBookings()
-  const concludedBookings = await getConcludedBookings()
+  // These two queries don't depend on each other, so run them concurrently
+  // instead of waiting on each one sequentially.
+  const [confirmedBookings, concludedBookings] = await Promise.all([
+    getConfirmedBookings(),
+    getConcludedBookings(),
+  ])
 
   return (
     <>
