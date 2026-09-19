@@ -10,6 +10,7 @@ const ViewLocationButton = ({ href }: ViewLocationButtonProps) => {
   return (
     <Button
       className="cursor-pointer"
+      nativeButton={false}
       render={(buttonProps) => (
         <a
           href={href}
