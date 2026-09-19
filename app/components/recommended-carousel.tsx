@@ -10,7 +10,7 @@ interface RecommendedCarouselProps {
   employees: {
     id: string
     name: string
-    imageUrl: string
+    imageUrl: string | null
     averageRating: number | null
     ratingCount: number
   }[]
