@@ -1,6 +1,7 @@
 import Header from "./components/header"
 import Image from "next/image"
 import { prisma } from "./_lib/prisma"
+import { unstable_cache } from "next/cache"
 import ServiceCard from "./components/service-card"
 import RecommendedCarousel from "./components/recommended-carousel"
 import BookingItem from "./components/booking-item"
@@ -12,18 +13,51 @@ import { getConfirmedBookings } from "./_data/get-confirmed-bookings"
 import Carousel from "./components/carousel"
 import { ScissorsIcon } from "lucide-react"
 
+// Barbershop data rarely changes — cache across requests instead of
+// hitting the DB on every single homepage view.
+const getCachedBarbershop = unstable_cache(
+  async () => prisma.barbershop.findFirst(),
+  ["barbershop"],
+  { revalidate: 3600 },
+)
+
+// Services change rarely too — same treatment.
+const getCachedServices = unstable_cache(
+  async () =>
+    prisma.barbershopService.findMany({
+      orderBy: { name: "asc" },
+    }),
+  ["barbershop-services"],
+  { revalidate: 3600 },
+)
+
+// Active employees + their reviews change more often (new reviews come in
+// regularly), so cache for a shorter window rather than not at all.
+const getCachedEmployees = unstable_cache(
+  async () =>
+    prisma.employee.findMany({
+      where: { isActive: true },
+      include: {
+        user: { select: { name: true, image: true } },
+        reviews: { select: { rating: true } },
+      },
+    }),
+  ["active-employees"],
+  { revalidate: 300 },
+)
+
 export default async function Home() {
   const session = await getServerSession(authOptions)
 
-  const barbershop = await prisma.barbershop.findFirst()
-
-  const employees = await prisma.employee.findMany({
-    where: { isActive: true },
-    include: {
-      user: { select: { name: true, image: true } },
-      reviews: { select: { rating: true } },
-    },
-  })
+  // None of these four depend on each other, so run them concurrently
+  // instead of waiting on each sequentially.
+  const [barbershop, employees, services, confirmedBookings] =
+    await Promise.all([
+      getCachedBarbershop(),
+      getCachedEmployees(),
+      getCachedServices(),
+      getConfirmedBookings(),
+    ])
 
   const employeesSerialized = employees.map((employee) => {
     const ratingCount = employee.reviews.length
@@ -36,17 +70,10 @@ export default async function Home() {
     return {
       id: employee.id,
       name: employee.user.name ?? "Funcionário",
-      imageUrl:
-        employee.imageUrl ?? employee.user.image ?? "/avatar-placeholder.png",
+      imageUrl: employee.imageUrl ?? employee.user.image ?? null,
       averageRating,
       ratingCount,
     }
-  })
-
-  const services = await prisma.barbershopService.findMany({
-    orderBy: {
-      name: "asc",
-    },
   })
 
   const servicesSerialized = services.map((service) => ({
@@ -54,7 +81,6 @@ export default async function Home() {
     price: Number(service.price),
   }))
 
-  const confirmedBookings = await getConfirmedBookings()
   const hasBookings = confirmedBookings.length > 0
 
   return (
