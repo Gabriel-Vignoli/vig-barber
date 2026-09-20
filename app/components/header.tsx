@@ -16,6 +16,7 @@ const Header = () => {
             alt="Vig Barber"
             width={120}
             height={120}
+            priority
             className="md:h-auto md:w-36"
           />
         </Link>

@@ -142,6 +142,7 @@ export default async function Home() {
                   src="/banner-01.png"
                   alt="Banner 01"
                   fill
+                  priority
                   className="object-contain"
                 />
               </div>
