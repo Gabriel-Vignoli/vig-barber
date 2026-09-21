@@ -64,13 +64,13 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
+        <div className="flex gap-2 xl:gap-3">
           {PERIODS.map((p) => (
             <Button
               key={p.value}
               size="sm"
               variant={period === p.value ? "default" : "outline"}
-              className="cursor-pointer"
+              className="cursor-pointer xl:p-4 xl:text-base"
               onClick={() => setPeriod(p.value)}
             >
               {p.label}
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="cursor-pointer gap-2"
+                className="cursor-pointer gap-2 xl:p-4 xl:text-base"
                 {...triggerProps}
               >
                 <CalendarIcon size={16} />

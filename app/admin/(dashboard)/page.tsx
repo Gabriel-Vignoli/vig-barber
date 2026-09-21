@@ -7,8 +7,8 @@ const AdminDashboardPage = async () => {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 lg:p-8">
       <div>
-        <h1 className="text-xl font-bold lg:text-2xl">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="text-xl font-bold lg:text-2xl xl:text-3xl">Dashboard</h1>
+        <p className="text-muted-foreground text-sm xl:text-base">
           Bem-vindo, {admin.name}.
         </p>
       </div>
