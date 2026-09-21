@@ -17,11 +17,14 @@ import {
 import { ServiceStat } from "../_actions/get-dashboard-stats"
 
 const COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
+  "#1e3a8a", // dark blue
+  "#3b82f6", // normal blue
+  "#93c5fd", // light blue
+  "#0c4a6e", // deep navy
+  "#38bdf8", // sky blue
+  "#1e40af", // indigo-blue
+  "#bae6fd", // pale blue
+  "#2563eb", // vivid blue
 ]
 
 interface AdminBookingsPieChartProps {
