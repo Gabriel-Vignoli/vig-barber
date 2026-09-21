@@ -70,7 +70,7 @@ const AdminDashboard = () => {
               key={p.value}
               size="sm"
               variant={period === p.value ? "default" : "outline"}
-              className="cursor-pointer xl:p-4 xl:text-base"
+              className="cursor-pointer border-0 xl:p-4 xl:text-base"
               onClick={() => setPeriod(p.value)}
             >
               {p.label}
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="cursor-pointer gap-2 xl:p-4 xl:text-base"
+                className="cursor-pointer gap-2 border-0 xl:p-4 xl:text-base"
                 {...triggerProps}
               >
                 <CalendarIcon size={16} />

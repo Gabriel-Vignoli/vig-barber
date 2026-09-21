@@ -31,8 +31,10 @@ const AdminBookingsPage = async ({ searchParams }: AdminBookingsPageProps) => {
     <div className="mx-auto max-w-5xl space-y-6 p-4 lg:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold lg:text-2xl">Agendamentos</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-xl font-bold lg:text-2xl xl:text-3xl">
+            Agendamentos
+          </h1>
+          <p className="text-muted-foreground text-sm xl:text-base">
             {totalCount} agendamento{totalCount !== 1 ? "s" : ""}
           </p>
         </div>

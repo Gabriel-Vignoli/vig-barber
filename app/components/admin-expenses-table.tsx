@@ -72,8 +72,11 @@ const AdminExpensesTable = ({ expenses }: AdminExpensesTableProps) => {
         <ExpenseFormDialog
           mode="create"
           renderTrigger={(triggerProps) => (
-            <Button className="cursor-pointer gap-2" {...triggerProps}>
-              <PlusIcon size={18} />
+            <Button
+              className="cursor-pointer border-0 xl:p-4 xl:text-base"
+              {...triggerProps}
+            >
+              <PlusIcon className="size-4.5 xl:size-5" />
               Nova despesa
             </Button>
           )}

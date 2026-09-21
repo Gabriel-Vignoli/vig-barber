@@ -62,8 +62,11 @@ const EmployeeFormDialog = () => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={(triggerProps) => (
-          <Button className="cursor-pointer gap-2" {...triggerProps}>
-            <PlusIcon size={18} />
+          <Button
+            className="cursor-pointer border-0 xl:p-4 xl:text-base"
+            {...triggerProps}
+          >
+            <PlusIcon className="size-4.5 xl:size-5" />
             Novo funcionário
           </Button>
         )}

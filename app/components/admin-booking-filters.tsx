@@ -23,13 +23,13 @@ const AdminBookingFilters = () => {
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 xl:gap-3">
       {FILTERS.map((filter) => (
         <Button
           key={filter.value}
           size="sm"
           variant={activeFilter === filter.value ? "default" : "outline"}
-          className="cursor-pointer lg:text-base"
+          className="cursor-pointer border-0 xl:p-4 xl:text-base"
           onClick={() => handleFilterClick(filter.value)}
         >
           {filter.label}

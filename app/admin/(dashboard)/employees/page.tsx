@@ -19,8 +19,10 @@ const AdminEmployeesPage = async ({
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 lg:p-8">
       <div>
-        <h1 className="text-xl font-bold lg:text-2xl">Funcionários</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="text-xl font-bold lg:text-2xl xl:text-3xl">
+          Funcionários
+        </h1>
+        <p className="text-muted-foreground text-sm xl:text-base">
           {totalCount} funcionário{totalCount !== 1 ? "s" : ""} cadastrado
           {totalCount !== 1 ? "s" : ""}
         </p>
