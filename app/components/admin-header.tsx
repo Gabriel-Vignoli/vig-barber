@@ -41,18 +41,18 @@ const AdminHeader = ({ adminName }: AdminHeaderProps) => {
 
   return (
     <Card className="bg-background rounded-none">
-      <CardContent className="flex items-center justify-between md:px-8 md:py-2 lg:px-16 xl:px-32">
-        <Link href="/admin">
+      <CardContent className="flex items-center justify-between gap-2 md:px-6 md:py-2 lg:px-10 xl:px-32">
+        <Link href="/admin" className="shrink-0">
           <Image
             src="/logo.png"
             alt="Vig Barber"
             width={120}
             height={120}
-            className="md:h-auto md:w-36"
+            className="md:h-auto md:w-28 xl:w-36"
           />
         </Link>
 
-        <nav className="hidden items-center gap-2 md:flex">
+        <nav className="hidden min-w-0 items-center gap-1 md:flex xl:gap-2">
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === "/admin"
@@ -63,12 +63,13 @@ const AdminHeader = ({ adminName }: AdminHeaderProps) => {
               <Button
                 key={item.href}
                 variant={isActive ? "default" : "ghost"}
-                className="cursor-pointer gap-3"
+                size="icon"
+                className="cursor-pointer gap-3 xl:size-auto xl:px-4 xl:py-2"
                 nativeButton={false}
                 render={(buttonProps) => (
-                  <Link href={item.href} {...buttonProps}>
+                  <Link href={item.href} title={item.label} {...buttonProps}>
                     <item.icon size={16} />
-                    {item.label}
+                    <span className="hidden xl:inline">{item.label}</span>
                   </Link>
                 )}
               />
@@ -76,7 +77,7 @@ const AdminHeader = ({ adminName }: AdminHeaderProps) => {
           })}
         </nav>
 
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex shrink-0 items-center gap-2 md:gap-4 xl:gap-6">
           <span className="text-muted-foreground hidden text-sm md:inline">
             {adminName}
           </span>
