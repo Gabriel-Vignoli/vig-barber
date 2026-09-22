@@ -21,7 +21,7 @@ const EmployeeItem = ({ employee }: EmployeeItemProps) => {
   if (!employee) return null
 
   return (
-    <Card className="w-56 shrink-0 p-0 md:w-72">
+    <Card className="w-48 shrink-0 p-0 md:w-72">
       <CardContent className="p-0">
         <div className="bg-muted relative flex h-36 w-full items-center justify-center overflow-hidden rounded-t-xl md:h-52 lg:h-64">
           {employee.imageUrl ? (
@@ -29,7 +29,7 @@ const EmployeeItem = ({ employee }: EmployeeItemProps) => {
               src={employee.imageUrl}
               alt={employee.name}
               fill
-              sizes="(min-width: 768px) 288px, 224px"
+              sizes="(min-width: 768px) 288px, 192px"
               className="object-cover"
             />
           ) : (
