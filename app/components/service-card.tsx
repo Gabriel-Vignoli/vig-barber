@@ -29,6 +29,7 @@ import { format, set } from "date-fns"
 import { Booking } from "@prisma/client"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
+import { CalendarPlusIcon } from "lucide-react"
 import { getBookings } from "../_actions/get-bookings"
 import { createBooking } from "../_actions/create-booking"
 import { getConflictingBooking } from "../_actions/get-conflicting-booking"
@@ -300,35 +301,40 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
   return (
     <>
-      <Card className="min-w-32 p-0 md:min-w-52 lg:min-w-60">
+      <Card className="min-w-36 overflow-hidden border-0 py-0 shadow-md transition-shadow hover:shadow-xl md:min-w-52 lg:min-w-60">
         <CardContent className="p-0">
-          <div className="relative h-32 w-full md:h-48 lg:h-56">
-            <Image
-              src={service.imageUrl}
-              alt={service.name}
-              fill
-              sizes="(min-width: 1024px) 240px, (min-width: 768px) 208px, 128px"
-              className="rounded-xl object-cover"
-            />
-          </div>
-          <div className="px-2 py-2 md:px-3 md:py-4">
-            <h3 className="truncate text-sm font-semibold md:text-lg">
-              {service.name}
-            </h3>
-            <p className="truncate text-xs text-gray-400 md:text-base">
-              {service.description}
-            </p>
-            <p className="text-primary mt-1 text-sm font-bold md:text-base">
+          <div className="relative h-32 w-full p-2 md:h-48 md:p-3 lg:h-56">
+            <div className="relative h-full w-full overflow-hidden rounded-lg">
+              <Image
+                src={service.imageUrl}
+                alt={service.name}
+                fill
+                sizes="(min-width: 1024px) 240px, (min-width: 768px) 208px, 128px"
+                className="object-cover"
+              />
+            </div>
+
+            {/* Floating price tag */}
+            <div className="bg-background/90 text-foreground absolute bottom-3 left-3 rounded-lg px-2.5 py-1 text-xs font-bold shadow-md backdrop-blur-sm md:bottom-4 md:left-4 md:px-3 md:text-sm">
               {Intl.NumberFormat("pt-BR", {
                 style: "currency",
                 currency: "BRL",
               }).format(service.price)}
+            </div>
+          </div>
+
+          <div className="space-y-1 px-3 pt-1 pb-3 md:px-4 md:pt-2 md:pb-4">
+            <h3 className="truncate text-sm font-bold md:text-lg">
+              {service.name}
+            </h3>
+            <p className="line-clamp-2 text-xs text-gray-400 md:text-sm">
+              {service.description}
             </p>
             <Button
-              variant="outline"
-              className="mt-2 w-full cursor-pointer py-3 text-sm md:mt-4 md:py-5 md:text-base"
+              className="mt-2 w-full cursor-pointer gap-2 py-3 text-sm md:mt-3 md:py-5 md:text-base"
               onClick={handleReservarClick}
             >
+              <CalendarPlusIcon size={16} />
               Reservar
             </Button>
           </div>
