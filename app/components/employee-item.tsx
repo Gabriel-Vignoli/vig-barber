@@ -21,16 +21,16 @@ const EmployeeItem = ({ employee }: EmployeeItemProps) => {
   if (!employee) return null
 
   return (
-    <Card className="w-48 shrink-0 p-0 md:w-72">
+    <Card className="w-44 shrink-0 p-0 md:w-72">
       <CardContent className="p-0">
-        <div className="bg-muted relative flex h-36 w-full items-center justify-center overflow-hidden rounded-t-xl md:h-52 lg:h-64">
+        <div className="bg-muted relative flex h-44 w-full items-center justify-center overflow-hidden rounded-t-xl md:h-56 lg:h-68">
           {employee.imageUrl ? (
             <Image
               src={employee.imageUrl}
               alt={employee.name}
               fill
-              sizes="(min-width: 768px) 288px, 192px"
-              className="object-cover"
+              sizes="(min-width: 768px) 288px, 160px"
+              className="object-cover object-top"
             />
           ) : (
             <p className="text-muted-foreground px-4 text-center text-xs">
