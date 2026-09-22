@@ -56,7 +56,7 @@ const RecommendedCarousel = ({ employees }: RecommendedCarouselProps) => {
       <button
         onClick={handleScrollLeft}
         aria-label="Ver recomendações anteriores"
-        className="absolute top-1/2 left-0 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6 md:h-12 md:w-12"
+        className="absolute top-1/2 left-0 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6 md:flex md:h-12 md:w-12"
       >
         <ChevronLeftIcon size={20} className="md:hidden" />
         <ChevronLeftIcon size={30} className="hidden md:block" />
@@ -65,7 +65,7 @@ const RecommendedCarousel = ({ employees }: RecommendedCarouselProps) => {
       <button
         onClick={handleScrollRight}
         aria-label="Ver mais recomendações"
-        className="absolute top-1/2 right-0 flex h-9 w-9 translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6 md:h-12 md:w-12"
+        className="absolute top-1/2 right-0 hidden h-9 w-9 translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/6 md:flex md:h-12 md:w-12"
       >
         <ChevronRightIcon size={20} className="md:hidden" />
         <ChevronRightIcon size={30} className="hidden md:block" />
