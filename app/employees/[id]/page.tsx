@@ -20,16 +20,6 @@ interface EmployeePageProps {
   }>
 }
 
-const BUSINESS_HOURS = [
-  { day: "Segunda", hours: "Fechado" },
-  { day: "Terça-Feira", hours: "09:00 - 21:00" },
-  { day: "Quarta-Feira", hours: "09:00 - 21:00" },
-  { day: "Quinta-Feira", hours: "09:00 - 21:00" },
-  { day: "Sexta-Feira", hours: "09:00 - 21:00" },
-  { day: "Sábado", hours: "08:00 - 17:00" },
-  { day: "Domingo", hours: "Fechado" },
-]
-
 const WEEKDAY_ORDER: Weekday[] = [
   Weekday.MONDAY,
   Weekday.TUESDAY,
@@ -314,15 +304,23 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                 <h3 className="text-sm font-bold text-gray-400 uppercase">
                   Horário de funcionamento
                 </h3>
-                {BUSINESS_HOURS.map(({ day, hours }) => (
-                  <div
-                    key={day}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <p className="text-sm">{day}</p>
-                    <p className="text-sm font-medium">{hours}</p>
-                  </div>
-                ))}
+                {WEEKDAY_ORDER.map((weekday) => {
+                  const schedule = scheduleByWeekday.get(weekday)
+                  const hours =
+                    !schedule || schedule.isDayOff
+                      ? "Fechado"
+                      : `${schedule.startTime} - ${schedule.endTime}`
+
+                  return (
+                    <div
+                      key={weekday}
+                      className="flex items-center justify-between py-2"
+                    >
+                      <p className="text-sm">{WEEKDAY_LABELS[weekday]}</p>
+                      <p className="text-sm font-medium">{hours}</p>
+                    </div>
+                  )
+                })}
               </div>
 
               <div className="mt-8 space-y-3 border-t border-gray-400/20 pt-8">
