@@ -9,7 +9,7 @@ import EmployeeReviews from "@/app/components/employee-reviews"
 import BackButton from "@/app/components/back-button"
 import ViewLocationButton from "@/app/components/view-location-button"
 import { Card, CardContent } from "@/app/components/ui/card"
-import { MapPinIcon, StarIcon } from "lucide-react"
+import { StarIcon } from "lucide-react"
 import { Weekday } from "@prisma/client"
 import Image from "next/image"
 import { notFound } from "next/navigation"
@@ -145,10 +145,6 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                 <h1 className="mb-3 text-xl font-bold lg:text-2xl xl:text-3xl">
                   {employeeName}
                 </h1>
-                <div className="mb-2 flex items-center gap-2">
-                  <MapPinIcon className="text-primary" size={18} />
-                  <p className="text-sm lg:text-base">{barbershop.address}</p>
-                </div>
               </div>
 
               <Card className="mt-2 w-fit p-0 lg:mt-0">
