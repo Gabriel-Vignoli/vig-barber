@@ -28,7 +28,7 @@ import { ptBR } from "date-fns/locale"
 import { format, set } from "date-fns"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
-import { CalendarPlusIcon } from "lucide-react"
+import { CalendarPlusIcon, ClockIcon } from "lucide-react"
 import { getBookings } from "../_actions/get-bookings"
 import { createBooking } from "../_actions/create-booking"
 import { getConflictingBooking } from "../_actions/get-conflicting-booking"
@@ -348,6 +348,10 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
             <p className="line-clamp-2 text-xs text-gray-400 md:text-sm">
               {service.description}
             </p>
+            <div className="text-muted-foreground flex items-center gap-1 text-xs md:text-sm">
+              <ClockIcon size={12} className="md:size-3.5" />
+              <span>{service.durationInMinutes} min</span>
+            </div>
             <Button
               className="mt-2 w-full cursor-pointer gap-2 py-3 text-sm md:mt-3 md:py-5 md:text-base"
               onClick={handleReservarClick}
@@ -498,7 +502,8 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
                     Confirmar Reserva
                   </AlertDialogTitle>
                   <AlertDialogDescription className="lg:text-base">
-                    Deseja confirmar o agendamento de {service.name} com{" "}
+                    Deseja confirmar o agendamento de {service.name} (
+                    {service.durationInMinutes} min) com{" "}
                     {selectedEmployee?.name} para{" "}
                     {selectedDate
                       ? format(selectedDate, "dd 'de' MMMM 'às' HH:mm", {
