@@ -11,7 +11,6 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { getConfirmedBookings } from "./_data/get-confirmed-bookings"
 import Carousel from "./components/carousel"
-import { ScissorsIcon } from "lucide-react"
 
 // Barbershop data rarely changes — cache across requests instead of
 // hitting the DB on every single homepage view.

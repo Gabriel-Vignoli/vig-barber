@@ -26,7 +26,6 @@ import {
 import { Dialog, DialogContent } from "./ui/dialog"
 import { ptBR } from "date-fns/locale"
 import { format, set } from "date-fns"
-import { Booking } from "@prisma/client"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { CalendarPlusIcon } from "lucide-react"
@@ -36,6 +35,10 @@ import { getConflictingBooking } from "../_actions/get-conflicting-booking"
 import { replaceBooking } from "../_actions/replace-booking"
 import { getEmployeesForService } from "../_actions/get-employees-for-service"
 import { checkUserPhone } from "../_actions/check-user-phone"
+import {
+  getEmployeeSchedule,
+  EmployeeScheduleResult,
+} from "../_actions/get-employee-schedule"
 import { getTimeList } from "../_lib/time-list"
 import { showBookingSuccessToast } from "./booking-success-toast"
 import SignInDialog from "./sign-in-dialog"
@@ -49,6 +52,7 @@ interface ServiceCardProps {
     description: string
     price: number
     imageUrl: string
+    durationInMinutes: number
   }
 }
 
@@ -83,7 +87,10 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   const [selectedTime, setSelectedTime] = useState<string | undefined>(
     undefined,
   )
-  const [dayBookings, setDayBookings] = useState<Booking[]>([])
+  const [dayBookings, setDayBookings] = useState<
+    Awaited<ReturnType<typeof getBookings>>
+  >([])
+  const [daySchedule, setDaySchedule] = useState<EmployeeScheduleResult>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [phoneDialogIsOpen, setPhoneDialogIsOpen] = useState(false)
@@ -101,11 +108,12 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   useEffect(() => {
     const fetch = async () => {
       if (!selectedDay || !selectedEmployeeId) return
-      const bookings = await getBookings({
-        date: selectedDay,
-        employeeId: selectedEmployeeId,
-      })
+      const [bookings, schedule] = await Promise.all([
+        getBookings({ date: selectedDay, employeeId: selectedEmployeeId }),
+        getEmployeeSchedule(selectedEmployeeId, selectedDay),
+      ])
       setDayBookings(bookings)
+      setDaySchedule(schedule)
     }
     fetch()
   }, [selectedDay, selectedEmployeeId])
@@ -113,6 +121,16 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   const selectedEmployee = employees.find(
     (employee) => employee.id === selectedEmployeeId,
   )
+
+  const availableTimes = useMemo(() => {
+    if (!selectedDay) return []
+    return getTimeList(
+      dayBookings,
+      selectedDay,
+      service.durationInMinutes,
+      daySchedule,
+    )
+  }, [dayBookings, selectedDay, service.durationInMinutes, daySchedule])
 
   const selectedDate = useMemo(() => {
     if (!selectedDay || !selectedTime) return undefined
@@ -142,6 +160,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       setSelectedDay(undefined)
       setSelectedTime(undefined)
       setDayBookings([])
+      setDaySchedule(null)
     }
     setBookingSheetIsOpen(isOpen)
   }
@@ -213,8 +232,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     try {
       if (!selectedDay || !selectedTime || !selectedEmployeeId) return
 
-      const validTimes = getTimeList(dayBookings, selectedDay)
-      if (!validTimes.includes(selectedTime)) {
+      if (!availableTimes.includes(selectedTime)) {
         toast.error("Horário indisponível, selecione outro.")
         setSelectedTime(undefined)
         setConfirmDialogIsOpen(false)
@@ -423,16 +441,22 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
             {selectedDay && (
               <div className="flex gap-3 overflow-x-auto border-b p-4 lg:gap-4 lg:p-6 [&::-webkit-scrollbar]:hidden">
-                {getTimeList(dayBookings, selectedDay).map((time) => (
-                  <Button
-                    key={time}
-                    variant={selectedTime === time ? "default" : "outline"}
-                    className="cursor-pointer rounded-full lg:h-10 lg:px-5 lg:text-base"
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </Button>
-                ))}
+                {availableTimes.length === 0 ? (
+                  <p className="text-sm text-gray-400">
+                    Nenhum horário disponível para esse dia.
+                  </p>
+                ) : (
+                  availableTimes.map((time) => (
+                    <Button
+                      key={time}
+                      variant={selectedTime === time ? "default" : "outline"}
+                      className="cursor-pointer rounded-full lg:h-10 lg:px-5 lg:text-base"
+                      onClick={() => setSelectedTime(time)}
+                    >
+                      {time}
+                    </Button>
+                  ))
+                )}
               </div>
             )}
 
