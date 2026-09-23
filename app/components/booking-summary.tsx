@@ -6,7 +6,7 @@ import { ptBR } from "date-fns/locale"
 interface BookingSummaryProps {
   service: Pick<
     Omit<BarbershopService, "price"> & { price: number },
-    "name" | "price"
+    "name" | "price" | "durationInMinutes"
   >
   selectedDay: Date
   employee: {
@@ -51,6 +51,15 @@ const BookingSummary = ({
         <div className="flex items-center justify-between">
           <h2 className="text-sm text-gray-400 md:text-base">Horário</h2>
           <p className="text-sm md:text-base">{format(selectedDay, "HH:mm")}</p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm text-gray-400 md:text-base">
+            Tempo de serviço
+          </h2>
+          <p className="text-sm md:text-base">
+            {service.durationInMinutes} min
+          </p>
         </div>
       </CardContent>
     </Card>
