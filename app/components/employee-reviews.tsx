@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { InfoIcon, PencilIcon, StarIcon, Trash2Icon } from "lucide-react"
 import { Card, CardContent } from "./ui/card"
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 import { Button } from "./ui/button"
 import {
   AlertDialog,
@@ -36,6 +37,16 @@ interface EmployeeReviewsProps {
   reviews: ReviewData[]
   currentUserId: string | null
   reviewableBookingId: string | null
+}
+
+const getInitials = (name?: string | null) => {
+  if (!name) return "?"
+
+  const parts = name.trim().split(/\s+/)
+  const first = parts[0]?.charAt(0) ?? ""
+  const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : ""
+
+  return (first + last).toUpperCase()
 }
 
 const EmployeeReviews = ({
@@ -128,14 +139,26 @@ const EmployeeReviews = ({
               <Card key={review.id} className="p-0">
                 <CardContent className="space-y-1 p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">
-                      {review.user.name ?? "Cliente"}
-                      {isOwnReview && (
-                        <span className="text-muted-foreground ml-2 text-xs font-normal">
-                          (Você)
-                        </span>
-                      )}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={review.user.image ?? ""}
+                          alt={review.user.name ?? "Cliente"}
+                          referrerPolicy="no-referrer"
+                        />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                          {getInitials(review.user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="text-sm font-semibold">
+                        {review.user.name ?? "Cliente"}
+                        {isOwnReview && (
+                          <span className="text-muted-foreground ml-2 text-xs font-normal">
+                            (Você)
+                          </span>
+                        )}
+                      </p>
+                    </div>
                     <div className="flex items-center gap-1.5">
                       <p className="text-sm font-medium">
                         {review.rating.toFixed(1).replace(".", ",")}
