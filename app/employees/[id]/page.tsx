@@ -147,23 +147,58 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                 </h1>
               </div>
 
-              <Card className="mt-2 w-fit p-0 lg:mt-0">
-                <CardContent className="flex items-center gap-2 px-3 py-2">
-                  <StarIcon className="text-primary fill-primary" size={18} />
-                  <div>
-                    <p className="text-sm font-semibold lg:text-base">
-                      {averageRating !== null
-                        ? averageRating.toFixed(1).replace(".", ",")
-                        : "Novo"}
-                    </p>
-                    <p className="text-xs text-gray-400 lg:text-sm">
-                      {ratingCount > 0
-                        ? `${ratingCount} avaliações`
-                        : "Sem avaliações"}
-                    </p>
+              <div className="mt-2 w-fit lg:mt-0">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold lg:text-base">
+                    {averageRating !== null
+                      ? averageRating.toFixed(1).replace(".", ",")
+                      : "Novo"}
+                  </p>
+                  <div className="flex items-center">
+                    {Array.from({ length: 5 }).map((_, index) => {
+                      const starValue = index + 1
+                      const rating = averageRating ?? 0
+
+                      if (rating >= starValue) {
+                        return (
+                          <StarIcon
+                            key={index}
+                            className="fill-yellow-400 text-yellow-400"
+                            size={18}
+                          />
+                        )
+                      }
+
+                      if (rating >= starValue - 0.5) {
+                        return (
+                          <div key={index} className="relative">
+                            <StarIcon className="text-gray-300" size={18} />
+                            <div className="absolute inset-0 w-1/2 overflow-hidden">
+                              <StarIcon
+                                className="fill-yellow-400 text-yellow-400"
+                                size={18}
+                              />
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      return (
+                        <StarIcon
+                          key={index}
+                          className="text-gray-300"
+                          size={18}
+                        />
+                      )
+                    })}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <p className="text-center text-xs text-gray-400 lg:text-sm">
+                  {ratingCount > 0
+                    ? `${ratingCount} avaliações`
+                    : "Sem avaliações"}
+                </p>
+              </div>
             </div>
 
             {/* Sobre - employee bio, always visible */}
