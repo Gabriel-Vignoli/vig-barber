@@ -193,7 +193,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                     })}
                   </div>
                 </div>
-                <p className="text-center text-xs text-gray-400 lg:text-sm">
+                <p className="text-left text-xs text-gray-400 lg:text-sm">
                   {ratingCount > 0
                     ? `${ratingCount} avaliações`
                     : "Sem avaliações"}
