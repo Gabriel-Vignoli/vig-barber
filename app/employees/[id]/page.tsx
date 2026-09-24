@@ -148,7 +148,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
               </div>
 
               <div className="mt-2 w-fit lg:mt-0">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-1.5">
                   <p className="text-sm font-semibold lg:text-base">
                     {averageRating !== null
                       ? averageRating.toFixed(1).replace(".", ",")
@@ -165,7 +165,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                             key={index}
                             className="fill-yellow-400 text-yellow-400"
                             size={18}
-                            strokeWidth={1}
+                            strokeWidth={0.5}
                           />
                         )
                       }
@@ -176,13 +176,13 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                             <StarIcon
                               className="text-gray-300"
                               size={18}
-                              strokeWidth={1}
+                              strokeWidth={0.7}
                             />
                             <div className="absolute inset-0 w-1/2 overflow-hidden">
                               <StarIcon
                                 className="fill-yellow-400 text-yellow-400"
                                 size={18}
-                                strokeWidth={1}
+                                strokeWidth={0.5}
                               />
                             </div>
                           </div>
