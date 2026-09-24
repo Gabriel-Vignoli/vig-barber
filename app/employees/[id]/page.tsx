@@ -121,7 +121,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
           {/* Main column */}
           <div className="lg:col-start-1">
             {/* Image */}
-            <div className="bg-muted relative flex h-62.5 w-full items-center justify-center lg:mx-auto lg:h-96 lg:max-w-md lg:overflow-hidden lg:rounded-xl">
+            <div className="bg-muted relative flex h-62.5 w-full items-center justify-center overflow-hidden rounded-b-3xl lg:mx-auto lg:h-96 lg:max-w-md lg:overflow-hidden lg:rounded-xl">
               {employeeImage ? (
                 <Image
                   src={employeeImage}
