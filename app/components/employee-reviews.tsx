@@ -136,14 +136,49 @@ const EmployeeReviews = ({
                         </span>
                       )}
                     </p>
-                    <div className="flex items-center gap-1">
-                      <StarIcon
-                        className="text-primary fill-primary"
-                        size={14}
-                      />
-                      <p className="text-sm font-medium">
-                        {review.rating.toFixed(1).replace(".", ",")}
-                      </p>
+                    <div className="flex items-center">
+                      {Array.from({ length: 5 }).map((_, index) => {
+                        const starValue = index + 1
+
+                        if (review.rating >= starValue) {
+                          return (
+                            <StarIcon
+                              key={index}
+                              className="fill-yellow-400 text-yellow-400"
+                              size={14}
+                              strokeWidth={0.5}
+                            />
+                          )
+                        }
+
+                        if (review.rating >= starValue - 0.5) {
+                          return (
+                            <div key={index} className="relative">
+                              <StarIcon
+                                className="text-gray-300"
+                                size={14}
+                                strokeWidth={0.7}
+                              />
+                              <div className="absolute inset-0 w-1/2 overflow-hidden">
+                                <StarIcon
+                                  className="fill-yellow-400 text-yellow-400"
+                                  size={14}
+                                  strokeWidth={0.5}
+                                />
+                              </div>
+                            </div>
+                          )
+                        }
+
+                        return (
+                          <StarIcon
+                            key={index}
+                            className="text-gray-300"
+                            size={14}
+                            strokeWidth={1}
+                          />
+                        )
+                      })}
                     </div>
                   </div>
                   {review.comment && (
