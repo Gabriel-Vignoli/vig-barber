@@ -27,8 +27,9 @@ const StarRatingInput = ({ value, onChange }: StarRatingInputProps) => {
           >
             <StarIcon
               size={28}
+              strokeWidth={isFilled ? 0.5 : 1}
               className={
-                isFilled ? "text-primary fill-primary" : "text-muted-foreground"
+                isFilled ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
               }
             />
           </button>
