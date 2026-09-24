@@ -3,17 +3,19 @@
 import Link from "next/link"
 import { Button } from "./ui/button"
 import { ChevronLeftIcon } from "lucide-react"
+import { cn } from "@/app/_lib/utils"
 
 interface BackButtonProps {
   href: string
+  className?: string
 }
 
-const BackButton = ({ href }: BackButtonProps) => {
+const BackButton = ({ href, className }: BackButtonProps) => {
   return (
     <Button
       size="icon"
       variant="default"
-      className="absolute top-3 left-3 cursor-pointer rounded-full lg:hidden"
+      className={cn("absolute cursor-pointer rounded-full", className)}
       nativeButton={false}
       render={(buttonProps) => (
         <Link href={href} {...buttonProps}>
