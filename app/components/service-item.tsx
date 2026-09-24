@@ -42,6 +42,7 @@ import { getTimeList } from "../_lib/time-list"
 import { showBookingSuccessToast } from "./booking-success-toast"
 import { checkUserPhone } from "../_actions/check-user-phone"
 import PhoneCollectionDialog from "./phone-collection-dialog"
+import { ClockIcon } from "lucide-react"
 
 interface ServiceItemProps {
   service: Omit<BarbershopService, "price"> & { price: number }
@@ -302,9 +303,11 @@ const ServiceItem = ({
               <h3 className="text-sm font-semibold md:text-base">
                 {service.name}
               </h3>
-              <p className="line-clamp-2 text-sm text-gray-400 md:text-base">
-                {service.description}
-              </p>
+
+              <div className="text-muted-foreground flex items-center gap-1 text-xs md:text-sm">
+                <ClockIcon size={12} className="md:size-3.5" />
+                <span>{service.durationInMinutes} min</span>
+              </div>
             </div>
 
             <div className="flex items-end justify-between">
@@ -320,7 +323,6 @@ const ServiceItem = ({
                 onOpenChange={handleBookingSheetOpenChange}
               >
                 <Button
-                  variant="secondary"
                   size="sm"
                   className="shrink-0 cursor-pointer md:h-9 md:px-4 md:text-base"
                   onClick={handleBookingClick}
