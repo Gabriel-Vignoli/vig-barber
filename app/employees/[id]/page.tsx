@@ -121,22 +121,27 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
           {/* Main column */}
           <div className="lg:col-start-1">
             {/* Image */}
-            <div className="bg-muted relative flex h-62.5 w-full items-center justify-center overflow-hidden rounded-b-3xl min-[426px]:mx-auto min-[426px]:h-96 min-[426px]:max-w-md min-[426px]:rounded-xl">
-              {employeeImage ? (
-                <Image
-                  src={employeeImage}
-                  alt={employeeName}
-                  fill
-                  sizes="(min-width: 1024px) 448px, 100vw"
-                  className="object-cover"
-                />
-              ) : (
-                <p className="text-muted-foreground px-4 text-center text-sm">
-                  Esse barbeiro ainda não possui uma imagem
-                </p>
-              )}
+            <div className="relative w-full">
+              <div className="bg-muted relative flex h-62.5 w-full items-center justify-center overflow-hidden rounded-b-3xl min-[426px]:mx-auto min-[426px]:h-96 min-[426px]:max-w-md min-[426px]:rounded-xl">
+                {employeeImage ? (
+                  <Image
+                    src={employeeImage}
+                    alt={employeeName}
+                    fill
+                    sizes="(min-width: 1024px) 448px, 100vw"
+                    className="object-cover"
+                  />
+                ) : (
+                  <p className="text-muted-foreground px-4 text-center text-sm">
+                    Esse barbeiro ainda não possui uma imagem
+                  </p>
+                )}
+              </div>
 
-              <BackButton href="/" />
+              <BackButton
+                href="/"
+                className="top-3 left-3 min-[426px]:top-4 min-[426px]:left-4"
+              />
             </div>
 
             {/* Info */}
