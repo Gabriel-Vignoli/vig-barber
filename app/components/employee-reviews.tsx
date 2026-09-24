@@ -39,6 +39,8 @@ interface EmployeeReviewsProps {
   reviewableBookingId: string | null
 }
 
+const COMMENT_CHAR_LIMIT = 150
+
 const getInitials = (name?: string | null) => {
   if (!name) return "?"
 
@@ -60,6 +62,9 @@ const EmployeeReviews = ({
   const [deleteDialogOpenId, setDeleteDialogOpenId] = useState<string | null>(
     null,
   )
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(
+    new Set(),
+  )
 
   const userReview = currentUserId
     ? reviews.find((review) => review.userId === currentUserId)
@@ -69,6 +74,18 @@ const EmployeeReviews = ({
   const needsPastBooking = Boolean(
     currentUserId && !userReview && !reviewableBookingId,
   )
+
+  const toggleExpanded = (reviewId: string) => {
+    setExpandedReviewIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(reviewId)) {
+        next.delete(reviewId)
+      } else {
+        next.add(reviewId)
+      }
+      return next
+    })
+  }
 
   const handleDelete = async (reviewId: string) => {
     setIsDeleting(true)
@@ -134,6 +151,13 @@ const EmployeeReviews = ({
         <div className="space-y-3">
           {reviews.map((review) => {
             const isOwnReview = review.userId === currentUserId
+            const isExpanded = expandedReviewIds.has(review.id)
+            const isLongComment =
+              (review.comment?.length ?? 0) > COMMENT_CHAR_LIMIT
+            const displayedComment =
+              review.comment && isLongComment && !isExpanded
+                ? `${review.comment.slice(0, COMMENT_CHAR_LIMIT).trimEnd()}...`
+                : review.comment
 
             return (
               <Card key={review.id} className="p-0">
@@ -209,8 +233,22 @@ const EmployeeReviews = ({
                       </div>
                     </div>
                   </div>
+
                   {review.comment && (
-                    <p className="text-sm text-gray-400">{review.comment}</p>
+                    <div>
+                      <p className="text-sm text-gray-400">
+                        {displayedComment}
+                      </p>
+                      {isLongComment && (
+                        <button
+                          type="button"
+                          onClick={() => toggleExpanded(review.id)}
+                          className="text-primary mt-1 cursor-pointer text-xs font-semibold hover:underline"
+                        >
+                          {isExpanded ? "Ver menos" : "Ver mais"}
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   {isOwnReview && (
