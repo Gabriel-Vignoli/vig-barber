@@ -165,6 +165,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                             key={index}
                             className="fill-yellow-400 text-yellow-400"
                             size={18}
+                            strokeWidth={1}
                           />
                         )
                       }
@@ -172,11 +173,16 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                       if (rating >= starValue - 0.5) {
                         return (
                           <div key={index} className="relative">
-                            <StarIcon className="text-gray-300" size={18} />
+                            <StarIcon
+                              className="text-gray-300"
+                              size={18}
+                              strokeWidth={1}
+                            />
                             <div className="absolute inset-0 w-1/2 overflow-hidden">
                               <StarIcon
                                 className="fill-yellow-400 text-yellow-400"
                                 size={18}
+                                strokeWidth={1}
                               />
                             </div>
                           </div>
@@ -188,6 +194,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                           key={index}
                           className="text-gray-300"
                           size={18}
+                          strokeWidth={1}
                         />
                       )
                     })}
