@@ -33,7 +33,7 @@ const EmployeeFormDialog = () => {
   const { register, handleSubmit, formState, reset } =
     useForm<CreateEmployeeFormValues>({
       resolver: zodResolver(createEmployeeSchema),
-      defaultValues: { name: "", email: "", bio: "", imageUrl: "" },
+      defaultValues: { name: "", email: "", bio: "", imageUrl: "", phone: "" },
     })
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -100,6 +100,21 @@ const EmployeeFormDialog = () => {
             {formState.errors.email && (
               <p className="text-destructive text-xs">
                 {formState.errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="employee-phone">Telefone (opcional)</Label>
+            <Input
+              id="employee-phone"
+              type="tel"
+              placeholder="(11) 91234-5678"
+              {...register("phone")}
+            />
+            {formState.errors.phone && (
+              <p className="text-destructive text-xs">
+                {formState.errors.phone.message}
               </p>
             )}
           </div>

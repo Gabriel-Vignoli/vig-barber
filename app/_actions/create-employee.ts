@@ -10,6 +10,7 @@ export const createEmployee = async (input: {
   email: string
   bio?: string
   imageUrl?: string
+  phone?: string
 }) => {
   await requireAdmin()
 
@@ -36,6 +37,7 @@ export const createEmployee = async (input: {
         create: {
           bio: parsed.data.bio || null,
           imageUrl: parsed.data.imageUrl || null,
+          phone: parsed.data.phone || null,
         },
       },
     },

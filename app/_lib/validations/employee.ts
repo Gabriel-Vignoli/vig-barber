@@ -7,6 +7,7 @@ export const createEmployeeSchema = z.object({
   imageUrl: z
     .union([z.url("URL da imagem inválida."), z.literal("")])
     .optional(),
+  phone: z.string().optional(),
 })
 
 export type CreateEmployeeFormValues = z.infer<typeof createEmployeeSchema>
