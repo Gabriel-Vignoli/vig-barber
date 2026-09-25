@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "./ui/alert-dialog"
 import EmployeeFormDialog from "./employee-form-dialog"
+import EmployeeEditDialog from "./employee-edit-dialog"
 import EmployeeServicesDialog from "./employee-services-dialog"
 import EmployeeScheduleDialog from "./employee-schedule-dialog"
 import EmployeeStatsDialog from "./employee-stats-dialog"
@@ -39,6 +40,8 @@ const getInitials = (name?: string | null) => {
 interface AdminEmployee {
   id: string
   imageUrl: string | null
+  bio: string | null
+  phone: string | null
   user: { name: string | null; email: string | null; image: string | null }
   services: { service: { id: string; name: string } }[]
   schedules: {
@@ -140,6 +143,15 @@ const AdminEmployeesTable = ({
                   </div>
 
                   <div className="flex items-center gap-1 border-t pt-3 sm:border-t-0 sm:pt-0">
+                    <EmployeeEditDialog
+                      employeeId={employee.id}
+                      employeeName={employeeName}
+                      defaultValues={{
+                        bio: employee.bio,
+                        imageUrl: employee.imageUrl,
+                        phone: employee.phone,
+                      }}
+                    />
                     <EmployeeStatsDialog
                       employeeId={employee.id}
                       employeeName={employeeName}
