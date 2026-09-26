@@ -1,23 +1,27 @@
 "use client"
 
-import { SmartphoneIcon } from "lucide-react"
+import { MessageCircleIcon } from "lucide-react"
 import { Button } from "./ui/button"
-import { toast } from "sonner"
 
 interface PhoneItemProps {
   phone: string
 }
 
-const PhoneItem = ({ phone }: PhoneItemProps) => {
-  const handleCopyPhone = (phone: string) => {
-    navigator.clipboard.writeText(phone)
-    toast.success("Número copiado para a área de transferência!")
-  }
+const buildWhatsAppLink = (phone: string) => {
+  const digitsOnly = phone.replace(/\D/g, "")
+  // Brazilian numbers stored without country code — prepend 55 for wa.me
+  const fullNumber = digitsOnly.startsWith("55")
+    ? digitsOnly
+    : `55${digitsOnly}`
 
+  return `https://wa.me/${fullNumber}`
+}
+
+const PhoneItem = ({ phone }: PhoneItemProps) => {
   return (
     <div className="flex justify-between md:space-y-3">
       <div className="flex items-center gap-2">
-        <SmartphoneIcon />
+        <MessageCircleIcon />
         <p className="text-sm md:text-base">{phone}</p>
       </div>
 
@@ -25,9 +29,17 @@ const PhoneItem = ({ phone }: PhoneItemProps) => {
         variant="outline"
         size="sm"
         className="cursor-pointer md:px-3 md:py-2 md:text-sm"
-        onClick={() => handleCopyPhone(phone)}
+        nativeButton={false}
+        render={(buttonProps) => (
+          <a
+            href={buildWhatsAppLink(phone)}
+            target="_blank"
+            rel="noopener noreferrer"
+            {...buttonProps}
+          />
+        )}
       >
-        Copiar
+        Conversar
       </Button>
     </div>
   )
