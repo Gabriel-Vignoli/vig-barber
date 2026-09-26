@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/_lib/auth"
 import { unstable_cache } from "next/cache"
 import Header from "@/app/components/header"
-import PhoneItem from "@/app/components/phone-item"
+import ContactSection from "@/app/components/contact-section"
 import ServiceItem from "@/app/components/service-item"
 import EmployeeReviews from "@/app/components/employee-reviews"
 import BackButton from "@/app/components/back-button"
@@ -289,10 +289,11 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
             </div>
 
             {/* Contact - mobile position (hidden on lg, shown in sidebar instead) */}
-            <div className="space-y-3 p-4 lg:hidden">
-              {barbershop.phones.map((phone, index) => (
-                <PhoneItem key={`${phone}-${index}`} phone={phone} />
-              ))}
+            <div className="p-4 lg:hidden">
+              <ContactSection
+                barbershopPhones={barbershop.phones}
+                employeePhone={employee.phone}
+              />
             </div>
           </div>
 
@@ -366,13 +367,11 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                 })}
               </div>
 
-              <div className="mt-8 space-y-3 border-t border-gray-400/20 pt-8">
-                <h3 className="text-sm font-bold text-gray-400 uppercase">
-                  Contato
-                </h3>
-                {barbershop.phones.map((phone, index) => (
-                  <PhoneItem key={`${phone}-sidebar-${index}`} phone={phone} />
-                ))}
+              <div className="mt-8 border-t border-gray-400/20 pt-8">
+                <ContactSection
+                  barbershopPhones={barbershop.phones}
+                  employeePhone={employee.phone}
+                />
               </div>
             </CardContent>
           </Card>
