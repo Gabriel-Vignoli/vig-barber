@@ -42,7 +42,11 @@ const EmployeeItem = ({ employee }: EmployeeItemProps) => {
 
           {/* Rating badge */}
           <div className="bg-background/90 absolute top-3 right-3 flex items-center gap-1 rounded-full px-2 py-1 backdrop-blur-sm">
-            <StarIcon size={12} className="fill-primary text-primary" />
+            <StarIcon
+              size={12}
+              className="fill-yellow-400 text-yellow-400"
+              strokeWidth={0.5}
+            />
             <p className="text-xs font-semibold">
               {employee.averageRating !== null
                 ? employee.averageRating.toFixed(1).replace(".", ",")
