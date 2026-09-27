@@ -79,19 +79,19 @@ model VerificationToken {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  phone         String?
-  password      String?
-  role          Role      @default(CLIENT)
-  acceptedTermsAt DateTime? @map("accepted_terms_at")
+  id                  String    @id @default(cuid())
+  name                String?
+  email               String?   @unique
+  emailVerified       DateTime? @map("email_verified")
+  image               String?
+  phone               String?
+  password            String?
+  role                Role      @default(CLIENT)
+  acceptedTermsAt     DateTime? @map("accepted_terms_at")
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime? @map("locked_until")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   accounts Account[]
   sessions Session[]
@@ -129,12 +129,12 @@ model EmployeeService {
 }
 
 model EmployeeSchedule {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   employeeId String
   weekday    Weekday
   startTime  String // e.g. "09:00"
   endTime    String // e.g. "18:00"
-  isDayOff   Boolean  @default(false)
+  isDayOff   Boolean @default(false)
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -142,15 +142,16 @@ model EmployeeSchedule {
 }
 
 model Barbershop {
-  id          String              @id @default(cuid())
-  name        String
-  address     String
-  phones      String[]
-  description String
-  imageUrl    String
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  services    BarbershopService[]
+  id           String              @id @default(cuid())
+  name         String
+  address      String
+  phones       String[]
+  description  String
+  imageUrl     String
+  instagramUrl String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  services     BarbershopService[]
 }
 
 model BarbershopService {
