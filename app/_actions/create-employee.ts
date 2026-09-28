@@ -1,5 +1,6 @@
 "use server"
 
+import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
@@ -8,6 +9,7 @@ import { createEmployeeSchema } from "../_lib/validations/employee"
 export const createEmployee = async (input: {
   name: string
   email: string
+  password: string
   bio?: string
   imageUrl?: string
   phone?: string
@@ -28,10 +30,13 @@ export const createEmployee = async (input: {
     throw new Error("Já existe um usuário com esse email.")
   }
 
+  const hashedPassword = await bcrypt.hash(parsed.data.password, 10)
+
   await prisma.user.create({
     data: {
       name: parsed.data.name,
       email: parsed.data.email,
+      password: hashedPassword,
       role: "EMPLOYEE",
       employee: {
         create: {
