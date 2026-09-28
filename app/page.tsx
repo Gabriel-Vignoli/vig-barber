@@ -5,11 +5,13 @@ import { unstable_cache } from "next/cache"
 import ServiceCard from "./components/service-card"
 import RecommendedCarousel from "./components/recommended-carousel"
 import BookingItem from "./components/booking-item"
+import EmployeeDashboard from "./components/employee-dashboard"
 import { getServerSession } from "next-auth"
 import { authOptions } from "./_lib/auth"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { getConfirmedBookings } from "./_data/get-confirmed-bookings"
+import { getEmployeeUpcomingBookings } from "./_data/get-employee-bookings"
 import Carousel from "./components/carousel"
 
 // Barbershop data rarely changes — cache across requests instead of
@@ -47,6 +49,22 @@ const getCachedEmployees = unstable_cache(
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userRole = (session?.user as any)?.role
+
+  if (userRole === "EMPLOYEE") {
+    const employeeBookings = await getEmployeeUpcomingBookings()
+
+    return (
+      <div>
+        <Header />
+        <EmployeeDashboard
+          employeeName={session?.user?.name ?? "Funcionário"}
+          bookings={employeeBookings}
+        />
+      </div>
+    )
+  }
 
   // None of these four depend on each other, so run them concurrently
   // instead of waiting on each sequentially.
