@@ -128,17 +128,15 @@ const EmployeeDashboard = ({
 
       <div className="mt-8 flex flex-wrap items-center gap-2">
         <Button
-          size="sm"
           variant={activeTab === "upcoming" ? "default" : "outline"}
-          className="cursor-pointer"
+          className="cursor-pointer border-0 xl:p-4 xl:text-base"
           onClick={() => handleTabChange("upcoming")}
         >
           Confirmados
         </Button>
         <Button
-          size="sm"
           variant={activeTab === "concluded" ? "default" : "outline"}
-          className="cursor-pointer"
+          className="cursor-pointer border-0 xl:p-4 xl:text-base"
           onClick={() => handleTabChange("concluded")}
         >
           Finalizados
@@ -148,12 +146,11 @@ const EmployeeDashboard = ({
           <PopoverTrigger
             render={(triggerProps) => (
               <Button
-                size="sm"
                 variant={selectedDate ? "default" : "outline"}
-                className="cursor-pointer gap-2"
+                className="cursor-pointer gap-2 border-0 xl:p-4 xl:text-base"
                 {...triggerProps}
               >
-                <CalendarIcon size={16} />
+                <CalendarIcon className="size-3.5 xl:size-4" />
                 {selectedDate
                   ? format(selectedDate, "dd/MM/yyyy")
                   : "Filtrar por data"}
