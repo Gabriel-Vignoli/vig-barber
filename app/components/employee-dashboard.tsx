@@ -1,8 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Card, CardContent } from "./ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 import { Badge } from "./ui/badge"
+import { Button } from "./ui/button"
 
 const getInitials = (name?: string | null) => {
   if (!name) return "?"
@@ -27,6 +31,8 @@ interface EmployeeDashboardProps {
   concludedBookings: EmployeeBooking[]
 }
 
+type BookingTab = "upcoming" | "concluded"
+
 const BookingCard = ({
   booking,
   isConfirmed,
@@ -34,7 +40,7 @@ const BookingCard = ({
   booking: EmployeeBooking
   isConfirmed: boolean
 }) => (
-  <Card>
+  <Card className="p-1">
     <CardContent className="flex flex-col gap-3 p-4">
       <Badge
         className="w-fit"
@@ -83,6 +89,15 @@ const EmployeeDashboard = ({
   upcomingBookings,
   concludedBookings,
 }: EmployeeDashboardProps) => {
+  const [activeTab, setActiveTab] = useState<BookingTab>("upcoming")
+
+  const activeBookings =
+    activeTab === "upcoming" ? upcomingBookings : concludedBookings
+  const emptyMessage =
+    activeTab === "upcoming"
+      ? "Você não possui agendamentos futuros."
+      : "Você ainda não possui agendamentos finalizados."
+
   return (
     <div className="p-4 md:px-8 lg:px-16 lg:pt-14 xl:px-32">
       <h2 className="text-xl md:text-3xl">
@@ -92,37 +107,36 @@ const EmployeeDashboard = ({
         {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
       </p>
 
-      <h3 className="mt-8 text-xs font-bold text-gray-400 uppercase md:text-base">
-        Próximos agendamentos
-      </h3>
+      <div className="mt-8 flex gap-2">
+        <Button
+          size="sm"
+          variant={activeTab === "upcoming" ? "default" : "outline"}
+          className="cursor-pointer"
+          onClick={() => setActiveTab("upcoming")}
+        >
+          Confirmados
+        </Button>
+        <Button
+          size="sm"
+          variant={activeTab === "concluded" ? "default" : "outline"}
+          className="cursor-pointer"
+          onClick={() => setActiveTab("concluded")}
+        >
+          Finalizados
+        </Button>
+      </div>
 
-      {upcomingBookings.length === 0 ? (
+      {activeBookings.length === 0 ? (
         <p className="text-muted-foreground mt-4 text-sm md:text-base">
-          Você não possui agendamentos futuros.
+          {emptyMessage}
         </p>
       ) : (
         <div className="mt-4 space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-          {upcomingBookings.map((booking) => (
-            <BookingCard key={booking.id} booking={booking} isConfirmed />
-          ))}
-        </div>
-      )}
-
-      <h3 className="mt-8 text-xs font-bold text-gray-400 uppercase md:mt-12 md:text-base">
-        Histórico
-      </h3>
-
-      {concludedBookings.length === 0 ? (
-        <p className="text-muted-foreground mt-4 text-sm md:text-base">
-          Você ainda não possui agendamentos finalizados.
-        </p>
-      ) : (
-        <div className="mt-4 space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-          {concludedBookings.map((booking) => (
+          {activeBookings.map((booking) => (
             <BookingCard
               key={booking.id}
               booking={booking}
-              isConfirmed={false}
+              isConfirmed={activeTab === "upcoming"}
             />
           ))}
         </div>
