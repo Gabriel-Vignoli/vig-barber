@@ -1,5 +1,6 @@
 "use server"
 
+import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
@@ -11,6 +12,7 @@ export const updateEmployee = async (
     bio?: string
     imageUrl?: string
     phone?: string
+    password?: string
   },
 ) => {
   await requireAdmin()
@@ -29,6 +31,24 @@ export const updateEmployee = async (
       phone: parsed.data.phone || null,
     },
   })
+
+  if (parsed.data.password) {
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: { userId: true },
+    })
+
+    if (!employee) {
+      throw new Error("Funcionário não encontrado.")
+    }
+
+    const hashedPassword = await bcrypt.hash(parsed.data.password, 10)
+
+    await prisma.user.update({
+      where: { id: employee.userId },
+      data: { password: hashedPassword },
+    })
+  }
 
   revalidatePath("/admin/employees")
   revalidatePath("/")

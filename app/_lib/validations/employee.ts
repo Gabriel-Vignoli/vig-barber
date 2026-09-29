@@ -20,6 +20,7 @@ export const updateEmployeeSchema = z.object({
     .union([z.url("URL da imagem inválida."), z.literal("")])
     .optional(),
   phone: z.string().optional(),
+  password: z.union([passwordSchema, z.literal("")]).optional(),
 })
 
 export type UpdateEmployeeFormValues = z.infer<typeof updateEmployeeSchema>

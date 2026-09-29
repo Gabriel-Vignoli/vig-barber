@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
-import { Loader2Icon, PencilIcon } from "lucide-react"
+import { EyeIcon, EyeOffIcon, Loader2Icon, PencilIcon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
@@ -42,6 +42,7 @@ const EmployeeEditDialog = ({
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const { register, handleSubmit, formState, reset } =
     useForm<UpdateEmployeeFormValues>({
@@ -50,6 +51,7 @@ const EmployeeEditDialog = ({
         bio: defaultValues.bio ?? "",
         imageUrl: defaultValues.imageUrl ?? "",
         phone: defaultValues.phone ?? "",
+        password: "",
       },
     })
 
@@ -60,7 +62,9 @@ const EmployeeEditDialog = ({
         bio: defaultValues.bio ?? "",
         imageUrl: defaultValues.imageUrl ?? "",
         phone: defaultValues.phone ?? "",
+        password: "",
       })
+      setShowPassword(false)
     }
   }
 
@@ -121,6 +125,37 @@ const EmployeeEditDialog = ({
             {formState.errors.phone && (
               <p className="text-destructive text-xs">
                 {formState.errors.phone.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="edit-employee-password">
+              Nova senha (deixe em branco para não alterar)
+            </Label>
+            <div className="relative">
+              <Input
+                id="edit-employee-password"
+                type={showPassword ? "text" : "password"}
+                className="pr-10"
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOffIcon size={18} />
+                ) : (
+                  <EyeIcon size={18} />
+                )}
+              </button>
+            </div>
+            {formState.errors.password && (
+              <p className="text-destructive text-xs">
+                {formState.errors.password.message}
               </p>
             )}
           </div>
