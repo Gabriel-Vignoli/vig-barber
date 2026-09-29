@@ -11,7 +11,10 @@ import { authOptions } from "./_lib/auth"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { getConfirmedBookings } from "./_data/get-confirmed-bookings"
-import { getEmployeeUpcomingBookings } from "./_data/get-employee-bookings"
+import {
+  getEmployeeUpcomingBookings,
+  getEmployeeConcludedBookings,
+} from "./_data/get-employee-bookings"
 import Carousel from "./components/carousel"
 
 // Barbershop data rarely changes — cache across requests instead of
@@ -53,14 +56,18 @@ export default async function Home() {
   const userRole = (session?.user as any)?.role
 
   if (userRole === "EMPLOYEE") {
-    const employeeBookings = await getEmployeeUpcomingBookings()
+    const [upcomingBookings, concludedBookings] = await Promise.all([
+      getEmployeeUpcomingBookings(),
+      getEmployeeConcludedBookings(),
+    ])
 
     return (
       <div>
         <Header />
         <EmployeeDashboard
           employeeName={session?.user?.name ?? "Funcionário"}
-          bookings={employeeBookings}
+          upcomingBookings={upcomingBookings}
+          concludedBookings={concludedBookings}
         />
       </div>
     )
