@@ -1,12 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { format } from "date-fns"
+import { useMemo, useState } from "react"
+import { format, isSameDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { CalendarIcon, XIcon } from "lucide-react"
 import { Card, CardContent } from "./ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
+import { Calendar } from "./ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 
 const getInitials = (name?: string | null) => {
   if (!name) return "?"
@@ -90,13 +93,29 @@ const EmployeeDashboard = ({
   concludedBookings,
 }: EmployeeDashboardProps) => {
   const [activeTab, setActiveTab] = useState<BookingTab>("upcoming")
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
 
-  const activeBookings =
+  const baseBookings =
     activeTab === "upcoming" ? upcomingBookings : concludedBookings
-  const emptyMessage =
-    activeTab === "upcoming"
+
+  const activeBookings = useMemo(() => {
+    if (!selectedDate) return baseBookings
+    return baseBookings.filter((booking) =>
+      isSameDay(booking.bookingDate, selectedDate),
+    )
+  }, [baseBookings, selectedDate])
+
+  const emptyMessage = selectedDate
+    ? "Nenhum agendamento nessa data."
+    : activeTab === "upcoming"
       ? "Você não possui agendamentos futuros."
       : "Você ainda não possui agendamentos finalizados."
+
+  const handleTabChange = (tab: BookingTab) => {
+    setActiveTab(tab)
+    setSelectedDate(undefined)
+  }
 
   return (
     <div className="p-4 md:px-8 lg:px-16 lg:pt-14 xl:px-32">
@@ -107,12 +126,12 @@ const EmployeeDashboard = ({
         {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
       </p>
 
-      <div className="mt-8 flex gap-2">
+      <div className="mt-8 flex flex-wrap items-center gap-2">
         <Button
           size="sm"
           variant={activeTab === "upcoming" ? "default" : "outline"}
           className="cursor-pointer"
-          onClick={() => setActiveTab("upcoming")}
+          onClick={() => handleTabChange("upcoming")}
         >
           Confirmados
         </Button>
@@ -120,10 +139,51 @@ const EmployeeDashboard = ({
           size="sm"
           variant={activeTab === "concluded" ? "default" : "outline"}
           className="cursor-pointer"
-          onClick={() => setActiveTab("concluded")}
+          onClick={() => handleTabChange("concluded")}
         >
           Finalizados
         </Button>
+
+        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+          <PopoverTrigger
+            render={(triggerProps) => (
+              <Button
+                size="sm"
+                variant={selectedDate ? "default" : "outline"}
+                className="cursor-pointer gap-2"
+                {...triggerProps}
+              >
+                <CalendarIcon size={16} />
+                {selectedDate
+                  ? format(selectedDate, "dd/MM/yyyy")
+                  : "Filtrar por data"}
+              </Button>
+            )}
+          />
+          <PopoverContent className="w-auto p-2">
+            <Calendar
+              mode="single"
+              locale={ptBR}
+              selected={selectedDate}
+              onSelect={(date) => {
+                setSelectedDate(date)
+                setIsCalendarOpen(false)
+              }}
+              classNames={{ day: "cursor-pointer" }}
+            />
+          </PopoverContent>
+        </Popover>
+
+        {selectedDate && (
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            className="cursor-pointer"
+            onClick={() => setSelectedDate(undefined)}
+          >
+            <XIcon size={16} />
+          </Button>
+        )}
       </div>
 
       {activeBookings.length === 0 ? (
