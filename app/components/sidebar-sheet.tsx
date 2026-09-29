@@ -12,10 +12,8 @@ import {
   UserPlusIcon,
 } from "lucide-react"
 import { SheetClose, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet"
-import { quickSearchOptions } from "../_constants/search"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import Link from "next/link"
-import Image from "next/image"
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
 import { signOut, useSession } from "next-auth/react"
 import SignInDialog from "./sign-in-dialog"
@@ -33,6 +31,9 @@ const getInitials = (name?: string | null) => {
 const SidebarSheet = () => {
   const { data } = useSession()
   const pathname = usePathname()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isEmployee = (data?.user as any)?.role === "EMPLOYEE"
 
   const isHomeActive = pathname === "/"
   const isBookingsActive = pathname === "/bookings"
@@ -144,23 +145,25 @@ const SidebarSheet = () => {
             />
           )}
         />
-        <SheetClose
-          nativeButton={false}
-          render={(closeProps) => (
-            <Button
-              className="justify-start gap-2 py-4"
-              variant={isBookingsActive ? "default" : "ghost"}
-              nativeButton={false}
-              {...closeProps}
-              render={(buttonProps) => (
-                <Link href="/bookings" {...buttonProps}>
-                  <CalendarIcon size={18} />
-                  Agendamentos
-                </Link>
-              )}
-            />
-          )}
-        />
+        {!isEmployee && (
+          <SheetClose
+            nativeButton={false}
+            render={(closeProps) => (
+              <Button
+                className="justify-start gap-2 py-4"
+                variant={isBookingsActive ? "default" : "ghost"}
+                nativeButton={false}
+                {...closeProps}
+                render={(buttonProps) => (
+                  <Link href="/bookings" {...buttonProps}>
+                    <CalendarIcon size={18} />
+                    Agendamentos
+                  </Link>
+                )}
+              />
+            )}
+          />
+        )}
       </div>
 
       {data?.user && (
