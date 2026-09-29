@@ -2,6 +2,7 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Card, CardContent } from "./ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
+import { Badge } from "./ui/badge"
 
 const getInitials = (name?: string | null) => {
   if (!name) return "?"
@@ -26,37 +27,52 @@ interface EmployeeDashboardProps {
   concludedBookings: EmployeeBooking[]
 }
 
-const BookingCard = ({ booking }: { booking: EmployeeBooking }) => (
+const BookingCard = ({
+  booking,
+  isConfirmed,
+}: {
+  booking: EmployeeBooking
+  isConfirmed: boolean
+}) => (
   <Card>
-    <CardContent className="flex items-center gap-3 p-4">
-      <Avatar className="size-10 shrink-0">
-        <AvatarImage
-          src={booking.user.image ?? ""}
-          alt={booking.user.name ?? "Cliente"}
-          referrerPolicy="no-referrer"
-        />
-        <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
-          {getInitials(booking.user.name)}
-        </AvatarFallback>
-      </Avatar>
+    <CardContent className="flex flex-col gap-3 p-4">
+      <Badge
+        className="w-fit"
+        variant={isConfirmed ? "success" : "destructive"}
+      >
+        {isConfirmed ? "Confirmado" : "Finalizado"}
+      </Badge>
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">
-          {booking.user.name ?? "Cliente"}
-        </p>
-        <p className="text-muted-foreground truncate text-sm">
-          {booking.barbershopService.name} ·{" "}
-          {booking.barbershopService.durationInMinutes} min
-        </p>
-      </div>
+      <div className="flex items-center gap-3">
+        <Avatar className="size-10 shrink-0">
+          <AvatarImage
+            src={booking.user.image ?? ""}
+            alt={booking.user.name ?? "Cliente"}
+            referrerPolicy="no-referrer"
+          />
+          <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+            {getInitials(booking.user.name)}
+          </AvatarFallback>
+        </Avatar>
 
-      <div className="shrink-0 text-right">
-        <p className="text-sm font-semibold">
-          {format(booking.bookingDate, "dd/MM", { locale: ptBR })}
-        </p>
-        <p className="text-muted-foreground text-sm">
-          {format(booking.bookingDate, "HH:mm")}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">
+            {booking.user.name ?? "Cliente"}
+          </p>
+          <p className="text-muted-foreground truncate text-sm">
+            {booking.barbershopService.name} ·{" "}
+            {booking.barbershopService.durationInMinutes} min
+          </p>
+        </div>
+
+        <div className="shrink-0 text-right">
+          <p className="text-sm font-semibold">
+            {format(booking.bookingDate, "dd/MM", { locale: ptBR })}
+          </p>
+          <p className="text-muted-foreground text-sm">
+            {format(booking.bookingDate, "HH:mm")}
+          </p>
+        </div>
       </div>
     </CardContent>
   </Card>
@@ -87,7 +103,7 @@ const EmployeeDashboard = ({
       ) : (
         <div className="mt-4 space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
           {upcomingBookings.map((booking) => (
-            <BookingCard key={booking.id} booking={booking} />
+            <BookingCard key={booking.id} booking={booking} isConfirmed />
           ))}
         </div>
       )}
@@ -103,7 +119,11 @@ const EmployeeDashboard = ({
       ) : (
         <div className="mt-4 space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
           {concludedBookings.map((booking) => (
-            <BookingCard key={booking.id} booking={booking} />
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              isConfirmed={false}
+            />
           ))}
         </div>
       )}
