@@ -19,6 +19,7 @@ const PERIODS: { value: StatsPeriod; label: string }[] = [
   { value: "day", label: "Hoje" },
   { value: "week", label: "Semana" },
   { value: "month", label: "Mês" },
+  { value: "all", label: "Todos" },
 ]
 
 interface EmployeeStatsDialogProps {
@@ -79,7 +80,7 @@ const EmployeeStatsDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {PERIODS.map((p) => (
             <Button
               key={p.value}

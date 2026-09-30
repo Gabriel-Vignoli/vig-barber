@@ -8,7 +8,7 @@ import {
   getBrazilMonthRange,
 } from "../_lib/timezone"
 
-export type StatsPeriod = "day" | "week" | "month"
+export type StatsPeriod = "day" | "week" | "month" | "all"
 
 export const getEmployeeStats = async (
   employeeId: string,
@@ -17,17 +17,29 @@ export const getEmployeeStats = async (
   await requireAdmin()
 
   const now = new Date()
-  const { rangeStart, rangeEnd } =
-    period === "day"
-      ? getBrazilDayRange(now)
-      : period === "week"
-        ? getBrazilWeekRange(now)
-        : getBrazilMonthRange(now)
+
+  const dateFilter =
+    period === "all"
+      ? undefined
+      : {
+          gte:
+            period === "day"
+              ? getBrazilDayRange(now).rangeStart
+              : period === "week"
+                ? getBrazilWeekRange(now).rangeStart
+                : getBrazilMonthRange(now).rangeStart,
+          lt:
+            period === "day"
+              ? getBrazilDayRange(now).rangeEnd
+              : period === "week"
+                ? getBrazilWeekRange(now).rangeEnd
+                : getBrazilMonthRange(now).rangeEnd,
+        }
 
   const bookings = await prisma.booking.findMany({
     where: {
       employeeId,
-      bookingDate: { gte: rangeStart, lt: rangeEnd },
+      ...(dateFilter && { bookingDate: dateFilter }),
       status: { not: "CANCELLED" },
     },
     include: { barbershopService: { select: { price: true } } },
