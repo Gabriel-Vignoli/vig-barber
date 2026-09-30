@@ -36,6 +36,9 @@ interface EmployeeDashboardProps {
 
 type BookingTab = "upcoming" | "concluded"
 
+const pluralizeBookings = (count: number) =>
+  count === 1 ? "agendamento" : "agendamentos"
+
 const BookingCard = ({
   booking,
   isConfirmed,
@@ -132,14 +135,14 @@ const EmployeeDashboard = ({
           className="cursor-pointer border-0 xl:p-4 xl:text-base"
           onClick={() => handleTabChange("upcoming")}
         >
-          Confirmados
+          Confirmados ({upcomingBookings.length})
         </Button>
         <Button
           variant={activeTab === "concluded" ? "default" : "outline"}
           className="cursor-pointer border-0 xl:p-4 xl:text-base"
           onClick={() => handleTabChange("concluded")}
         >
-          Finalizados
+          Finalizados ({concludedBookings.length})
         </Button>
 
         <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -150,7 +153,7 @@ const EmployeeDashboard = ({
                 className="cursor-pointer gap-2 border-0 xl:p-4 xl:text-base"
                 {...triggerProps}
               >
-                <CalendarIcon className="size-3.5 xl:size-4" />
+                <CalendarIcon className="size-4.5 xl:size-5" />
                 {selectedDate
                   ? format(selectedDate, "dd/MM/yyyy")
                   : "Filtrar por data"}
@@ -182,6 +185,14 @@ const EmployeeDashboard = ({
           </Button>
         )}
       </div>
+
+      <p className="text-muted-foreground mt-4 text-sm md:text-base">
+        {selectedDate
+          ? `${activeBookings.length} ${pluralizeBookings(activeBookings.length)} em ${format(selectedDate, "dd/MM/yyyy")}`
+          : `${activeBookings.length} ${pluralizeBookings(activeBookings.length)} ${
+              activeTab === "upcoming" ? "confirmados" : "finalizados"
+            }`}
+      </p>
 
       {activeBookings.length === 0 ? (
         <p className="text-muted-foreground mt-4 text-sm md:text-base">
