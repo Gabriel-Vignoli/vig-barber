@@ -19,6 +19,10 @@ const AdminLoginPage = async () => {
     if (user?.role === "ADMIN") {
       redirect("/admin")
     }
+
+    if (user?.role === "ATENDENTE") {
+      redirect("/admin/atendente")
+    }
   }
 
   return (

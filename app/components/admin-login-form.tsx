@@ -10,6 +10,7 @@ import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
+import { getCurrentUserRole } from "../_actions/get-user-role"
 import {
   adminLoginSchema,
   AdminLoginFormValues,
@@ -40,7 +41,13 @@ const AdminLoginForm = () => {
         return
       }
 
-      router.push("/admin")
+      const role = await getCurrentUserRole()
+
+      if (role === "ATENDENTE") {
+        router.push("/admin/atendente")
+      } else {
+        router.push("/admin")
+      }
       router.refresh()
     } catch (error) {
       toast.error("Erro ao fazer login. Tente novamente.")

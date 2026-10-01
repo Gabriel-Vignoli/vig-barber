@@ -24,3 +24,25 @@ export const requireAdmin = async () => {
 
   return user
 }
+
+export const requireAtendente = async () => {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user) {
+    redirect("/admin/login")
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userId = (session.user as any).id
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, email: true, role: true },
+  })
+
+  if (!user || (user.role !== "ADMIN" && user.role !== "ATENDENTE")) {
+    redirect("/")
+  }
+
+  return user
+}
