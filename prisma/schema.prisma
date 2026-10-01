@@ -14,6 +14,7 @@ datasource db {
 enum Role {
   CLIENT
   EMPLOYEE
+  ATENDENTE
   ADMIN
 }
 
