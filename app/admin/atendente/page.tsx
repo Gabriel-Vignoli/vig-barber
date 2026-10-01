@@ -1,0 +1,31 @@
+import { requireAtendente } from "@/app/_lib/require-admin"
+import { prisma } from "@/app/_lib/prisma"
+import WalkInBookingForm from "@/app/components/walk-in-booking-form"
+
+const AtendenteBookingPage = async () => {
+  const user = await requireAtendente()
+
+  const services = await prisma.barbershopService.findMany({
+    orderBy: { name: "asc" },
+  })
+
+  const servicesSerialized = services.map((service) => ({
+    ...service,
+    price: Number(service.price),
+  }))
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-6 p-4 lg:p-8">
+      <div>
+        <h1 className="text-xl font-bold lg:text-2xl">Novo agendamento</h1>
+        <p className="text-muted-foreground text-sm lg:text-base">
+          Bem-vindo, {user.name}. Crie um agendamento para um cliente.
+        </p>
+      </div>
+
+      <WalkInBookingForm services={servicesSerialized} />
+    </div>
+  )
+}
+
+export default AtendenteBookingPage
