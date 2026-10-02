@@ -161,7 +161,9 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label>Serviço</Label>
+        <Label className="lg:text-base">
+          {services.length > 1 ? "Serviços" : "Serviço"}
+        </Label>
         <div className="flex flex-wrap gap-2">
           {services.map((service) => (
             <Button
@@ -179,7 +181,9 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
 
       {selectedServiceId && (
         <div className="space-y-2">
-          <Label>Profissional</Label>
+          <Label className="lg:text-base">
+            {employees.length > 0 ? "Profissionais" : "Profissional"}
+          </Label>
           {employees.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               Nenhum profissional disponível para este serviço.
@@ -213,7 +217,7 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
 
       {selectedEmployeeId && (
         <div className="space-y-2">
-          <Label>Data</Label>
+          <Label className="lg:text-base">Data</Label>
           <div className="flex justify-center">
             <Calendar
               mode="single"
@@ -229,7 +233,7 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
 
       {selectedDay && (
         <div className="space-y-2">
-          <Label>Horário</Label>
+          <Label className="lg:text-base">Horário</Label>
           {availableTimes.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               Nenhum horário disponível para esse dia.
