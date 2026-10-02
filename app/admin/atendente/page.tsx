@@ -20,8 +20,10 @@ const AtendenteBookingPage = async () => {
       <AtendenteHeader atendenteName={user.name ?? "Atendente"} />
       <div className="mx-auto max-w-2xl space-y-6 p-4 lg:p-8">
         <div>
-          <h1 className="text-xl font-bold lg:text-2xl">Novo agendamento</h1>
-          <p className="text-muted-foreground text-sm lg:text-base">
+          <h1 className="text-xl font-bold lg:text-2xl xl:text-4xl">
+            Novo agendamento
+          </h1>
+          <p className="text-muted-foreground text-sm lg:text-base xl:text-lg">
             Crie um agendamento para um cliente.
           </p>
         </div>
