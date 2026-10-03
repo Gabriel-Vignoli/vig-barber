@@ -57,6 +57,12 @@ interface ConflictingBooking {
   barbershopService: { name: string }
 }
 
+const PERIODS = [
+  { label: "Manhã", test: (h: number) => h < 12 },
+  { label: "Tarde", test: (h: number) => h >= 12 && h < 18 },
+  { label: "Noite", test: (h: number) => h >= 18 },
+]
+
 const ServiceItem = ({
   service,
   employeeId,
@@ -106,6 +112,17 @@ const ServiceItem = ({
       daySchedule,
     )
   }, [dayBookings, selectedDay, service.durationInMinutes, daySchedule])
+
+  const groupedTimes = useMemo(
+    () =>
+      PERIODS.map((period) => ({
+        label: period.label,
+        times: availableTimes.filter((t) =>
+          period.test(Number(t.split(":")[0])),
+        ),
+      })).filter((group) => group.times.length > 0),
+    [availableTimes],
+  )
 
   const selectedDate = useMemo(() => {
     if (!selectedDay || !selectedTime) return undefined
@@ -375,23 +392,34 @@ const ServiceItem = ({
                     </div>
 
                     {selectedDay && (
-                      <div className="flex gap-3 overflow-x-auto border-b p-4 lg:gap-4 lg:p-6 [&::-webkit-scrollbar]:hidden">
-                        {availableTimes.length === 0 ? (
+                      <div className="space-y-4 border-b p-4 lg:space-y-5 lg:p-6">
+                        {groupedTimes.length === 0 ? (
                           <p className="text-sm text-gray-400">
                             Nenhum horário disponível para esse dia.
                           </p>
                         ) : (
-                          availableTimes.map((time) => (
-                            <Button
-                              key={time}
-                              variant={
-                                selectedTime === time ? "default" : "outline"
-                              }
-                              className="cursor-pointer rounded-full lg:h-10 lg:px-5 lg:text-base"
-                              onClick={() => handleTimeSelect(time)}
-                            >
-                              {time}
-                            </Button>
+                          groupedTimes.map((group) => (
+                            <div key={group.label} className="space-y-2">
+                              <p className="text-sm font-medium text-gray-400 lg:text-base">
+                                {group.label}
+                              </p>
+                              <div className="grid grid-cols-4 gap-2 lg:grid-cols-5 lg:gap-3">
+                                {group.times.map((time) => (
+                                  <Button
+                                    key={time}
+                                    variant={
+                                      selectedTime === time
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    className="cursor-pointer rounded-full lg:h-10 lg:text-base"
+                                    onClick={() => handleTimeSelect(time)}
+                                  >
+                                    {time}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
                           ))
                         )}
                       </div>
