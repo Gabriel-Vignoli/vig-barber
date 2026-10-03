@@ -457,6 +457,7 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
                 selected={selectedDay}
                 onSelect={handleDateSelect}
                 disabled={{ before: startOfToday() }}
+                className="lg:[--cell-size:3.5rem]"
                 classNames={{ day: "cursor-pointer" }}
               />
             </CardContent>
