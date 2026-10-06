@@ -55,11 +55,13 @@ interface AdminEmployee {
 
 interface AdminEmployeesTableProps {
   employees: AdminEmployee[]
+  totalCount: number
   allServices: { id: string; name: string }[]
 }
 
 const AdminEmployeesTable = ({
   employees,
+  totalCount,
   allServices,
 }: AdminEmployeesTableProps) => {
   const router = useRouter()
@@ -87,13 +89,17 @@ const AdminEmployeesTable = ({
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">
+          Barbeiros
+          <Badge variant="secondary">{totalCount}</Badge>
+        </h2>
         <EmployeeFormDialog />
       </div>
 
       {employees.length === 0 ? (
         <p className="text-muted-foreground py-8 text-center text-sm">
-          Nenhum funcionário cadastrado.
+          Nenhum barbeiro cadastrado.
         </p>
       ) : (
         <div className="space-y-3">
