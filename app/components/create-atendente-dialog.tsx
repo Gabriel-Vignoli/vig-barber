@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
-import { EyeIcon, EyeOffIcon, Loader2Icon, UserPlusIcon } from "lucide-react"
+import { EyeIcon, EyeOffIcon, Loader2Icon, PlusIcon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
@@ -65,11 +65,10 @@ const CreateAtendenteDialog = () => {
       <DialogTrigger
         render={(triggerProps) => (
           <Button
-            variant="outline"
-            className="cursor-pointer gap-2"
+            className="cursor-pointer border-0 xl:p-4 xl:text-base"
             {...triggerProps}
           >
-            <UserPlusIcon size={16} />
+            <PlusIcon className="size-4.5 xl:size-5" />
             Novo atendente
           </Button>
         )}

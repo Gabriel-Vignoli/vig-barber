@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog"
+import CreateAtendenteDialog from "./create-atendente-dialog"
 import { deleteAtendente } from "../_actions/delete-atendente"
 
 const getInitials = (name?: string | null) => {
@@ -78,7 +79,7 @@ const AdminAtendentesTable = ({
           Atendentes
           <Badge variant="secondary">{totalCount}</Badge>
         </h2>
-        {/* <CreateAtendenteDialog /> */}
+        <CreateAtendenteDialog />
       </div>
 
       {atendentes.length === 0 ? (
