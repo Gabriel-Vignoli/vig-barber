@@ -10,7 +10,7 @@ import {
   LogOutIcon,
   MenuIcon,
   ReceiptIcon,
-  ScissorsIcon,
+  StoreIcon,
   UsersIcon,
 } from "lucide-react"
 import { Card, CardContent } from "./ui/card"
@@ -29,6 +29,7 @@ const NAV_ITEMS = [
   { href: "/admin/services", label: "Serviços", icon: BriefcaseIcon },
   { href: "/admin/employees", label: "Funcionários", icon: UsersIcon },
   { href: "/admin/expenses", label: "Despesas", icon: ReceiptIcon },
+  { href: "/admin/barbershop", label: "Barbearia", icon: StoreIcon },
 ]
 
 const AdminHeader = ({ adminName }: AdminHeaderProps) => {
