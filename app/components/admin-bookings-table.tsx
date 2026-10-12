@@ -1,8 +1,8 @@
 "use client"
 
+import Image from "next/image"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { MessageCircleIcon } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Card, CardContent } from "./ui/card"
 import AdminBookingStatusBadge from "./admin-booking-status-badge"
@@ -97,7 +97,13 @@ const AdminBookingsTable = ({ bookings }: AdminBookingsTableProps) => {
                     rel="noopener noreferrer"
                     className="inline-flex w-fit items-center gap-1.5 rounded-md border border-green-600/30 px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-600/20"
                   >
-                    <MessageCircleIcon className="size-3.5" />
+                    <Image
+                      src="/whatsapp.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      className="size-4"
+                    />
                     Contato
                   </a>
                 )}
