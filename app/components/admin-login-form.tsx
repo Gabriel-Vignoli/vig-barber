@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
@@ -17,7 +16,6 @@ import {
 } from "../_lib/validations/admin-login"
 
 const AdminLoginForm = () => {
-  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [visiblePassword, setVisiblePassword] = useState(false)
 
@@ -38,20 +36,20 @@ const AdminLoginForm = () => {
 
       if (result?.error) {
         toast.error("Email ou senha inválidos.")
+        setIsSubmitting(false)
         return
       }
 
       const role = await getCurrentUserRole()
+      const target = role === "ATENDENTE" ? "/admin/atendente" : "/admin"
 
-      if (role === "ATENDENTE") {
-        router.push("/admin/atendente")
-      } else {
-        router.push("/admin")
-      }
-      router.refresh()
-    } catch (error) {
+      // Full page navigation, the same thing a manual reload does. It skips the
+      // client router cache (which can hold a stale "redirect to login" for
+      // /admin) and the push/refresh race. isSubmitting stays true on purpose,
+      // so the spinner keeps showing until the browser leaves this page.
+      window.location.assign(target)
+    } catch {
       toast.error("Erro ao fazer login. Tente novamente.")
-    } finally {
       setIsSubmitting(false)
     }
   }
