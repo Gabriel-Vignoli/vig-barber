@@ -95,14 +95,14 @@ const AdminBookingsTable = ({ bookings }: AdminBookingsTableProps) => {
                     href={whatsAppLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex w-fit items-center gap-1.5 rounded-md border border-green-600/30 px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-600/20"
+                    className="inline-flex w-fit items-center gap-1.5 rounded-md border border-green-600/30 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-600/20"
                   >
                     <Image
                       src="/whatsapp.svg"
                       alt=""
-                      width={16}
-                      height={16}
-                      className="size-4"
+                      width={12}
+                      height={12}
+                      className="size-3"
                     />
                     Contato
                   </a>
