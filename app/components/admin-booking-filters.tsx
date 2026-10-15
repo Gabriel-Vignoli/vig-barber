@@ -10,7 +10,13 @@ const FILTERS = [
   { value: "cancelled", label: "Cancelados" },
 ] as const
 
-const AdminBookingFilters = () => {
+interface AdminBookingFiltersProps {
+  basePath?: string
+}
+
+const AdminBookingFilters = ({
+  basePath = "/admin/bookings",
+}: AdminBookingFiltersProps) => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeFilter = searchParams.get("filter") ?? "all"
@@ -19,7 +25,7 @@ const AdminBookingFilters = () => {
     const params = new URLSearchParams(searchParams.toString())
     params.set("filter", filter)
     params.set("page", "1")
-    router.push(`/admin/bookings?${params.toString()}`)
+    router.push(`${basePath}?${params.toString()}`)
   }
 
   return (
