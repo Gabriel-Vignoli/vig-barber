@@ -11,6 +11,8 @@ interface CreateBookingParams {
   bookingDate: Date
 }
 
+const ROLES_BLOCKED_FROM_BOOKING = ["ADMIN", "ATENDENTE"]
+
 export const createBooking = async ({
   barbershopServiceId,
   employeeId,
@@ -24,8 +26,10 @@ export const createBooking = async ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessionUser = session.user as any
 
-  if (sessionUser.role === "ADMIN") {
-    throw new Error("Administradores não podem realizar agendamentos.")
+  if (ROLES_BLOCKED_FROM_BOOKING.includes(sessionUser.role)) {
+    throw new Error(
+      "Administradores e atendentes não podem realizar agendamentos.",
+    )
   }
 
   await prisma.booking.create({
