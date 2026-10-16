@@ -63,6 +63,8 @@ const PERIODS = [
   { label: "Noite", test: (h: number) => h >= 18 },
 ]
 
+const ROLES_BLOCKED_FROM_BOOKING = ["ADMIN", "ATENDENTE"]
+
 const ServiceItem = ({
   service,
   employeeId,
@@ -84,7 +86,7 @@ const ServiceItem = ({
   const [conflictingBooking, setConflictingBooking] =
     useState<ConflictingBooking | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [adminBlockDialogIsOpen, setAdminBlockDialogIsOpen] = useState(false)
+  const [roleBlockDialogIsOpen, setRoleBlockDialogIsOpen] = useState(false)
 
   const [phoneDialogIsOpen, setPhoneDialogIsOpen] = useState(false)
   const [phoneChecked, setPhoneChecked] = useState(false)
@@ -138,8 +140,10 @@ const ServiceItem = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((data.user as any).role === "ADMIN") {
-      setAdminBlockDialogIsOpen(true)
+    const role = (data.user as any).role as string | undefined
+
+    if (role && ROLES_BLOCKED_FROM_BOOKING.includes(role)) {
+      setRoleBlockDialogIsOpen(true)
       return
     }
 
@@ -570,8 +574,8 @@ const ServiceItem = ({
       </Card>
 
       <AlertDialog
-        open={adminBlockDialogIsOpen}
-        onOpenChange={setAdminBlockDialogIsOpen}
+        open={roleBlockDialogIsOpen}
+        onOpenChange={setRoleBlockDialogIsOpen}
       >
         <AlertDialogContent
           size="sm"
@@ -582,7 +586,8 @@ const ServiceItem = ({
               Ação não permitida
             </AlertDialogTitle>
             <AlertDialogDescription className="lg:text-base">
-              Contas de administrador não podem realizar agendamentos.
+              Contas de administrador e atendente não podem realizar
+              agendamentos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter display="col" className="lg:p-6">

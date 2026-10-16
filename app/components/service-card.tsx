@@ -74,6 +74,8 @@ const PERIODS = [
   { label: "Noite", test: (h: number) => h >= 18 },
 ]
 
+const ROLES_BLOCKED_FROM_BOOKING = ["ADMIN", "ATENDENTE"]
+
 const ServiceCard = ({ service }: ServiceCardProps) => {
   const { data } = useSession()
 
@@ -83,7 +85,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   const [conflictDialogIsOpen, setConflictDialogIsOpen] = useState(false)
   const [conflictingBooking, setConflictingBooking] =
     useState<ConflictingBooking | null>(null)
-  const [adminBlockDialogIsOpen, setAdminBlockDialogIsOpen] = useState(false)
+  const [roleBlockDialogIsOpen, setRoleBlockDialogIsOpen] = useState(false)
 
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<
@@ -163,8 +165,10 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((data.user as any).role === "ADMIN") {
-      setAdminBlockDialogIsOpen(true)
+    const role = (data.user as any).role as string | undefined
+
+    if (role && ROLES_BLOCKED_FROM_BOOKING.includes(role)) {
+      setRoleBlockDialogIsOpen(true)
       return
     }
 
@@ -626,8 +630,8 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       </Sheet>
 
       <AlertDialog
-        open={adminBlockDialogIsOpen}
-        onOpenChange={setAdminBlockDialogIsOpen}
+        open={roleBlockDialogIsOpen}
+        onOpenChange={setRoleBlockDialogIsOpen}
       >
         <AlertDialogContent
           size="sm"
@@ -638,7 +642,8 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
               Ação não permitida
             </AlertDialogTitle>
             <AlertDialogDescription className="lg:text-base">
-              Contas de administrador não podem realizar agendamentos.
+              Contas de administrador e atendente não podem realizar
+              agendamentos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter display="col" className="lg:p-6">
