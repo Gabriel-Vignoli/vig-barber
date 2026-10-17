@@ -529,9 +529,12 @@ const ServiceItem = ({
                             . O que você deseja fazer?
                           </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter className="flex-col gap-2 lg:p-6">
+                        <AlertDialogFooter
+                          display="col"
+                          className="gap-2 lg:p-6"
+                        >
                           <AlertDialogAction
-                            className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
+                            className="h-auto w-full cursor-pointer py-3 whitespace-normal lg:py-4 lg:text-base"
                             disabled={isSubmitting}
                             onClick={(e) => {
                               e.preventDefault()
@@ -544,7 +547,7 @@ const ServiceItem = ({
                           </AlertDialogAction>
                           <AlertDialogAction
                             variant="destructive"
-                            className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
+                            className="h-auto w-full cursor-pointer py-3 whitespace-normal lg:py-4 lg:text-base"
                             disabled={isSubmitting}
                             onClick={(e) => {
                               e.preventDefault()
@@ -556,7 +559,7 @@ const ServiceItem = ({
                               : "Cancelar a antiga e agendar essa"}
                           </AlertDialogAction>
                           <AlertDialogCancel
-                            className="w-full cursor-pointer py-5 lg:py-6 lg:text-base"
+                            className="h-auto w-full cursor-pointer py-3 whitespace-normal lg:py-4 lg:text-base"
                             disabled={isSubmitting}
                             onClick={() => setConflictingBooking(null)}
                           >
