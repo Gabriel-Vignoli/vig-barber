@@ -83,22 +83,29 @@ export default async function Home() {
       getConfirmedBookings(),
     ])
 
-  const employeesSerialized = employees.map((employee) => {
-    const ratingCount = employee.reviews.length
-    const averageRating =
-      ratingCount > 0
-        ? employee.reviews.reduce((acc, review) => acc + review.rating, 0) /
-          ratingCount
-        : null
+  const employeesSerialized = employees
+    .map((employee) => {
+      const ratingCount = employee.reviews.length
+      const averageRating =
+        ratingCount > 0
+          ? employee.reviews.reduce((acc, review) => acc + review.rating, 0) /
+            ratingCount
+          : null
 
-    return {
-      id: employee.id,
-      name: employee.user.name ?? "Funcionário",
-      imageUrl: employee.imageUrl ?? employee.user.image ?? null,
-      averageRating,
-      ratingCount,
-    }
-  })
+      return {
+        id: employee.id,
+        name: employee.user.name ?? "Funcionário",
+        imageUrl: employee.imageUrl ?? employee.user.image ?? null,
+        averageRating,
+        ratingCount,
+      }
+    })
+    .sort(
+      (a, b) =>
+        b.ratingCount - a.ratingCount ||
+        (b.averageRating ?? 0) - (a.averageRating ?? 0) ||
+        a.name.localeCompare(b.name, "pt-BR"),
+    )
 
   const servicesSerialized = services.map((service) => ({
     ...service,
