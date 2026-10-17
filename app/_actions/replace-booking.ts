@@ -12,6 +12,8 @@ interface ReplaceBookingParams {
   bookingDate: Date
 }
 
+const ROLES_BLOCKED_FROM_BOOKING = ["ADMIN", "ATENDENTE"]
+
 export const replaceBooking = async ({
   oldBookingId,
   barbershopServiceId,
@@ -25,18 +27,32 @@ export const replaceBooking = async ({
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userId = (session.user as any).id
+  const sessionUser = session.user as any
+  const userId = sessionUser.id
+
+  if (ROLES_BLOCKED_FROM_BOOKING.includes(sessionUser.role)) {
+    throw new Error(
+      "Administradores e atendentes não podem realizar agendamentos.",
+    )
+  }
 
   const oldBooking = await prisma.booking.findUnique({
     where: { id: oldBookingId },
   })
 
-  if (!oldBooking || oldBooking.userId !== userId) {
+  if (
+    !oldBooking ||
+    oldBooking.userId !== userId ||
+    oldBooking.status === "CANCELLED"
+  ) {
     throw new Error("Reserva original não encontrada.")
   }
 
   await prisma.$transaction([
-    prisma.booking.delete({ where: { id: oldBookingId } }),
+    prisma.booking.update({
+      where: { id: oldBookingId },
+      data: { status: "CANCELLED" },
+    }),
     prisma.booking.create({
       data: {
         userId,
