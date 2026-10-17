@@ -11,32 +11,31 @@ export const getConfirmedBookings = async () => {
     return []
   }
 
-  const bookings = session?.user
-    ? await prisma.booking.findMany({
-        where: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          userId: (session?.user as any).id,
-          bookingDate: {
-            gte: new Date(),
-          },
-        },
+  const bookings = await prisma.booking.findMany({
+    where: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      userId: (session.user as any).id,
+      status: { not: "CANCELLED" },
+      bookingDate: {
+        gte: new Date(),
+      },
+    },
+    include: {
+      barbershopService: {
         include: {
-          barbershopService: {
-            include: {
-              barbershop: true,
-            },
-          },
-          employee: {
-            include: {
-              user: true,
-            },
-          },
+          barbershop: true,
         },
-        orderBy: {
-          bookingDate: "asc",
+      },
+      employee: {
+        include: {
+          user: true,
         },
-      })
-    : []
+      },
+    },
+    orderBy: {
+      bookingDate: "asc",
+    },
+  })
 
   // Prisma's Decimal fields can't be passed from Server to Client Components,
   // so we convert price to a plain number before rendering <BookingItem>.
@@ -47,5 +46,6 @@ export const getConfirmedBookings = async () => {
       price: Number(booking.barbershopService.price),
     },
   }))
+
   return serializedBookings
 }
