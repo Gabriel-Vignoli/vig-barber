@@ -80,6 +80,7 @@ const ServiceItem = ({
     Awaited<ReturnType<typeof getBookings>>
   >([])
   const [daySchedule, setDaySchedule] = useState<EmployeeScheduleResult>(null)
+  const [isLoadingTimes, setIsLoadingTimes] = useState(false)
   const [bookingSheetIsOpen, setBookingSheetIsOpen] = useState(false)
   const [confirmDialogIsOpen, setConfirmDialogIsOpen] = useState(false)
   const [conflictDialogIsOpen, setConflictDialogIsOpen] = useState(false)
@@ -93,16 +94,34 @@ const ServiceItem = ({
   const [isCheckingPhone, setIsCheckingPhone] = useState(false)
 
   useEffect(() => {
-    const fetch = async () => {
-      if (!selectedDay) return
-      const [bookings, schedule] = await Promise.all([
-        getBookings({ date: selectedDay, employeeId }),
-        getEmployeeSchedule(employeeId, selectedDay),
-      ])
-      setDayBookings(bookings)
-      setDaySchedule(schedule)
+    if (!selectedDay) return
+
+    let cancelled = false
+
+    const fetchDayData = async () => {
+      try {
+        const [bookings, schedule] = await Promise.all([
+          getBookings({ date: selectedDay, employeeId }),
+          getEmployeeSchedule(employeeId, selectedDay),
+        ])
+
+        if (cancelled) return
+
+        setDayBookings(bookings)
+        setDaySchedule(schedule)
+      } catch (error) {
+        console.log(error)
+        if (!cancelled) toast.error("Erro ao carregar horários.")
+      } finally {
+        if (!cancelled) setIsLoadingTimes(false)
+      }
     }
-    fetch()
+
+    fetchDayData()
+
+    return () => {
+      cancelled = true
+    }
   }, [selectedDay, employeeId])
 
   const availableTimes = useMemo(() => {
@@ -155,12 +174,14 @@ const ServiceItem = ({
     setSelectedDay(undefined)
     setDayBookings([])
     setDaySchedule(null)
+    setIsLoadingTimes(false)
     setBookingSheetIsOpen(false)
   }
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDay(date)
     setSelectedTime(undefined)
+    setIsLoadingTimes(!!date)
   }
 
   const handleTimeSelect = (time: string) => {
@@ -397,7 +418,23 @@ const ServiceItem = ({
 
                     {selectedDay && (
                       <div className="space-y-4 border-b p-4 lg:space-y-5 lg:p-6">
-                        {groupedTimes.length === 0 ? (
+                        {isLoadingTimes ? (
+                          <div
+                            className="space-y-2"
+                            aria-busy="true"
+                            aria-label="Carregando horários"
+                          >
+                            <div className="bg-muted h-4 w-16 animate-pulse rounded" />
+                            <div className="grid grid-cols-4 gap-2 lg:grid-cols-5 lg:gap-3">
+                              {Array.from({ length: 8 }).map((_, index) => (
+                                <div
+                                  key={index}
+                                  className="bg-muted h-9 animate-pulse rounded-full lg:h-10"
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ) : groupedTimes.length === 0 ? (
                           <p className="text-sm text-gray-400">
                             Nenhum horário disponível para esse dia.
                           </p>
