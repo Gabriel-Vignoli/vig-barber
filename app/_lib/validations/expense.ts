@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { ExpenseCategory } from "@prisma/client"
+import { ExpenseCategory } from "@/app/generated/prisma/enums"
 
 export const expenseFormSchema = z.object({
   description: z

@@ -23,7 +23,10 @@ import {
 } from "./ui/alert-dialog"
 import { Calendar } from "./ui/calendar"
 import { ptBR } from "date-fns/locale"
-import { Barbershop, BarbershopService } from "@prisma/client"
+import type {
+  Barbershop,
+  BarbershopService,
+} from "@/app/generated/prisma/client"
 import { format, set } from "date-fns"
 import { createBooking } from "../_actions/create-booking"
 import { getConflictingBooking } from "../_actions/get-conflicting-booking"

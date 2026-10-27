@@ -1,7 +1,7 @@
 "use server"
 
 import { prisma } from "../_lib/prisma"
-import { Weekday } from "@prisma/client"
+import { Weekday } from "@/app/generated/prisma/enums"
 
 const WEEKDAY_BY_JS_DAY: Weekday[] = [
   Weekday.SUNDAY,

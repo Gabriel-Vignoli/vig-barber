@@ -1,4 +1,4 @@
-import { BarbershopService } from "@prisma/client"
+import type { BarbershopService } from "@/app/generated/prisma/client"
 import { Card, CardContent } from "./ui/card"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"

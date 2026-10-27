@@ -3,7 +3,7 @@
 import { Card, CardContent } from "./ui/card"
 import { Avatar, AvatarImage } from "./ui/avatar"
 import { Badge } from "./ui/badge"
-import { PaymentMethod } from "@prisma/client"
+import { PaymentMethod } from "@/app/generated/prisma/enums"
 import { format, isFuture } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {

@@ -1,4 +1,4 @@
-import { BookingStatus } from "@prisma/client"
+import { BookingStatus } from "@/app/generated/prisma/enums"
 import { Badge } from "./ui/badge"
 
 interface AdminBookingStatusBadgeProps {

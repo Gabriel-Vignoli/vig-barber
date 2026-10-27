@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
-import { Weekday } from "@prisma/client"
+import { Weekday } from "@/app/generated/prisma/enums"
 
 interface ScheduleInput {
   weekday: Weekday

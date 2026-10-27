@@ -23,7 +23,7 @@ import {
 import ExpenseFormDialog from "./expense-form-dialog"
 import { deleteExpense } from "../_actions/delete-expense"
 import { EXPENSE_CATEGORY_LABELS } from "../_lib/validations/expense"
-import { ExpenseCategory } from "@prisma/client"
+import { ExpenseCategory } from "@/app/generated/prisma/enums"
 
 const currency = (value: number) =>
   Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(

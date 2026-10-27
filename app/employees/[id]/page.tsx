@@ -10,7 +10,7 @@ import BackButton from "@/app/components/back-button"
 import ViewLocationButton from "@/app/components/view-location-button"
 import { Card, CardContent } from "@/app/components/ui/card"
 import { StarIcon } from "lucide-react"
-import { Weekday } from "@prisma/client"
+import { Weekday } from "@/app/generated/prisma/enums"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 
