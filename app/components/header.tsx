@@ -21,7 +21,7 @@ const Header = () => {
             src="/logo.png"
             alt="Vig Barber"
             width={120}
-            height={120}
+            height={29}
             priority
             className="md:h-auto md:w-36"
           />

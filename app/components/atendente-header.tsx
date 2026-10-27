@@ -37,7 +37,7 @@ const AtendenteHeader = ({ atendenteName }: AtendenteHeaderProps) => {
             src="/logo.png"
             alt="Vig Barber"
             width={120}
-            height={120}
+            height={29}
             className="md:h-auto md:w-28 xl:w-36"
           />
         </Link>
