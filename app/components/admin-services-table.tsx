@@ -94,6 +94,7 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
                       src={service.imageUrl}
                       alt={service.name}
                       fill
+                      sizes="(min-width: 1024px) 80px, 64px"
                       className="object-cover"
                     />
                   </div>

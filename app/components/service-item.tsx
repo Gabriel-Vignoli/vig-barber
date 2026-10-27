@@ -336,6 +336,7 @@ const ServiceItem = ({
               src={service.imageUrl}
               alt={service.name}
               fill
+              sizes="(min-width: 768px) 128px, 110px"
               className="object-cover"
             />
           </div>

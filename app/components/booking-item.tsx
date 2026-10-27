@@ -166,6 +166,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
           <Image
             src="/map.png"
             fill
+            sizes="(min-width: 640px) 384px, 100vw"
             className="rounded-xl"
             alt="Localização da Barbearia"
           ></Image>

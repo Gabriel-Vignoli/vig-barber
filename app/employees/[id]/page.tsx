@@ -307,6 +307,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                 <Image
                   src="/map.png"
                   fill
+                  sizes="448px"
                   className="rounded-xl"
                   alt="Localização da Barbearia"
                 />
@@ -320,6 +321,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                             src={barbershop.imageUrl}
                             alt={barbershop.name}
                             fill
+                            sizes="40px"
                             className="object-cover"
                           />
                         ) : null}

@@ -174,6 +174,7 @@ export default async function Home() {
                   alt="Banner 01"
                   fill
                   priority
+                  sizes="(min-width: 1024px) 50vw, 100vw"
                   className="object-contain"
                 />
               </div>
