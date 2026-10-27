@@ -6,7 +6,7 @@ Full-stack booking platform for a single barbershop. Clients book services with 
 
 ## Stack
 - Next.js 16.2 (App Router, Turbopack), React 19.2, TypeScript (path alias `@/*` → repo root)
-- Prisma 6 + PostgreSQL (Supabase). `DATABASE_URL` = pooled, `DIRECT_URL` = migrations
+- Prisma 7 + PostgreSQL (Supabase) through the `@prisma/adapter-pg` driver adapter. `DATABASE_URL` = transaction pooler (port 6543), used by the app at runtime. `DIRECT_URL` = session pooler (port 5432), used by the CLI through `prisma.config.ts`
 - NextAuth **v4** (JWT sessions) with Google + Credentials providers and `@auth/prisma-adapter`
 - Tailwind CSS v4 + shadcn (style `base-nova`, built on **Base UI**, not Radix) + lucide icons
 - react-hook-form + zod v4, sonner toasts, Recharts, date-fns (`ptBR` locale), Resend email
@@ -14,8 +14,8 @@ Full-stack booking platform for a single barbershop. Clients book services with 
 
 ## Commands
 - `npm run dev` / `npm run build` / `npm run lint`
-- `npx prisma migrate dev` · `npx prisma db seed` (runs `prisma/seed.ts` via ts-node)
-- `postinstall` runs `prisma generate`
+- `npx prisma migrate dev` · `npx prisma db seed` (runs `prisma/seed.ts` via tsx, configured in `prisma.config.ts`)
+- `postinstall` runs `prisma generate`. In Prisma 7, `migrate dev` no longer runs `generate` or the seed, so run `npx prisma generate` yourself after you change the schema
 - No test suite exists. Check your work with `npm run lint` and `npm run build`.
 
 ## Layout
@@ -26,7 +26,8 @@ Full-stack booking platform for a single barbershop. Clients book services with 
 - `app/_providers/`, `app/_constants/`
 - Routes: `/` (client home, or the employee dashboard when the user is EMPLOYEE), `/bookings`, `/profile`, `/employees/[id]`, `/services/[id]`, `/privacy-policy`, `/admin/login`, `/admin/(dashboard)/*` (admin only: dashboard, bookings, services, employees, expenses, barbershop), `/admin/atendente/*` (ATENDENTE or ADMIN: walk-in booking, bookings list), `/api/auth/[...nextauth]`.
 - `proxy.ts` — Next 16's replacement for `middleware.ts`. It reads the JWT and limits EMPLOYEE users to `/` and `/profile`.
-- `prisma/` — `schema.prisma`, migrations, seed.
+- `prisma/` — `schema.prisma`, migrations, seed. `prisma.config.ts` (repo root) holds the schema path, the seed command and the CLI datasource URL.
+- `app/generated/prisma/` — generated Prisma client (gitignored). Server code imports from `@/app/generated/prisma/client`. Enums imported by Client Components come from `@/app/generated/prisma/enums`. Never import from `@prisma/client`.
 
 ## Domain model (prisma/schema.prisma)
 - `User.role`: `CLIENT | EMPLOYEE | ATENDENTE | ADMIN`. A user has at most one `Employee` profile.
@@ -52,6 +53,7 @@ Full-stack booking platform for a single barbershop. Clients book services with 
 - **Timezone:** the business runs on `America/Sao_Paulo` (fixed UTC-3), but Vercel runs in UTC. For date bucketing and ranges, use the helpers in `app/_lib/timezone.ts` (`getBrazilDayRange`, `getBrazilWeekRange`, `getBrazilMonthRange`, `getBrazilDateKey`) instead of raw `Date` math.
 - **Availability:** `getTimeList` in `app/_lib/time-list.ts` builds 30-minute-step slots inside the employee's schedule for that weekday. It rejects a slot if the service's full duration overlaps any existing booking.
 - **Login lockout:** after 5 failed attempts the account locks for 10 minutes. This lives in the `check-login-attempt.ts` server action, called before `signIn`, because NextAuth v4 hides custom errors thrown from `authorize()`.
+- **DB connection errors locally:** some networks (e.g. school wifi) block port 6543. If you see P1017 / `ConnectionClosed` locally while production works, the cause is the network, not the code. Use another network, or point the local `DATABASE_URL` at the 5432 URL.
 - Remote images are allowed only from `utfs.io` and `images.unsplash.com` (`next.config.ts`).
 
 ## Git

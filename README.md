@@ -44,7 +44,7 @@ A full-stack barbershop booking platform built with Next.js, TypeScript, Prisma,
 
 - **Framework:** Next.js (App Router, Turbopack)
 - **Language:** TypeScript
-- **ORM:** Prisma
+- **ORM:** Prisma 7 (with the `pg` driver adapter)
 - **Database:** PostgreSQL (via Supabase)
 - **Authentication:** NextAuth (Google + Credentials)
 - **Styling:** Tailwind CSS + Base UI
@@ -56,7 +56,7 @@ A full-stack barbershop booking platform built with Next.js, TypeScript, Prisma,
 
 ### Prerequisites
 
-- Node.js installed
+- Node.js 20.19 or newer (required by Prisma 7)
 - A PostgreSQL database (local, or a hosted service like Supabase or Neon)
 
 ### Setup
@@ -68,7 +68,7 @@ git clone https://github.com/Gabriel-Vignoli/vig-barber.git
 # Move into the project folder
 cd vig-barber
 
-# Install dependencies
+# Install dependencies (also generates the Prisma client into app/generated/prisma)
 npm install
 
 # Set up environment variables
@@ -108,6 +108,10 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+> **Note:** Prisma 7 no longer runs `prisma generate` or the seed after `migrate dev`. After you change `prisma/schema.prisma`, run `npx prisma generate` yourself. The Prisma CLI reads its settings (schema path, seed command, and the `DIRECT_URL` connection) from `prisma.config.ts`.
+>
+> **Connection errors?** Some networks (school or corporate wifi) block port 6543, which the transaction pooler in `DATABASE_URL` uses. If you get `Server has closed the connection` (P1017) locally, try another network, or point your local `DATABASE_URL` at the 5432 URL.
+
 ## 📁 Project Structure
 vig-barber/
 ├── app/
@@ -126,6 +130,7 @@ vig-barber/
 │ ├── layout.tsx
 │ └── page.tsx # Branches between the client homepage and the employee dashboard by role
 ├── prisma/ # Database schema, migrations, and seed script
+├── prisma.config.ts # Prisma CLI config (schema path, seed, migration URL)
 ├── proxy.ts # Route-level access control by user role
 └── public/ # Static assets
 
