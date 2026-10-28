@@ -1,13 +1,13 @@
 "use server"
 
+import { randomInt } from "crypto"
 import { prisma } from "../_lib/prisma"
 import { resend } from "../_lib/resend"
 import { requestResetCodeSchema } from "../_lib/validations/password-reset"
 
 const CODE_EXPIRY_MINUTES = 15
 
-const generateCode = () =>
-  Math.floor(100000 + Math.random() * 900000).toString()
+const generateCode = () => randomInt(100000, 1000000).toString()
 
 export const requestPasswordReset = async (input: { email: string }) => {
   const parsed = requestResetCodeSchema.safeParse(input)
@@ -27,9 +27,16 @@ export const requestPasswordReset = async (input: { email: string }) => {
   const code = generateCode()
   const expiresAt = new Date(Date.now() + CODE_EXPIRY_MINUTES * 60 * 1000)
 
-  await prisma.passwordResetCode.create({
-    data: { email, code, expiresAt },
-  })
+  // Only the newest code stays valid
+  await prisma.$transaction([
+    prisma.passwordResetCode.updateMany({
+      where: { email, usedAt: null },
+      data: { usedAt: new Date() },
+    }),
+    prisma.passwordResetCode.create({
+      data: { email, code, expiresAt },
+    }),
+  ])
 
   await resend.emails.send({
     from: "Vig Barber <onboarding@resend.dev>",

@@ -2,6 +2,7 @@
 
 import bcrypt from "bcryptjs"
 import { prisma } from "../_lib/prisma"
+import { validateResetCode } from "../_lib/reset-code"
 import { resetPasswordSchema } from "../_lib/validations/password-reset"
 
 export const resetPassword = async (input: {
@@ -18,18 +19,7 @@ export const resetPassword = async (input: {
 
   const { email, code, newPassword } = parsed.data
 
-  const resetCode = await prisma.passwordResetCode.findFirst({
-    where: { email, code, usedAt: null },
-    orderBy: { createdAt: "desc" },
-  })
-
-  if (!resetCode) {
-    throw new Error("Código inválido.")
-  }
-
-  if (resetCode.expiresAt < new Date()) {
-    throw new Error("Código expirado. Solicite um novo.")
-  }
+  const resetCode = await validateResetCode(email, code)
 
   const user = await prisma.user.findUnique({ where: { email } })
 
@@ -42,7 +32,12 @@ export const resetPassword = async (input: {
   await prisma.$transaction([
     prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      // A successful reset also lifts any login lockout
+      data: {
+        password: hashedPassword,
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
     }),
     prisma.passwordResetCode.update({
       where: { id: resetCode.id },

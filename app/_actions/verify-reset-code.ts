@@ -1,21 +1,17 @@
 "use server"
 
-import { prisma } from "../_lib/prisma"
+import { validateResetCode } from "../_lib/reset-code"
+import { verifyCodeSchema } from "../_lib/validations/password-reset"
 
 export const verifyResetCode = async (input: {
   email: string
   code: string
 }) => {
-  const resetCode = await prisma.passwordResetCode.findFirst({
-    where: { email: input.email, code: input.code, usedAt: null },
-    orderBy: { createdAt: "desc" },
-  })
+  const parsed = verifyCodeSchema.safeParse(input)
 
-  if (!resetCode) {
-    throw new Error("Código inválido.")
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0].message)
   }
 
-  if (resetCode.expiresAt < new Date()) {
-    throw new Error("Código expirado. Solicite um novo.")
-  }
+  await validateResetCode(parsed.data.email, parsed.data.code)
 }
