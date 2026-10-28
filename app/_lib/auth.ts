@@ -4,10 +4,7 @@ import { prisma } from "./prisma"
 import { Adapter } from "next-auth/adapters"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
-
-const MAX_LOGIN_ATTEMPTS = 5
-const LOCK_DURATION_MS = 10 * 60 * 1000 // 10 minutes
+import { registerLoginAttempt } from "./login-attempt"
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
@@ -32,22 +29,20 @@ export const authOptions: AuthOptions = {
           throw new Error("Email e senha são obrigatórios.")
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        })
-
-        if (!user || !user.password) {
-          throw new Error("Email ou senha inválidos.")
-        }
-
-        const isValidPassword = await bcrypt.compare(
+        const result = await registerLoginAttempt(
+          credentials.email,
           credentials.password,
-          user.password,
         )
 
-        if (!isValidPassword) {
+        if (result.status === "locked") {
+          throw new Error("Conta bloqueada temporariamente.")
+        }
+
+        if (result.status === "invalid") {
           throw new Error("Email ou senha inválidos.")
         }
+
+        const { user } = result
 
         return {
           id: user.id,

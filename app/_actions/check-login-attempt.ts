@@ -1,10 +1,6 @@
 "use server"
 
-import { prisma } from "../_lib/prisma"
-import bcrypt from "bcryptjs"
-
-const MAX_LOGIN_ATTEMPTS = 5
-const LOCK_DURATION_MS = 10 * 60 * 1000 // 10 minutes
+import { registerLoginAttempt } from "../_lib/login-attempt"
 
 type CheckLoginAttemptResult =
   | { status: "ok"; role: string }
@@ -15,46 +11,15 @@ export async function checkLoginAttempt(
   email: string,
   password: string,
 ): Promise<CheckLoginAttemptResult> {
-  const user = await prisma.user.findUnique({ where: { email } })
+  const result = await registerLoginAttempt(email, password)
 
-  if (!user || !user.password) {
+  if (result.status === "locked") {
+    return { status: "locked", lockedUntil: result.lockedUntil.toISOString() }
+  }
+
+  if (result.status === "invalid") {
     return { status: "invalid" }
   }
 
-  if (user.lockedUntil && user.lockedUntil > new Date()) {
-    return { status: "locked", lockedUntil: user.lockedUntil.toISOString() }
-  }
-
-  const isValidPassword = await bcrypt.compare(password, user.password)
-
-  if (!isValidPassword) {
-    const attempts = user.failedLoginAttempts + 1
-
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        failedLoginAttempts: attempts,
-        lockedUntil:
-          attempts >= MAX_LOGIN_ATTEMPTS
-            ? new Date(Date.now() + LOCK_DURATION_MS)
-            : null,
-      },
-    })
-
-    if (updated.lockedUntil) {
-      return {
-        status: "locked",
-        lockedUntil: updated.lockedUntil.toISOString(),
-      }
-    }
-
-    return { status: "invalid" }
-  }
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { failedLoginAttempts: 0, lockedUntil: null },
-  })
-
-  return { status: "ok", role: user.role }
+  return { status: "ok", role: result.user.role }
 }

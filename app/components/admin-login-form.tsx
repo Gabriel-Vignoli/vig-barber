@@ -10,11 +10,15 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { getCurrentUserRole } from "../_actions/get-user-role"
+import { checkLoginAttempt } from "../_actions/check-login-attempt"
 import ForgotPasswordDialog from "./forgot-password-dialog"
 import {
   adminLoginSchema,
   AdminLoginFormValues,
 } from "../_lib/validations/admin-login"
+
+const getMinutesUntil = (isoDate: string) =>
+  Math.max(1, Math.ceil((new Date(isoDate).getTime() - Date.now()) / 60000))
 
 const AdminLoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -29,6 +33,26 @@ const AdminLoginForm = () => {
     setIsSubmitting(true)
 
     try {
+      const attemptResult = await checkLoginAttempt(
+        values.email,
+        values.password,
+      )
+
+      if (attemptResult.status === "locked") {
+        const minutes = getMinutesUntil(attemptResult.lockedUntil)
+        toast.error(
+          `Conta bloqueada. Tente novamente em ${minutes} ${minutes === 1 ? "minuto" : "minutos"}.`,
+        )
+        setIsSubmitting(false)
+        return
+      }
+
+      if (attemptResult.status === "invalid") {
+        toast.error("Email ou senha inválidos.")
+        setIsSubmitting(false)
+        return
+      }
+
       const result = await signIn("credentials", {
         email: values.email,
         password: values.password,
