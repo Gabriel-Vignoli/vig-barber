@@ -10,6 +10,7 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { getCurrentUserRole } from "../_actions/get-user-role"
+import ForgotPasswordDialog from "./forgot-password-dialog"
 import {
   adminLoginSchema,
   AdminLoginFormValues,
@@ -55,67 +56,79 @@ const AdminLoginForm = () => {
   }
 
   return (
-    <form
-      className="w-full max-w-sm space-y-4 xl:max-w-md xl:space-y-6"
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-    >
-      <div className="space-y-1">
-        <Label htmlFor="admin-login-email" className="xl:text-base">
-          Email
-        </Label>
-        <Input
-          id="admin-login-email"
-          type="email"
-          className="xl:p-5 xl:text-base"
-          {...register("email")}
-        />
-        {formState.errors.email && (
-          <p className="text-destructive text-xs">
-            {formState.errors.email.message}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-1">
-        <Label htmlFor="admin-login-password" className="xl:text-base">
-          Senha
-        </Label>
-        <div className="relative">
-          <Input
-            id="admin-login-password"
-            type={visiblePassword ? "text" : "password"}
-            className="pr-10 xl:p-5 xl:text-base"
-            {...register("password")}
-          />
-          <button
-            type="button"
-            onClick={() => setVisiblePassword((prev) => !prev)}
-            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-            tabIndex={-1}
-          >
-            {visiblePassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
-          </button>
-        </div>
-        {formState.errors.password && (
-          <p className="text-destructive text-xs">
-            {formState.errors.password.message}
-          </p>
-        )}
-      </div>
-
-      <Button
-        type="submit"
-        className="w-full cursor-pointer py-5 xl:p-6 xl:text-base"
-        disabled={isSubmitting}
+    // ForgotPasswordDialog stays outside the <form>: React bubbles its inner
+    // form submits through the portal, which would also submit the login.
+    <div className="w-full max-w-sm space-y-4 xl:max-w-md xl:space-y-6">
+      <form
+        className="space-y-4 xl:space-y-6"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
       >
-        {isSubmitting ? (
-          <Loader2Icon className="size-4 animate-spin" />
-        ) : (
-          "Entrar"
-        )}
-      </Button>
-    </form>
+        <div className="space-y-1">
+          <Label htmlFor="admin-login-email" className="xl:text-base">
+            Email
+          </Label>
+          <Input
+            id="admin-login-email"
+            type="email"
+            className="xl:p-5 xl:text-base"
+            {...register("email")}
+          />
+          {formState.errors.email && (
+            <p className="text-destructive text-xs">
+              {formState.errors.email.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="admin-login-password" className="xl:text-base">
+            Senha
+          </Label>
+          <div className="relative">
+            <Input
+              id="admin-login-password"
+              type={visiblePassword ? "text" : "password"}
+              className="pr-10 xl:p-5 xl:text-base"
+              {...register("password")}
+            />
+            <button
+              type="button"
+              onClick={() => setVisiblePassword((prev) => !prev)}
+              className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
+              tabIndex={-1}
+            >
+              {visiblePassword ? (
+                <EyeOffIcon size={18} />
+              ) : (
+                <EyeIcon size={18} />
+              )}
+            </button>
+          </div>
+          {formState.errors.password && (
+            <p className="text-destructive text-xs">
+              {formState.errors.password.message}
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full cursor-pointer py-5 xl:p-6 xl:text-base"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <Loader2Icon className="size-4 animate-spin" />
+          ) : (
+            "Entrar"
+          )}
+        </Button>
+      </form>
+
+      <div className="flex justify-end">
+        <ForgotPasswordDialog />
+      </div>
+    </div>
   )
 }
 
