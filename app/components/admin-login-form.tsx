@@ -12,22 +12,24 @@ import { Label } from "./ui/label"
 import { getCurrentUserRole } from "../_actions/get-user-role"
 import { checkLoginAttempt } from "../_actions/check-login-attempt"
 import ForgotPasswordDialog from "./forgot-password-dialog"
+import { formatCountdown, useLoginLockout } from "../_hooks/use-login-lockout"
 import {
   adminLoginSchema,
   AdminLoginFormValues,
 } from "../_lib/validations/admin-login"
 
-const getMinutesUntil = (isoDate: string) =>
-  Math.max(1, Math.ceil((new Date(isoDate).getTime() - Date.now()) / 60000))
-
 const AdminLoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [visiblePassword, setVisiblePassword] = useState(false)
 
-  const { register, handleSubmit, formState } = useForm<AdminLoginFormValues>({
-    resolver: zodResolver(adminLoginSchema),
-    defaultValues: { email: "", password: "" },
-  })
+  const { register, handleSubmit, formState, watch } =
+    useForm<AdminLoginFormValues>({
+      resolver: zodResolver(adminLoginSchema),
+      defaultValues: { email: "", password: "" },
+    })
+
+  const { isLocked, remainingSeconds, startLockout, clearLockout } =
+    useLoginLockout(watch("email"))
 
   const onSubmit = async (values: AdminLoginFormValues) => {
     setIsSubmitting(true)
@@ -39,13 +41,12 @@ const AdminLoginForm = () => {
       )
 
       if (attemptResult.status === "locked") {
-        const minutes = getMinutesUntil(attemptResult.lockedUntil)
-        toast.error(
-          `Conta bloqueada. Tente novamente em ${minutes} ${minutes === 1 ? "minuto" : "minutos"}.`,
-        )
+        startLockout(values.email, attemptResult.lockedUntil)
         setIsSubmitting(false)
         return
       }
+
+      clearLockout()
 
       if (attemptResult.status === "invalid") {
         toast.error("Email ou senha inválidos.")
@@ -134,12 +135,18 @@ const AdminLoginForm = () => {
               {formState.errors.password.message}
             </p>
           )}
+          {isLocked && (
+            <p className="text-destructive text-xs xl:text-sm">
+              Muitas tentativas de login. Tente novamente em{" "}
+              {formatCountdown(remainingSeconds)}.
+            </p>
+          )}
         </div>
 
         <Button
           type="submit"
           className="w-full cursor-pointer py-5 xl:p-6 xl:text-base"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isLocked}
         >
           {isSubmitting ? (
             <Loader2Icon className="size-4 animate-spin" />

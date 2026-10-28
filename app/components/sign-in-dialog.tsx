@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { useForm } from "react-hook-form"
@@ -39,6 +39,7 @@ import {
 } from "../_lib/validations/auth"
 import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
 import ForgotPasswordDialog from "./forgot-password-dialog"
+import { formatCountdown, useLoginLockout } from "../_hooks/use-login-lockout"
 
 type Mode = "login" | "signup"
 
@@ -46,26 +47,13 @@ interface SignInDialogProps {
   initialMode?: Mode
 }
 
-interface LockoutState {
-  email: string
-  until: number // epoch ms
-}
-
 const AUTH_TOAST_KEY = "pending-auth-toast"
-
-const formatCountdown = (totalSeconds: number) => {
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`
-}
 
 const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
   const router = useRouter()
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPolicyOpen, setIsPolicyOpen] = useState(false)
-  const [lockout, setLockout] = useState<LockoutState | null>(null)
-  const [now, setNow] = useState(() => Date.now())
   const [loginError, setLoginError] = useState<string | null>(null)
   const [isAdminPromptOpen, setIsAdminPromptOpen] = useState(false)
   const [pendingAdminLogin, setPendingAdminLogin] =
@@ -99,25 +87,12 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
 
   const loginEmail = loginForm.watch("email")
 
-  useEffect(() => {
-    if (!lockout) return
-
-    const interval = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(interval)
-  }, [lockout])
-
-  useEffect(() => {
-    if (lockout && now >= lockout.until) {
-      setLockout(null)
-    }
-  }, [now, lockout])
-
-  const isLockedForCurrentEmail =
-    lockout !== null && lockout.email === loginEmail && now < lockout.until
-
-  const remainingSeconds = isLockedForCurrentEmail
-    ? Math.max(0, Math.ceil((lockout!.until - now) / 1000))
-    : 0
+  const {
+    isLocked: isLockedForCurrentEmail,
+    remainingSeconds,
+    startLockout,
+    clearLockout,
+  } = useLoginLockout(loginEmail)
 
   const handleLoginWithGoogleClick = () => {
     sessionStorage.setItem(AUTH_TOAST_KEY, "google")
@@ -140,12 +115,12 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     })
 
     if (result?.error) {
-      setLockout(null)
+      clearLockout()
       setLoginError("Email ou senha inválidos.")
       return
     }
 
-    setLockout(null)
+    clearLockout()
     sessionStorage.setItem(AUTH_TOAST_KEY, "login")
     window.location.reload()
   }
@@ -161,16 +136,12 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       )
 
       if (attemptResult.status === "locked") {
-        setLockout({
-          email: values.email,
-          until: new Date(attemptResult.lockedUntil).getTime(),
-        })
-        setNow(Date.now())
+        startLockout(values.email, attemptResult.lockedUntil)
         return
       }
 
       if (attemptResult.status === "invalid") {
-        setLockout(null)
+        clearLockout()
         setLoginError("Email ou senha inválidos.")
         return
       }
