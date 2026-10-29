@@ -23,11 +23,12 @@ The app is being converted into a multi-tenant SaaS (shops at `/b/[slug]`, per-s
 
 ## Layout
 - `app/_actions/` — Server Actions (`"use server"`), one exported function per file, kebab-case filename (`create-booking.ts` → `createBooking`). Both mutations and client-called queries live here.
-- `app/_data/` — server-side data fetchers used by pages (`get-admin-*`, `get-*-bookings`).
+- `app/_data/` — server-side data fetchers used by pages (`get-admin-*`, `get-*-bookings`, shop-scoped cached `get-shop-services` / `get-shop-employees`).
+- Public booking actions (`get-bookings`, `get-employee-schedule`, `get-employees-for-service`, `create-booking`, `replace-booking`) take the shop `slug` first. `app/_lib/customer-booking.ts` holds the shared booking guard and `getViewerBookingBlocked` (staff of THIS shop cannot book there).
 - `app/_lib/` — `auth.ts` (authOptions), `prisma.ts` (singleton client), `require-admin.ts` (`requireAdmin`, `requireAtendente`), `timezone.ts`, `time-list.ts` (slot availability), `resend.ts`, `utils.ts` (`cn`), `validations/*.ts` (zod schemas + inferred `*FormValues` types).
 - `app/components/` — flat folder of feature components. `app/components/ui/` holds the shadcn/Base UI primitives.
 - `app/_providers/`, `app/_constants/`
-- Routes: `/` (client home, or the employee dashboard when the user is EMPLOYEE), `/bookings`, `/profile`, `/employees/[id]`, `/services/[id]`, `/privacy-policy`, `/admin/login`, `/admin/(dashboard)/*` (admin only: dashboard, bookings, services, employees, expenses, barbershop), `/admin/atendente/*` (ATENDENTE or ADMIN: walk-in booking, bookings list), `/api/auth/[...nextauth]`.
+- Routes: `/` (employee dashboard when the user is EMPLOYEE; everyone else is temporarily redirected to the oldest active shop until the Phase 7 landing), `/b/[slug]` (layout: `getTenant` → 404, per-shop metadata, `ShopFooter`) with `(client)/` holding the shop home, `/b/[slug]/services/[id]` and `/b/[slug]/employees/[id]`, `/bookings` (the user's bookings across all shops, each linking to its shop), `/profile`, legacy `/employees/[id]` and `/services/[id]` (308 to the record's shop), `/privacy-policy`, `/admin/login`, `/admin/(dashboard)/*` (admin only: dashboard, bookings, services, employees, expenses, barbershop), `/admin/atendente/*` (ATENDENTE or ADMIN: walk-in booking, bookings list), `/api/auth/[...nextauth]`.
 - `proxy.ts` — Next 16's replacement for `middleware.ts`. It reads the JWT and limits EMPLOYEE users to `/` and `/profile`.
 - `prisma/` — `schema.prisma`, migrations, seed. `prisma.config.ts` (repo root) holds the schema path, the seed command and the CLI datasource URL.
 - `app/generated/prisma/` — generated Prisma client (gitignored). Server code imports from `@/app/generated/prisma/client`. Enums imported by Client Components come from `@/app/generated/prisma/enums`. Never import from `@prisma/client`.
