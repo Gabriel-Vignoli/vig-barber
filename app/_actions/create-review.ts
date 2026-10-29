@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidateShop } from "../_lib/revalidate"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../_lib/auth"
 import { prisma } from "../_lib/prisma"
@@ -34,15 +34,15 @@ export const createReview = async ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userId = (session.user as any).id
 
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
+  const booking = await prisma.booking.findFirst({
+    where: { id: bookingId, userId, employeeId },
+    select: {
+      barbershopId: true,
+      barbershop: { select: { id: true, slug: true } },
+    },
   })
 
-  if (
-    !booking ||
-    booking.userId !== userId ||
-    booking.employeeId !== employeeId
-  ) {
+  if (!booking) {
     throw new Error("Reserva inválida para avaliação.")
   }
 
@@ -57,5 +57,5 @@ export const createReview = async ({
     },
   })
 
-  revalidatePath("/employees/[id]")
+  revalidateShop(booking.barbershop)
 }
