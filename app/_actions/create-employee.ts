@@ -59,4 +59,6 @@ export const createEmployee = async (input: {
 
   revalidatePath("/admin/employees")
   revalidatePath("/")
+  // TODO(Phase 4a): replace with revalidateShop(shop) once admin is shop-scoped
+  revalidatePath("/b/[slug]", "layout")
 }

@@ -21,4 +21,6 @@ export const deleteService = async (serviceId: string) => {
 
   revalidatePath("/admin/services")
   revalidatePath("/")
+  // TODO(Phase 4a): replace with revalidateShop(shop) once admin is shop-scoped
+  revalidatePath("/b/[slug]", "layout")
 }

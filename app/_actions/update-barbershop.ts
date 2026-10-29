@@ -1,8 +1,9 @@
 "use server"
 
-import { revalidatePath, updateTag } from "next/cache"
+import { revalidatePath } from "next/cache"
 import { prisma } from "../_lib/prisma"
 import { requireAdmin } from "../_lib/require-admin"
+import { revalidateShop } from "../_lib/revalidate"
 import {
   updateBarbershopSchema,
   UpdateBarbershopFormValues,
@@ -18,7 +19,7 @@ export const updateBarbershop = async (input: UpdateBarbershopFormValues) => {
   }
 
   const barbershop = await prisma.barbershop.findFirst({
-    select: { id: true },
+    select: { id: true, slug: true },
   })
   if (!barbershop) {
     throw new Error("Barbearia não encontrada.")
@@ -39,7 +40,7 @@ export const updateBarbershop = async (input: UpdateBarbershopFormValues) => {
     },
   })
 
-  // getCachedBarbershop uses unstable_cache (1h), so expire its tag
-  updateTag("barbershop")
+  // Expires the shop caches (tenant lookup, services, employees) and its pages
+  revalidateShop(barbershop)
   revalidatePath("/", "layout")
 }
