@@ -20,7 +20,6 @@ You implement **one** phase of the multi-tenant migration described in `docs/mul
 
 ## Finishing
 1. Run `npm run lint` and `npm run build` (and `npm run test` once it exists). Fix every failure.
-2. Commit in small conventional commits with a scope (`schema`, `tenant`, `admin`, `atendente`, `employees`, `booking`, `auth`, `barbershop`, `platform`, `landing`, `test`, `chore`, `docs`). End each message with:
-   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`
+2. **Never commit.** The user approves every commit personally. Leave changes in the working tree and group them into small logical parts, each with a proposed conventional commit message with a scope (`schema`, `tenant`, `admin`, `atendente`, `employees`, `booking`, `auth`, `barbershop`, `platform`, `landing`, `test`, `chore`, `docs`) and its file list.
 3. Do not tick the Status checklist (the `/saas-phase` skill does that after review).
-4. Return: changed files, commit hashes, verification output summary, open questions or known gaps.
+4. Return: the parts (commit message + files), verification output summary, open questions or known gaps.

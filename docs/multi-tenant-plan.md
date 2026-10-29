@@ -3,7 +3,7 @@
 ## Status
 
 - [x] Phase 0 — tooling
-- [ ] Phase 1 — schema + seed
+- [x] Phase 1 — schema + seed
 - [ ] Phase 2 — tenant library + Vitest
 - [ ] Phase 3 — client routes under /b/[slug]
 - [ ] Phase 4a — admin + ownership fixes

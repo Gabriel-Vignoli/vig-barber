@@ -15,8 +15,9 @@ Drives one phase of `docs/multi-tenant-plan.md`.
 5. **Review.** Launch the `tenant-guard` agent on the commits the implementer made (`git diff <start>..HEAD`).
 6. **Fix loop.** If tenant-guard reports BLOCKERs, send them back to the implementer (continue the same agent) and review again. Maximum 3 rounds, then report to the user.
 7. **Verify.** Run `npm run lint`, `npm run build` and `npm run test` (if present) yourself.
-8. **Close.** Tick the phase in `docs/multi-tenant-plan.md`. If routes, models or conventions changed, update `CLAUDE.md`. Commit as `docs(tenant): complete phase <n>`.
-9. **Report** to the user: what changed, commits, review verdict, anything to test manually.
+8. **Show it.** Make sure the dev server is running and open the affected pages in the browser so the user sees the real change.
+9. **Commit part by part, with approval.** For each logical part, show the user the files and the proposed commit message and ask for confirmation (AskUserQuestion) before running `git commit`. Never commit unapproved. Commit messages end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+10. **Close.** Tick the phase in `docs/multi-tenant-plan.md`, update `CLAUDE.md` if routes, models or conventions changed, and propose `docs(tenant): complete phase <n>` for approval too.
 
 ## Cheat-sheet (patterns from the plan)
 ```ts
