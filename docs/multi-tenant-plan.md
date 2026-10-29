@@ -5,7 +5,7 @@
 - [x] Phase 0 — tooling
 - [x] Phase 1 — schema + seed
 - [x] Phase 2 — tenant library + Vitest
-- [ ] Phase 3 — client routes under /b/[slug]
+- [x] Phase 3 — client routes under /b/[slug]
 - [ ] Phase 4a — admin + ownership fixes
 - [ ] Phase 4b — staff/atendente/memberships
 - [ ] Phase 4c — auth
