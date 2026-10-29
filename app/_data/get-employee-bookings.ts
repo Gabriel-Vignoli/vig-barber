@@ -9,7 +9,7 @@ const getCurrentEmployee = async () => {
 
   if (!userId) return null
 
-  return prisma.employee.findUnique({
+  return prisma.employee.findFirst({
     where: { userId },
     select: { id: true },
   })

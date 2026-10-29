@@ -32,8 +32,17 @@ export const createBooking = async ({
     )
   }
 
+  const service = await prisma.barbershopService.findUnique({
+    where: { id: barbershopServiceId },
+    select: { barbershopId: true },
+  })
+  if (!service) {
+    throw new Error("Serviço não encontrado.")
+  }
+
   await prisma.booking.create({
     data: {
+      barbershopId: service.barbershopId,
       barbershopServiceId,
       employeeId,
       bookingDate,

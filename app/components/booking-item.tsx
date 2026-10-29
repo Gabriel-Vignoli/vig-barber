@@ -70,7 +70,7 @@ interface BookingItemsProps {
         name: string
         address: string
         description: string
-        imageUrl: string
+        bannerUrl: string | null
         phones: string[]
         createdAt: Date
         updatedAt: Date

@@ -21,7 +21,7 @@ interface BarbershopFormProps {
     name: string
     description: string
     address: string
-    imageUrl: string
+    bannerUrl: string | null
     instagramUrl: string | null
     phones: string[]
   }
@@ -36,7 +36,7 @@ const BarbershopForm = ({ barbershop }: BarbershopFormProps) => {
     name: barbershop.name,
     description: barbershop.description,
     address: barbershop.address,
-    imageUrl: barbershop.imageUrl,
+    bannerUrl: barbershop.bannerUrl ?? "",
     instagramUrl: barbershop.instagramUrl ?? "",
     phones: barbershop.phones.length > 0 ? barbershop.phones : [""],
   }
@@ -54,7 +54,7 @@ const BarbershopForm = ({ barbershop }: BarbershopFormProps) => {
   })
 
   const phones = watch("phones")
-  const imageUrl = watch("imageUrl")
+  const bannerUrl = watch("bannerUrl")
 
   const handlePhoneChange = (index: number, value: string) => {
     setValue(`phones.${index}`, value, {
@@ -126,11 +126,11 @@ const BarbershopForm = ({ barbershop }: BarbershopFormProps) => {
         <CardContent className="space-y-4 p-4 lg:p-6">
           <h2 className="font-semibold">Imagem</h2>
 
-          {imageUrl && /^https?:\/\//.test(imageUrl) && (
+          {bannerUrl && /^https?:\/\//.test(bannerUrl) && (
             <div className="bg-muted h-40 overflow-hidden rounded-lg lg:h-56">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={imageUrl}
+                src={bannerUrl}
                 alt="Pré-visualização da barbearia"
                 referrerPolicy="no-referrer"
                 className="h-full w-full object-cover"
@@ -143,11 +143,11 @@ const BarbershopForm = ({ barbershop }: BarbershopFormProps) => {
             <Input
               id="barbershop-image"
               placeholder="https://..."
-              {...register("imageUrl")}
+              {...register("bannerUrl")}
             />
-            {errors.imageUrl && (
+            {errors.bannerUrl && (
               <p className="text-destructive text-xs">
-                {errors.imageUrl.message}
+                {errors.bannerUrl.message}
               </p>
             )}
           </div>

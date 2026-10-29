@@ -7,7 +7,7 @@ export const updateBarbershopSchema = z.object({
   name: z.string().trim().min(2, "O nome deve ter pelo menos 2 caracteres."),
   description: z.string().trim().min(1, "Informe a descrição."),
   address: z.string().trim().min(5, "Informe o endereço completo."),
-  imageUrl: httpUrl("Informe uma URL de imagem válida (http ou https)."),
+  bannerUrl: httpUrl("Informe uma URL de imagem válida (http ou https)."),
   instagramUrl: z.union([
     httpUrl("Informe uma URL válida (http ou https)."),
     z.literal(""),

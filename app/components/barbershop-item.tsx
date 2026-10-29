@@ -15,13 +15,15 @@ const BarbershopItem = ({ barbershop }: BarberShopItemProps) => {
     <Card className="min-w-32 p-0 md:min-w-52 lg:min-w-60">
       <CardContent className="p-0">
         <div className="relative h-32 w-full md:h-48 lg:h-56">
-          <Image
-            src={barbershop.imageUrl}
-            alt={barbershop.name}
-            fill
-            sizes="(min-width: 1024px) 240px, (min-width: 768px) 208px, 128px"
-            className="rounded-xl object-cover"
-          />
+          {barbershop.bannerUrl && (
+            <Image
+              src={barbershop.bannerUrl}
+              alt={barbershop.name}
+              fill
+              sizes="(min-width: 1024px) 240px, (min-width: 768px) 208px, 128px"
+              className="rounded-xl object-cover"
+            />
+          )}
 
           <Badge
             className="bg-secondary/80 absolute top-2 right-2 space-x-1 md:top-3 md:right-3 md:px-2.5 md:py-1"

@@ -19,7 +19,17 @@ export const createExpense = async (input: {
     throw new Error(parsed.error.issues[0].message)
   }
 
-  await prisma.expense.create({ data: parsed.data })
+  // single-shop for now; scoped to the tenant in Phase 4a
+  const barbershop = await prisma.barbershop.findFirst({
+    select: { id: true },
+  })
+  if (!barbershop) {
+    throw new Error("Barbearia não encontrada.")
+  }
+
+  await prisma.expense.create({
+    data: { ...parsed.data, barbershopId: barbershop.id },
+  })
 
   revalidatePath("/admin/expenses")
   revalidatePath("/admin")

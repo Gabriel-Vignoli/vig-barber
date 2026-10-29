@@ -24,7 +24,7 @@ export const updateBarbershop = async (input: UpdateBarbershopFormValues) => {
     throw new Error("Barbearia não encontrada.")
   }
 
-  const { name, description, address, imageUrl, instagramUrl, phones } =
+  const { name, description, address, bannerUrl, instagramUrl, phones } =
     parsed.data
 
   await prisma.barbershop.update({
@@ -33,7 +33,7 @@ export const updateBarbershop = async (input: UpdateBarbershopFormValues) => {
       name,
       description,
       address,
-      imageUrl,
+      bannerUrl,
       instagramUrl: instagramUrl || null,
       phones,
     },

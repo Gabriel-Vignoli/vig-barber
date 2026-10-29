@@ -48,6 +48,14 @@ export const replaceBooking = async ({
     throw new Error("Reserva original não encontrada.")
   }
 
+  const service = await prisma.barbershopService.findUnique({
+    where: { id: barbershopServiceId },
+    select: { barbershopId: true },
+  })
+  if (!service) {
+    throw new Error("Serviço não encontrado.")
+  }
+
   await prisma.$transaction([
     prisma.booking.update({
       where: { id: oldBookingId },
@@ -55,6 +63,7 @@ export const replaceBooking = async ({
     }),
     prisma.booking.create({
       data: {
+        barbershopId: service.barbershopId,
         userId,
         barbershopServiceId,
         employeeId,

@@ -30,6 +30,14 @@ export const createEmployee = async (input: {
     throw new Error("Já existe um usuário com esse email.")
   }
 
+  // single-shop for now; memberships come in Phase 4b
+  const barbershop = await prisma.barbershop.findFirst({
+    select: { id: true },
+  })
+  if (!barbershop) {
+    throw new Error("Barbearia não encontrada.")
+  }
+
   const hashedPassword = await bcrypt.hash(parsed.data.password, 10)
 
   await prisma.user.create({
@@ -38,8 +46,9 @@ export const createEmployee = async (input: {
       email: parsed.data.email,
       password: hashedPassword,
       role: "EMPLOYEE",
-      employee: {
+      employees: {
         create: {
+          barbershopId: barbershop.id,
           bio: parsed.data.bio || null,
           imageUrl: parsed.data.imageUrl || null,
           phone: parsed.data.phone || null,

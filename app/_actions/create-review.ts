@@ -48,6 +48,7 @@ export const createReview = async ({
 
   await prisma.review.create({
     data: {
+      barbershopId: booking.barbershopId,
       bookingId,
       userId,
       employeeId,

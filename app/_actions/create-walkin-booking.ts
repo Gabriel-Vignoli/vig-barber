@@ -25,6 +25,14 @@ export const createWalkInBooking = async ({
     throw new Error("O nome do cliente deve ter pelo menos 2 caracteres.")
   }
 
+  const service = await prisma.barbershopService.findUnique({
+    where: { id: barbershopServiceId },
+    select: { barbershopId: true },
+  })
+  if (!service) {
+    throw new Error("Serviço não encontrado.")
+  }
+
   const walkInUser = await prisma.user.create({
     data: {
       name: clientName.trim(),
@@ -35,6 +43,7 @@ export const createWalkInBooking = async ({
 
   await prisma.booking.create({
     data: {
+      barbershopId: service.barbershopId,
       barbershopServiceId,
       employeeId,
       bookingDate,

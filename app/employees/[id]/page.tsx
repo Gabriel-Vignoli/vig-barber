@@ -316,9 +316,9 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                   <CardContent className="flex flex-col items-center gap-3 px-3 py-1">
                     <div className="flex gap-3">
                       <div className="bg-muted relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full">
-                        {barbershop.imageUrl ? (
+                        {barbershop.bannerUrl ? (
                           <Image
-                            src={barbershop.imageUrl}
+                            src={barbershop.bannerUrl}
                             alt={barbershop.name}
                             fill
                             sizes="40px"

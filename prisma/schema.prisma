@@ -10,11 +10,36 @@ datasource db {
   provider = "postgresql"
 }
 
+// Global role, kept only until Phase 4c (staff roles move to Membership)
 enum Role {
   CLIENT
   EMPLOYEE
   ATENDENTE
   ADMIN
+}
+
+enum MemberRole {
+  ADMIN
+  ATENDENTE
+  EMPLOYEE
+}
+
+enum Plan {
+  TRIAL
+  BASIC
+  PRO
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum ShopStatus {
+  ACTIVE
+  SUSPENDED
 }
 
 enum BookingStatus {
@@ -87,34 +112,105 @@ model User {
   phone               String?
   password            String?
   role                Role      @default(CLIENT)
+  isPlatformAdmin     Boolean   @default(false) @map("is_platform_admin")
   acceptedTermsAt     DateTime? @map("accepted_terms_at")
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime? @map("locked_until")
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  accounts Account[]
-  sessions Session[]
-  bookings Booking[]
-  reviews  Review[]
-  employee Employee?
+  accounts    Account[]
+  sessions    Session[]
+  bookings    Booking[]
+  reviews     Review[]
+  employees   Employee[]
+  memberships Membership[]
+  invitations Invitation[] @relation("InvitationInvitedBy")
+}
+
+model Barbershop {
+  id                   String             @id @default(cuid())
+  slug                 String             @unique
+  name                 String
+  address              String
+  city                 String?
+  latitude             Float?
+  longitude            Float?
+  phones               String[]
+  description          String
+  logoUrl              String?
+  bannerUrl            String?
+  instagramUrl         String?
+  status               ShopStatus         @default(ACTIVE)
+  plan                 Plan               @default(TRIAL)
+  subscriptionStatus   SubscriptionStatus @default(TRIALING)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  trialEndsAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  services    BarbershopService[]
+  employees   Employee[]
+  memberships Membership[]
+  invitations Invitation[]
+  bookings    Booking[]
+  expenses    Expense[]
+  reviews     Review[]
+}
+
+model Membership {
+  id           String     @id @default(cuid())
+  userId       String
+  barbershopId String
+  role         MemberRole
+  createdAt    DateTime   @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, barbershopId])
+  @@index([barbershopId, role])
+}
+
+model Invitation {
+  id           String     @id @default(cuid())
+  email        String
+  barbershopId String
+  role         MemberRole
+  tokenHash    String     @unique
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  invitedById  String?
+  createdAt    DateTime   @default(now())
+
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  invitedBy  User?      @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@index([email])
 }
 
 model Employee {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  bio       String?
-  imageUrl  String?
-  phone     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  userId       String
+  barbershopId String
+  bio          String?
+  imageUrl     String?
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  services  EmployeeService[]
-  schedules EmployeeSchedule[]
-  bookings  Booking[]
-  reviews   Review[]
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barbershop Barbershop         @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  services   EmployeeService[]
+  schedules  EmployeeSchedule[]
+  bookings   Booking[]
+  reviews    Review[]
+
+  @@unique([userId, barbershopId])
+  @@unique([id, barbershopId])
+  @@index([barbershopId, isActive])
 }
 
 model EmployeeService {
@@ -141,19 +237,6 @@ model EmployeeSchedule {
   @@unique([employeeId, weekday])
 }
 
-model Barbershop {
-  id           String              @id @default(cuid())
-  name         String
-  address      String
-  phones       String[]
-  description  String
-  imageUrl     String
-  instagramUrl String?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  services     BarbershopService[]
-}
-
 model BarbershopService {
   id                String            @id @default(cuid())
   barbershopId      String
@@ -167,11 +250,15 @@ model BarbershopService {
   bookings          Booking[]
   employees         EmployeeService[]
 
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+
+  @@unique([id, barbershopId])
+  @@index([barbershopId])
 }
 
 model Booking {
   id                  String         @id @default(cuid())
+  barbershopId        String
   userId              String
   barbershopServiceId String
   employeeId          String
@@ -181,24 +268,33 @@ model Booking {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
+  barbershop        Barbershop        @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
   user              User              @relation(fields: [userId], references: [id])
-  barbershopService BarbershopService @relation(fields: [barbershopServiceId], references: [id])
-  employee          Employee          @relation(fields: [employeeId], references: [id])
+  // Composite FKs: the service and the employee must belong to the booking's shop
+  barbershopService BarbershopService @relation(fields: [barbershopServiceId, barbershopId], references: [id, barbershopId])
+  employee          Employee          @relation(fields: [employeeId, barbershopId], references: [id, barbershopId])
   review            Review?
+
+  @@index([barbershopId, bookingDate])
+  @@index([employeeId, bookingDate])
 }
 
 model Review {
-  id         String   @id @default(cuid())
-  bookingId  String   @unique
-  userId     String
-  employeeId String
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now())
+  id           String   @id @default(cuid())
+  barbershopId String
+  bookingId    String   @unique
+  userId       String
+  employeeId   String
+  rating       Int
+  comment      String?
+  createdAt    DateTime @default(now())
 
-  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id])
-  employee Employee @relation(fields: [employeeId], references: [id])
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  booking    Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+  employee   Employee   @relation(fields: [employeeId], references: [id])
+
+  @@index([barbershopId])
 }
 
 model PasswordResetCode {
@@ -226,14 +322,17 @@ enum ExpenseCategory {
 }
 
 model Expense {
-  id          String          @id @default(cuid())
-  description String
-  amount      Decimal         @db.Decimal(10, 2)
-  category    ExpenseCategory
-  date        DateTime
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id           String          @id @default(cuid())
+  barbershopId String
+  description  String
+  amount       Decimal         @db.Decimal(10, 2)
+  category     ExpenseCategory
+  date         DateTime
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
-  @@index([date])
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+
+  @@index([barbershopId, date])
   @@map("expenses")
 }

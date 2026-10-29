@@ -11,7 +11,7 @@ const AdminBarbershopPage = async () => {
       name: true,
       description: true,
       address: true,
-      imageUrl: true,
+      bannerUrl: true,
       instagramUrl: true,
       phones: true,
     },
