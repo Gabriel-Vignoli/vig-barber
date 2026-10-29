@@ -1,16 +1,26 @@
 "use server"
 
 import { prisma } from "../_lib/prisma"
+import { getActiveShopOrThrow } from "../_lib/tenant"
 
-export const getEmployeesForService = async (serviceId: string) => {
+// Public: active employees of this shop that offer a service of this shop
+export const getEmployeesForService = async (
+  slug: string,
+  serviceId: string,
+) => {
+  const shop = await getActiveShopOrThrow(slug)
+
   const employeeServices = await prisma.employeeService.findMany({
     where: {
       serviceId,
-      employee: { isActive: true },
+      service: { barbershopId: shop.id },
+      employee: { barbershopId: shop.id, isActive: true },
     },
-    include: {
+    select: {
       employee: {
-        include: {
+        select: {
+          id: true,
+          imageUrl: true,
           user: { select: { name: true, image: true } },
         },
       },

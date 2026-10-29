@@ -25,7 +25,8 @@ interface ReviewData {
   id: string
   rating: number
   comment: string | null
-  userId: string
+  // Computed on the server so reviewer ids never reach the client
+  isOwn: boolean
   user: {
     name: string | null
     image: string | null
@@ -35,7 +36,7 @@ interface ReviewData {
 interface EmployeeReviewsProps {
   employeeId: string
   reviews: ReviewData[]
-  currentUserId: string | null
+  isSignedIn: boolean
   reviewableBookingId: string | null
 }
 
@@ -54,7 +55,7 @@ const getInitials = (name?: string | null) => {
 const EmployeeReviews = ({
   employeeId,
   reviews,
-  currentUserId,
+  isSignedIn,
   reviewableBookingId,
 }: EmployeeReviewsProps) => {
   const router = useRouter()
@@ -66,13 +67,11 @@ const EmployeeReviews = ({
     new Set(),
   )
 
-  const userReview = currentUserId
-    ? reviews.find((review) => review.userId === currentUserId)
-    : undefined
+  const userReview = reviews.find((review) => review.isOwn)
 
-  const canReview = Boolean(currentUserId && !userReview && reviewableBookingId)
+  const canReview = Boolean(isSignedIn && !userReview && reviewableBookingId)
   const needsPastBooking = Boolean(
-    currentUserId && !userReview && !reviewableBookingId,
+    isSignedIn && !userReview && !reviewableBookingId,
   )
 
   const toggleExpanded = (reviewId: string) => {
@@ -150,7 +149,7 @@ const EmployeeReviews = ({
       ) : (
         <div className="space-y-3">
           {reviews.map((review) => {
-            const isOwnReview = review.userId === currentUserId
+            const isOwnReview = review.isOwn
             const isExpanded = expandedReviewIds.has(review.id)
             const isLongComment =
               (review.comment?.length ?? 0) > COMMENT_CHAR_LIMIT

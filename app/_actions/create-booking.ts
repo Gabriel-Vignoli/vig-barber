@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { prisma } from "../_lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "../_lib/auth"
+import { prepareCustomerBooking } from "../_lib/customer-booking"
+import { revalidateShop } from "../_lib/revalidate"
 
 interface CreateBookingParams {
   barbershopServiceId: string
@@ -11,45 +11,26 @@ interface CreateBookingParams {
   bookingDate: Date
 }
 
-const ROLES_BLOCKED_FROM_BOOKING = ["ADMIN", "ATENDENTE"]
-
-export const createBooking = async ({
-  barbershopServiceId,
-  employeeId,
-  bookingDate,
-}: CreateBookingParams) => {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    throw new Error("Usuário não autenticado")
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sessionUser = session.user as any
-
-  if (ROLES_BLOCKED_FROM_BOOKING.includes(sessionUser.role)) {
-    throw new Error(
-      "Administradores e atendentes não podem realizar agendamentos.",
-    )
-  }
-
-  const service = await prisma.barbershopService.findUnique({
-    where: { id: barbershopServiceId },
-    select: { barbershopId: true },
+export const createBooking = async (
+  slug: string,
+  { barbershopServiceId, employeeId, bookingDate }: CreateBookingParams,
+) => {
+  const { shop, userId } = await prepareCustomerBooking(slug, {
+    barbershopServiceId,
+    employeeId,
+    bookingDate,
   })
-  if (!service) {
-    throw new Error("Serviço não encontrado.")
-  }
 
   await prisma.booking.create({
     data: {
-      barbershopId: service.barbershopId,
+      barbershopId: shop.id,
       barbershopServiceId,
       employeeId,
       bookingDate,
-      userId: sessionUser.id,
+      userId,
     },
   })
-  revalidatePath("/barbershops/[id]")
-  revalidatePath("/employees/[id]")
-  revalidatePath("/")
+
+  revalidateShop(shop)
+  revalidatePath("/bookings")
 }

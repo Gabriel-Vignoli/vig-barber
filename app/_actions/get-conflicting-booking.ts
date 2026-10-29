@@ -20,9 +20,13 @@ export const getConflictingBooking = async (bookingDate: Date) => {
       bookingDate,
       status: { not: "CANCELLED" },
     },
-    include: {
-      employee: { include: { user: { select: { name: true } } } },
+    // Minimal: only what the conflict dialog shows
+    select: {
+      id: true,
+      bookingDate: true,
+      barbershop: { select: { name: true, slug: true } },
       barbershopService: { select: { name: true } },
+      employee: { select: { user: { select: { name: true } } } },
     },
   })
 

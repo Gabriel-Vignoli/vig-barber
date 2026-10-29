@@ -2,15 +2,23 @@
 
 import { endOfDay, startOfDay } from "date-fns"
 import { prisma } from "../_lib/prisma"
+import { getActiveShopOrThrow } from "../_lib/tenant"
 
 interface GetBookingsProps {
   employeeId: string
   date: Date
 }
 
-export const getBookings = async ({ date, employeeId }: GetBookingsProps) => {
-  return await prisma.booking.findMany({
+// Public: returns only what getTimeList needs to block taken slots
+export const getBookings = async (
+  slug: string,
+  { date, employeeId }: GetBookingsProps,
+) => {
+  const shop = await getActiveShopOrThrow(slug)
+
+  return prisma.booking.findMany({
     where: {
+      barbershopId: shop.id,
       employeeId,
       status: { not: "CANCELLED" },
       bookingDate: {
@@ -18,7 +26,8 @@ export const getBookings = async ({ date, employeeId }: GetBookingsProps) => {
         gte: startOfDay(date),
       },
     },
-    include: {
+    select: {
+      bookingDate: true,
       barbershopService: { select: { durationInMinutes: true } },
     },
   })

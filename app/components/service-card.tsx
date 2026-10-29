@@ -54,6 +54,9 @@ interface ServiceCardProps {
     imageUrl: string
     durationInMinutes: number
   }
+  slug: string
+  // The viewer is ADMIN/ATENDENTE of this shop (computed on the server)
+  bookingBlocked: boolean
 }
 
 interface EmployeeOption {
@@ -62,11 +65,9 @@ interface EmployeeOption {
   imageUrl: string
 }
 
-interface ConflictingBooking {
-  id: string
-  employee: { user: { name: string | null } }
-  barbershopService: { name: string }
-}
+type ConflictingBooking = NonNullable<
+  Awaited<ReturnType<typeof getConflictingBooking>>
+>
 
 const PERIODS = [
   { label: "Manhã", test: (h: number) => h < 12 },
@@ -74,9 +75,7 @@ const PERIODS = [
   { label: "Noite", test: (h: number) => h >= 18 },
 ]
 
-const ROLES_BLOCKED_FROM_BOOKING = ["ADMIN", "ATENDENTE"]
-
-const ServiceCard = ({ service }: ServiceCardProps) => {
+const ServiceCard = ({ service, slug, bookingBlocked }: ServiceCardProps) => {
   const { data } = useSession()
 
   const [signInDialogIsOpen, setSignInDialogIsOpen] = useState(false)
@@ -108,11 +107,11 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
   useEffect(() => {
     const fetchEmployees = async () => {
-      const result = await getEmployeesForService(service.id)
+      const result = await getEmployeesForService(slug, service.id)
       setEmployees(result)
     }
     fetchEmployees()
-  }, [service.id])
+  }, [slug, service.id])
 
   useEffect(() => {
     if (!selectedDay || !selectedEmployeeId) return
@@ -122,8 +121,11 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     const fetchDayData = async () => {
       try {
         const [bookings, schedule] = await Promise.all([
-          getBookings({ date: selectedDay, employeeId: selectedEmployeeId }),
-          getEmployeeSchedule(selectedEmployeeId, selectedDay),
+          getBookings(slug, {
+            date: selectedDay,
+            employeeId: selectedEmployeeId,
+          }),
+          getEmployeeSchedule(slug, selectedEmployeeId, selectedDay),
         ])
 
         if (cancelled) return
@@ -143,7 +145,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     return () => {
       cancelled = true
     }
-  }, [selectedDay, selectedEmployeeId])
+  }, [slug, selectedDay, selectedEmployeeId])
 
   const selectedEmployee = employees.find(
     (employee) => employee.id === selectedEmployeeId,
@@ -183,10 +185,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       return setSignInDialogIsOpen(true)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const role = (data.user as any).role as string | undefined
-
-    if (role && ROLES_BLOCKED_FROM_BOOKING.includes(role)) {
+    if (bookingBlocked) {
       setRoleBlockDialogIsOpen(true)
       return
     }
@@ -258,7 +257,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     const minute = Number(selectedTime.split(":")[1])
     const bookingDate = set(selectedDay, { hours: hour, minutes: minute })
 
-    await createBooking({
+    await createBooking(slug, {
       barbershopServiceId: service.id,
       employeeId: selectedEmployeeId,
       bookingDate,
@@ -339,7 +338,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       const minute = Number(selectedTime.split(":")[1])
       const bookingDate = set(selectedDay, { hours: hour, minutes: minute })
 
-      await replaceBooking({
+      await replaceBooking(slug, {
         oldBookingId: conflictingBooking.id,
         barbershopServiceId: service.id,
         employeeId: selectedEmployeeId,
@@ -680,8 +679,8 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
               Ação não permitida
             </AlertDialogTitle>
             <AlertDialogDescription className="lg:text-base">
-              Contas de administrador e atendente não podem realizar
-              agendamentos.
+              Administradores e atendentes desta barbearia não podem realizar
+              agendamentos nela.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter display="col" className="lg:p-6">

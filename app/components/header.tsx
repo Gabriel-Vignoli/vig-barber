@@ -4,6 +4,7 @@ import Image from "next/image"
 import { Card, CardContent } from "./ui/card"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
+import { useParams } from "next/navigation"
 import DesktopProfileMenu from "./desktop-profile-menu"
 import MobileNav from "./mobile-nav"
 import BookingsNavLink from "./bookings-nav-link"
@@ -12,11 +13,14 @@ const Header = () => {
   const { data } = useSession()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isEmployee = (data?.user as any)?.role === "EMPLOYEE"
+  // Inside /b/[slug] the logo goes back to that shop's home
+  const { slug } = useParams<{ slug?: string }>()
+  const homeHref = slug ? `/b/${slug}` : "/"
 
   return (
     <Card className="bg-background rounded-none">
       <CardContent className="flex items-center justify-between md:px-8 md:py-2 lg:px-16 xl:px-32">
-        <Link href="/">
+        <Link href={homeHref}>
           <Image
             src="/logo.png"
             alt="Vig Barber"

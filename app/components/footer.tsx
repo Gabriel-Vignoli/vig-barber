@@ -1,9 +1,7 @@
-import { MailIcon, MapPinIcon } from "lucide-react"
+import { MailIcon } from "lucide-react"
 import Link from "next/link"
-import PhoneItem from "./phone-item"
-import { getCachedBarbershop } from "../_data/get-barbershop"
 
-const InstagramIcon = ({
+export const InstagramIcon = ({
   size = 20,
   className,
 }: {
@@ -97,44 +95,10 @@ const socialLinks = [
   },
 ]
 
-const Footer = async () => {
-  const barbershop = await getCachedBarbershop()
-
+// Platform footer, shown on every page. Shop details live in ShopFooter.
+const Footer = () => {
   return (
     <footer className="border-t px-6 py-5 md:px-16 md:py-8 lg:px-32">
-      {barbershop && (
-        <div className="mb-6 space-y-3 border-b pb-6 md:mb-8 md:pb-8">
-          <h3 className="text-sm font-bold md:text-base">{barbershop.name}</h3>
-
-          <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-6">
-            <div className="flex items-center gap-2 text-sm text-gray-400 md:text-base">
-              <MapPinIcon size={18} className="text-primary shrink-0" />
-              <span>{barbershop.address}</span>
-            </div>
-
-            {barbershop.instagramUrl && (
-              <Link
-                href={barbershop.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground flex items-center gap-2 text-sm text-gray-400 transition-colors md:text-base"
-              >
-                <InstagramIcon size={18} className="shrink-0" />
-                <span>Instagram</span>
-              </Link>
-            )}
-          </div>
-
-          {barbershop.phones.length > 0 && (
-            <div className="max-w-xs space-y-2 md:max-w-sm">
-              {barbershop.phones.map((phone, index) => (
-                <PhoneItem key={`${phone}-${index}`} phone={phone} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
       <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
         <p className="text-sm text-gray-400 md:text-base">
           © {new Date().getFullYear()}{" "}

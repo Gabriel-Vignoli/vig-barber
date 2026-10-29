@@ -23,10 +23,7 @@ import {
 } from "./ui/alert-dialog"
 import { Calendar } from "./ui/calendar"
 import { ptBR } from "date-fns/locale"
-import type {
-  Barbershop,
-  BarbershopService,
-} from "@/app/generated/prisma/client"
+import type { BarbershopService } from "@/app/generated/prisma/client"
 import { format, set } from "date-fns"
 import { createBooking } from "../_actions/create-booking"
 import { getConflictingBooking } from "../_actions/get-conflicting-booking"
@@ -48,17 +45,20 @@ import PhoneCollectionDialog from "./phone-collection-dialog"
 import { ClockIcon } from "lucide-react"
 
 interface ServiceItemProps {
-  service: Omit<BarbershopService, "price"> & { price: number }
-  barbershop: Pick<Barbershop, "name">
+  service: Pick<
+    BarbershopService,
+    "id" | "name" | "description" | "imageUrl" | "durationInMinutes"
+  > & { price: number }
+  slug: string
   employeeId: string
   employeeName: string
+  // The viewer is ADMIN/ATENDENTE of this shop (computed on the server)
+  bookingBlocked: boolean
 }
 
-interface ConflictingBooking {
-  id: string
-  employee: { user: { name: string | null } }
-  barbershopService: { name: string }
-}
+type ConflictingBooking = NonNullable<
+  Awaited<ReturnType<typeof getConflictingBooking>>
+>
 
 const PERIODS = [
   { label: "Manhã", test: (h: number) => h < 12 },
@@ -66,12 +66,12 @@ const PERIODS = [
   { label: "Noite", test: (h: number) => h >= 18 },
 ]
 
-const ROLES_BLOCKED_FROM_BOOKING = ["ADMIN", "ATENDENTE"]
-
 const ServiceItem = ({
   service,
+  slug,
   employeeId,
   employeeName,
+  bookingBlocked,
 }: ServiceItemProps) => {
   const [signInDialogIsOpen, setSignInDialogIsOpen] = useState(false)
   const { data } = useSession()
@@ -104,8 +104,8 @@ const ServiceItem = ({
     const fetchDayData = async () => {
       try {
         const [bookings, schedule] = await Promise.all([
-          getBookings({ date: selectedDay, employeeId }),
-          getEmployeeSchedule(employeeId, selectedDay),
+          getBookings(slug, { date: selectedDay, employeeId }),
+          getEmployeeSchedule(slug, employeeId, selectedDay),
         ])
 
         if (cancelled) return
@@ -125,7 +125,7 @@ const ServiceItem = ({
     return () => {
       cancelled = true
     }
-  }, [selectedDay, employeeId])
+  }, [slug, selectedDay, employeeId])
 
   const availableTimes = useMemo(() => {
     if (!selectedDay) return []
@@ -161,10 +161,7 @@ const ServiceItem = ({
       return setSignInDialogIsOpen(true)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const role = (data.user as any).role as string | undefined
-
-    if (role && ROLES_BLOCKED_FROM_BOOKING.includes(role)) {
+    if (bookingBlocked) {
       setRoleBlockDialogIsOpen(true)
       return
     }
@@ -192,7 +189,7 @@ const ServiceItem = ({
   }
 
   const performBooking = async (bookingDate: Date) => {
-    await createBooking({
+    await createBooking(slug, {
       barbershopServiceId: service.id,
       employeeId,
       bookingDate,
@@ -309,7 +306,7 @@ const ServiceItem = ({
       const minute = Number(selectedTime.split(":")[1])
       const newDate = set(selectedDay, { hours: hour, minutes: minute })
 
-      await replaceBooking({
+      await replaceBooking(slug, {
         oldBookingId: conflictingBooking.id,
         barbershopServiceId: service.id,
         employeeId,
@@ -630,8 +627,8 @@ const ServiceItem = ({
               Ação não permitida
             </AlertDialogTitle>
             <AlertDialogDescription className="lg:text-base">
-              Contas de administrador e atendente não podem realizar
-              agendamentos.
+              Administradores e atendentes desta barbearia não podem realizar
+              agendamentos nela.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter display="col" className="lg:p-6">

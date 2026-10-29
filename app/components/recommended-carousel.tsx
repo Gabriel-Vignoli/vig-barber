@@ -14,9 +14,10 @@ interface RecommendedCarouselProps {
     averageRating: number | null
     ratingCount: number
   }[]
+  slug: string
 }
 
-const RecommendedCarousel = ({ employees }: RecommendedCarouselProps) => {
+const RecommendedCarousel = ({ employees, slug }: RecommendedCarouselProps) => {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   // Drags the row over by exactly one card's width, using the first card's
@@ -49,7 +50,11 @@ const RecommendedCarousel = ({ employees }: RecommendedCarouselProps) => {
         className="flex gap-5 overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden"
       >
         {employees.map((employee) => (
-          <EmployeeItem key={employee.id} employee={employee}></EmployeeItem>
+          <EmployeeItem
+            key={employee.id}
+            employee={employee}
+            slug={slug}
+          ></EmployeeItem>
         ))}
       </div>
 

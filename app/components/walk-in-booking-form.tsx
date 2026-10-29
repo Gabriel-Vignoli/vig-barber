@@ -43,6 +43,7 @@ interface EmployeeOption {
 
 interface WalkInBookingFormProps {
   services: Service[]
+  slug: string
 }
 
 const currency = new Intl.NumberFormat("pt-BR", {
@@ -107,7 +108,7 @@ const Step = ({
   </section>
 )
 
-const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
+const WalkInBookingForm = ({ services, slug }: WalkInBookingFormProps) => {
   const router = useRouter()
 
   const [selectedServiceId, setSelectedServiceId] = useState<
@@ -161,7 +162,7 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
 
     const run = async () => {
       try {
-        const result = await getEmployeesForService(selectedServiceId)
+        const result = await getEmployeesForService(slug, selectedServiceId)
         if (cancelled) return
         setEmployees(result)
       } catch {
@@ -177,7 +178,7 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
     return () => {
       cancelled = true
     }
-  }, [selectedServiceId])
+  }, [slug, selectedServiceId])
 
   useEffect(() => {
     if (!selectedDay || !selectedEmployeeId || !timesKey) return
@@ -186,8 +187,11 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
     const run = async () => {
       try {
         const [bookings, schedule] = await Promise.all([
-          getBookings({ date: selectedDay, employeeId: selectedEmployeeId }),
-          getEmployeeSchedule(selectedEmployeeId, selectedDay),
+          getBookings(slug, {
+            date: selectedDay,
+            employeeId: selectedEmployeeId,
+          }),
+          getEmployeeSchedule(slug, selectedEmployeeId, selectedDay),
         ])
         if (cancelled) return
         setDayBookings(bookings)
@@ -206,7 +210,7 @@ const WalkInBookingForm = ({ services }: WalkInBookingFormProps) => {
     return () => {
       cancelled = true
     }
-  }, [selectedDay, selectedEmployeeId, timesKey])
+  }, [slug, selectedDay, selectedEmployeeId, timesKey])
 
   const availableTimes = useMemo(() => {
     if (!selectedDay || !selectedService || isLoadingTimes) return []

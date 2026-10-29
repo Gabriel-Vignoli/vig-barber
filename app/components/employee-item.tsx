@@ -14,9 +14,10 @@ interface EmployeeItemProps {
     averageRating: number | null
     ratingCount: number
   }
+  slug: string
 }
 
-const EmployeeItem = ({ employee }: EmployeeItemProps) => {
+const EmployeeItem = ({ employee, slug }: EmployeeItemProps) => {
   if (!employee) return null
 
   return (
@@ -71,7 +72,10 @@ const EmployeeItem = ({ employee }: EmployeeItemProps) => {
               className="w-full cursor-pointer border-0 py-2.5 text-sm shadow-none md:py-3 md:text-base"
               nativeButton={false}
               render={(buttonProps) => (
-                <Link href={`/employees/${employee.id}`} {...buttonProps}>
+                <Link
+                  href={`/b/${slug}/employees/${employee.id}`}
+                  {...buttonProps}
+                >
                   Visualizar
                 </Link>
               )}

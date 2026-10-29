@@ -47,7 +47,7 @@ const BarbershopItem = ({ barbershop }: BarberShopItemProps) => {
             variant="outline"
             className="mt-2 w-full py-3 text-sm md:mt-4 md:py-5 md:text-base"
           >
-            <Link href={`/barbershops/${barbershop.id}`}>Reservar</Link>
+            <Link href={`/b/${barbershop.slug}`}>Reservar</Link>
           </Button>
         </div>
       </CardContent>

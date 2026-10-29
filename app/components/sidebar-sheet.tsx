@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { useParams, usePathname } from "next/navigation"
 import { Button } from "./ui/button"
 import {
   CalendarIcon,
@@ -35,7 +35,11 @@ const SidebarSheet = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isEmployee = (data?.user as any)?.role === "EMPLOYEE"
 
-  const isHomeActive = pathname === "/"
+  // Inside /b/[slug], "Início" goes back to that shop's home
+  const { slug } = useParams<{ slug?: string }>()
+  const homeHref = slug ? `/b/${slug}` : "/"
+
+  const isHomeActive = pathname === homeHref
   const isBookingsActive = pathname === "/bookings"
 
   const handleLogoutClick = () => {
@@ -137,7 +141,7 @@ const SidebarSheet = () => {
               nativeButton={false}
               {...closeProps}
               render={(buttonProps) => (
-                <Link href="/" {...buttonProps}>
+                <Link href={homeHref} {...buttonProps}>
                   <HomeIcon size={18} />
                   Início
                 </Link>
