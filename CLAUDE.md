@@ -4,6 +4,9 @@
 
 Full-stack booking platform for a single barbershop. Clients book services with a specific barber. Staff work in role-specific areas: employee dashboard, front-desk walk-in screen, admin panel.
 
+## Multi-tenant migration in progress
+The app is being converted into a multi-tenant SaaS (shops at `/b/[slug]`, per-shop `Membership` roles). The plan, target schema, core patterns and phase status live in `docs/multi-tenant-plan.md`. Sections below describe the **current** single-shop code until each phase updates them. Run phases with `/saas-phase`. After touching actions, data fetchers, routes or the schema, run the `tenant-guard` agent.
+
 ## Stack
 - Next.js 16.2 (App Router, Turbopack), React 19.2, TypeScript (path alias `@/*` → repo root)
 - Prisma 7 + PostgreSQL (Supabase) through the `@prisma/adapter-pg` driver adapter. `DATABASE_URL` = transaction pooler (port 6543), used by the app at runtime. `DIRECT_URL` = session pooler (port 5432), used by the CLI through `prisma.config.ts`
