@@ -75,6 +75,17 @@ export const getTenant = cache(async (slug: string): Promise<Tenant> => {
   return shop
 })
 
+// For public server actions (clients are not members): throws instead of notFound
+export const getActiveShopOrThrow = async (slug: string): Promise<Tenant> => {
+  const shop = await findActiveShop(slug)
+
+  if (!shop) {
+    throw new Error("Barbearia não encontrada.")
+  }
+
+  return shop
+}
+
 export const getSessionUserId = cache(async (): Promise<string | null> => {
   const session = await getServerSession(authOptions)
 

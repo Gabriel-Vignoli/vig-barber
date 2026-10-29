@@ -5,3 +5,6 @@ export const BOOKING_BLOCKED_ROLES: readonly MemberRole[] = [
   "ADMIN",
   "ATENDENTE",
 ]
+
+export const isBookingBlockedRole = (role: MemberRole | null | undefined) =>
+  !!role && BOOKING_BLOCKED_ROLES.includes(role)
