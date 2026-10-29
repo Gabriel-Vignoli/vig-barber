@@ -19,7 +19,7 @@ The app is being converted into a multi-tenant SaaS (shops at `/b/[slug]`, per-s
 - `npm run dev` / `npm run build` / `npm run lint`
 - `npx prisma migrate dev` · `npx prisma db seed` (runs `prisma/seed.ts` via tsx, configured in `prisma.config.ts`)
 - `postinstall` runs `prisma generate`. In Prisma 7, `migrate dev` no longer runs `generate` or the seed, so run `npx prisma generate` yourself after you change the schema
-- No test suite exists. Check your work with `npm run lint` and `npm run build`.
+- `npm run test` runs Vitest (`tests/`) against a throwaway local Postgres (`embedded-postgres`, binaries come with the npm package; data lives in the gitignored `.tmp/`) with `prisma migrate deploy` applied. Check your work with `npm run lint`, `npm run build` and `npm run test`.
 
 ## Layout
 - `app/_actions/` — Server Actions (`"use server"`), one exported function per file, kebab-case filename (`create-booking.ts` → `createBooking`). Both mutations and client-called queries live here.

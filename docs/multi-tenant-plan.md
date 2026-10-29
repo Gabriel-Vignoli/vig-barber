@@ -4,7 +4,7 @@
 
 - [x] Phase 0 — tooling
 - [x] Phase 1 — schema + seed
-- [ ] Phase 2 — tenant library + Vitest
+- [x] Phase 2 — tenant library + Vitest
 - [ ] Phase 3 — client routes under /b/[slug]
 - [ ] Phase 4a — admin + ownership fixes
 - [ ] Phase 4b — staff/atendente/memberships
@@ -87,7 +87,7 @@ Each phase leaves lint, build and tests green and ships as small conventional co
   - ⚠ `migrate reset` on Supabase drops data. Confirm with the user before running it.
 - **Phase 2 — tenant library + Vitest**
   - Add `tenant.ts`, `revalidate.ts`, `roles.ts`, and a slug validator with a reserved-word list.
-  - Set up Vitest with mocks for `next-auth`, `next/cache` and `next/navigation`, running against a disposable local Postgres in Docker.
+  - Set up Vitest with mocks for `next-auth`, `next/cache` and `next/navigation`, running against a disposable local Postgres started by the `embedded-postgres` dev dependency (no Docker).
 - **Phase 3 — client routes under `/b/[slug]`**
   - Move the home, service and employee pages.
   - Replace the `findFirst` calls in `app/page.tsx`, `app/employees/[id]/page.tsx` and `app/_data/get-barbershop.ts`.
