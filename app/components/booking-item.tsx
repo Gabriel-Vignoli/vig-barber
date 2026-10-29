@@ -15,6 +15,7 @@ import {
   SheetTrigger,
 } from "./ui/sheet"
 import Image from "next/image"
+import Link from "next/link"
 import PhoneItem from "./phone-item"
 import { Button } from "./ui/button"
 import {
@@ -38,43 +39,25 @@ import { showBookingCancelToast } from "./booking-cancel-toast"
 interface BookingItemsProps {
   booking: {
     id: string
-    userId: string
     bookingDate: Date
     paymentMethod: PaymentMethod | null
+    barbershop: {
+      name: string
+      slug: string
+      address: string
+      phones: string[]
+    }
     employee: {
-      id: string
-      userId: string
-      bio: string | null
       imageUrl: string | null
-      isActive: boolean
-      createdAt: Date
-      updatedAt: Date
       user: {
-        id: string
         name: string | null
         image: string | null
       }
     }
     barbershopService: {
-      id: string
       name: string
-      description: string
-      imageUrl: string
       durationInMinutes: number
-      barbershopId: string
-      createdAt: Date
-      updatedAt: Date
       price: number
-      barbershop: {
-        id: string
-        name: string
-        address: string
-        description: string
-        bannerUrl: string | null
-        phones: string[]
-        createdAt: Date
-        updatedAt: Date
-      }
     }
   }
 }
@@ -84,10 +67,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const {
-    employee,
-    barbershopService: { barbershop },
-  } = booking
+  const { employee, barbershop } = booking
   const isConfirmed = isFuture(booking.bookingDate)
   const employeeName = employee.user.name ?? "Funcionário"
   const employeeImage = employee.imageUrl ?? employee.user.image ?? undefined
@@ -129,9 +109,14 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
               >
                 {isConfirmed ? "Confirmado" : "Finalizado"}
               </Badge>
-              <h3 className="font-semibold md:text-xl">
-                {booking.barbershopService.name}
-              </h3>
+              <div className="text-left">
+                <h3 className="font-semibold md:text-xl">
+                  {booking.barbershopService.name}
+                </h3>
+                <p className="text-muted-foreground truncate text-xs md:text-sm">
+                  {barbershop.name}
+                </p>
+              </div>
 
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6 md:h-8 md:w-8">
@@ -176,9 +161,17 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
               <Avatar className="h-8 w-8 md:h-10 md:w-10">
                 <AvatarImage src={employeeImage}></AvatarImage>
               </Avatar>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-bold lg:text-base">{employeeName}</h3>
-                <p className="text-xs lg:text-sm">{barbershop.address}</p>
+                <Link
+                  href={`/b/${barbershop.slug}`}
+                  className="text-primary block truncate text-xs font-semibold hover:underline lg:text-sm"
+                >
+                  {barbershop.name}
+                </Link>
+                <p className="truncate text-xs lg:text-sm">
+                  {barbershop.address}
+                </p>
               </div>
             </CardContent>
           </Card>

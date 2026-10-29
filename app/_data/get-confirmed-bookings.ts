@@ -3,8 +3,11 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "../_lib/auth"
 import { prisma } from "../_lib/prisma"
+import { clientBookingSelect } from "./client-booking-select"
 
-export const getConfirmedBookings = async () => {
+// The signed-in user's upcoming bookings. Pass barbershopId to limit them to
+// one shop (shop home); omit it for the global /bookings page.
+export const getConfirmedBookings = async (barbershopId?: string) => {
   const session = await getServerSession(authOptions)
 
   if (!session?.user) {
@@ -15,23 +18,13 @@ export const getConfirmedBookings = async () => {
     where: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userId: (session.user as any).id,
+      ...(barbershopId ? { barbershopId } : {}),
       status: { not: "CANCELLED" },
       bookingDate: {
         gte: new Date(),
       },
     },
-    include: {
-      barbershopService: {
-        include: {
-          barbershop: true,
-        },
-      },
-      employee: {
-        include: {
-          user: true,
-        },
-      },
-    },
+    select: clientBookingSelect,
     orderBy: {
       bookingDate: "asc",
     },
@@ -39,13 +32,11 @@ export const getConfirmedBookings = async () => {
 
   // Prisma's Decimal fields can't be passed from Server to Client Components,
   // so we convert price to a plain number before rendering <BookingItem>.
-  const serializedBookings = bookings.map((booking) => ({
+  return bookings.map((booking) => ({
     ...booking,
     barbershopService: {
       ...booking.barbershopService,
       price: Number(booking.barbershopService.price),
     },
   }))
-
-  return serializedBookings
 }

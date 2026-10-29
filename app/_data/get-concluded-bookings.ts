@@ -3,6 +3,7 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "../_lib/auth"
 import { prisma } from "../_lib/prisma"
+import { clientBookingSelect } from "./client-booking-select"
 
 export const getConcludedBookings = async () => {
   const session = await getServerSession(authOptions)
@@ -19,18 +20,7 @@ export const getConcludedBookings = async () => {
         lt: new Date(),
       },
     },
-    include: {
-      barbershopService: {
-        include: {
-          barbershop: true,
-        },
-      },
-      employee: {
-        include: {
-          user: true,
-        },
-      },
-    },
+    select: clientBookingSelect,
     orderBy: {
       bookingDate: "desc",
     },
@@ -38,13 +28,11 @@ export const getConcludedBookings = async () => {
 
   // Prisma's Decimal fields can't be passed from Server to Client Components,
   // so we convert price to a plain number before rendering <BookingItem>.
-  const serializedBookings = bookings.map((booking) => ({
+  return bookings.map((booking) => ({
     ...booking,
     barbershopService: {
       ...booking.barbershopService,
       price: Number(booking.barbershopService.price),
     },
   }))
-
-  return serializedBookings
 }
