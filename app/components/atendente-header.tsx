@@ -10,19 +10,22 @@ import { Button } from "./ui/button"
 
 interface AtendenteHeaderProps {
   atendenteName: string
+  slug: string
 }
 
-const NAV_ITEMS = [
-  { href: "/admin/atendente", label: "Início", icon: HomeIcon },
+const getNavItems = (atendentePath: string) => [
+  { href: atendentePath, label: "Início", icon: HomeIcon },
   {
-    href: "/admin/atendente/bookings",
+    href: `${atendentePath}/bookings`,
     label: "Agendamentos",
     icon: CalendarIcon,
   },
 ]
 
-const AtendenteHeader = ({ atendenteName }: AtendenteHeaderProps) => {
+const AtendenteHeader = ({ atendenteName, slug }: AtendenteHeaderProps) => {
   const pathname = usePathname()
+  const atendentePath = `/b/${slug}/atendente`
+  const navItems = getNavItems(atendentePath)
 
   const handleLogoutClick = () => {
     sessionStorage.setItem("pending-auth-toast", "logout")
@@ -32,7 +35,7 @@ const AtendenteHeader = ({ atendenteName }: AtendenteHeaderProps) => {
   return (
     <Card className="bg-background rounded-none">
       <CardContent className="flex items-center justify-between gap-2 md:px-6 md:py-2 lg:px-10 xl:px-32">
-        <Link href="/admin/atendente" className="shrink-0">
+        <Link href={atendentePath} className="shrink-0">
           <Image
             src="/logo.png"
             alt="Vig Barber"
@@ -43,10 +46,10 @@ const AtendenteHeader = ({ atendenteName }: AtendenteHeaderProps) => {
         </Link>
 
         <nav className="flex min-w-0 items-center gap-1 xl:gap-2">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive =
-              item.href === "/admin/atendente"
-                ? pathname === "/admin/atendente"
+              item.href === atendentePath
+                ? pathname === atendentePath
                 : pathname.startsWith(item.href)
 
             return (

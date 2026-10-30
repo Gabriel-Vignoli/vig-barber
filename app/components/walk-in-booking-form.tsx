@@ -309,7 +309,7 @@ const WalkInBookingForm = ({ services, slug }: WalkInBookingFormProps) => {
         milliseconds: 0,
       })
 
-      await createWalkInBooking({
+      await createWalkInBooking(slug, {
         employeeId: selectedEmployeeId!,
         barbershopServiceId: selectedServiceId!,
         bookingDate,
