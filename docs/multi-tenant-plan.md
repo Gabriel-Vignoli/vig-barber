@@ -7,7 +7,7 @@
 - [x] Phase 2 — tenant library + Vitest
 - [x] Phase 3 — client routes under /b/[slug]
 - [x] Phase 4a — admin + ownership fixes
-- [ ] Phase 4b — staff/atendente/memberships
+- [x] Phase 4b — staff/atendente/memberships
 - [ ] Phase 4c — auth
 - [ ] Phase 5 — branding
 - [ ] Phase 6 — platform + invitations
@@ -108,14 +108,15 @@ Each phase leaves lint, build and tests green and ships as small conventional co
   - `create-walkin-booking` gets the shop from `slug`.
   - Carried over from the 4a review:
     - Remove the `findFirst` fallback in `getAtendenteShop` (`app/_lib/staff-shop.ts`). Today an atendente of a suspended shop sees the bookings of the oldest active shop.
-    - `update-employee` resets the global password. Drop it, or allow it only when the user's only membership is in this shop. Otherwise an admin of shop A can take over a user who is admin of shop B.
+    - `update-employee` resets the global password. Done: shop admins can no longer set any staff password (staff use the emailed reset code). A "single-shop users only" guard was tried and rejected, because attaching a user without consent makes any account single-shop.
     - `create-walkin-booking` still revalidates the removed `/admin/bookings` route.
     - Deleting a barber who has bookings is blocked. Deactivate the Employee and delete the membership instead. `delete-atendente` should also handle an Employee row in the same shop.
     - Validate the `update-employee-schedule` input with zod.
 - **Phase 4c — auth**
   - Add `/login` and `/painel`. Slim the JWT.
   - Rewrite `proxy.ts`. Remove `require-admin.ts` (`get-user-role.ts` was already deleted in 4a).
-  - Drop `User.role`, along with the demotion to CLIENT in `delete-employee` and `delete-atendente`. The temporary `/admin` and `/admin/[section]` redirects have existed since 4a.
+  - Drop `User.role`, along with `syncLegacyStaffRole` (`app/_lib/staff-removal.ts`) and the role writes in `create-employee`/`create-atendente`. The temporary `/admin`, `/admin/[section]` and `/admin/atendente/*` redirects have existed since 4a/4b.
+  - The rewritten proxy drops the EMPLOYEE allowlist (`app/_lib/staff-path.ts`). Today a user with global role EMPLOYEE who is ADMIN of a shop is bounced away from that shop's admin.
   - The login form honours a same-origin `/b/...` `callbackUrl`.
   - Update `sign-in-dialog`, `sidebar-sheet`, `header` and `admin-login-form`.
 - **Phase 5 — branding**
@@ -129,6 +130,7 @@ Each phase leaves lint, build and tests green and ships as small conventional co
   - `/platform` handles listing, creating, suspending and inviting.
   - Invitation tokens are 32 random bytes, stored as a sha256 hash, valid for 7 days, and emailed with Resend.
   - `/convite/[token]` checks that the signed-in email matches the invite, then creates the Membership in a transaction.
+  - Carried over from 4b: `create-employee` and `create-atendente` attach any existing account by email without consent. That account then shows as staff and can no longer book at that shop. Switch existing accounts to the invitation flow and only create memberships directly for brand-new users.
 - **Phase 7 — landing + finder**
   - Marketing hero with a contact CTA.
   - Client search over active shops by name or city.
