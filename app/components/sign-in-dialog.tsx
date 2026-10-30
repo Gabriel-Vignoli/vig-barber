@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -19,16 +18,6 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Checkbox } from "./ui/checkbox"
 import { DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog"
 import { signUp } from "../_actions/sign-up"
 import { checkLoginAttempt } from "../_actions/check-login-attempt"
 import {
@@ -50,14 +39,10 @@ interface SignInDialogProps {
 const AUTH_TOAST_KEY = "pending-auth-toast"
 
 const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
-  const router = useRouter()
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPolicyOpen, setIsPolicyOpen] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
-  const [isAdminPromptOpen, setIsAdminPromptOpen] = useState(false)
-  const [pendingAdminLogin, setPendingAdminLogin] =
-    useState<LoginFormValues | null>(null)
 
   const [visiblePasswords, setVisiblePasswords] = useState({
     loginPassword: false,
@@ -146,30 +131,12 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
         return
       }
 
-      if (attemptResult.role === "ADMIN") {
-        setPendingAdminLogin(values)
-        setIsAdminPromptOpen(true)
-        return
-      }
-
       await proceedWithCredentialsSignIn(values)
     } catch (error) {
       setLoginError("Erro ao fazer login. Tente novamente.")
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const handleGoToAdminLogin = () => {
-    setIsAdminPromptOpen(false)
-    setPendingAdminLogin(null)
-    router.push("/admin/login")
-  }
-
-  const handleTryAnotherEmail = () => {
-    setIsAdminPromptOpen(false)
-    setPendingAdminLogin(null)
-    loginForm.reset()
   }
 
   const handleSignUpSubmit = async (values: SignUpFormValues) => {
@@ -516,37 +483,6 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
       <div className="flex justify-end">
         <ForgotPasswordDialog />
       </div>
-
-      <AlertDialog open={isAdminPromptOpen} onOpenChange={setIsAdminPromptOpen}>
-        <AlertDialogContent
-          size="sm"
-          className="w-[90%] max-w-[90%] lg:w-auto lg:max-w-md"
-        >
-          <AlertDialogHeader>
-            <AlertDialogTitle className="lg:text-xl">
-              Conta de administrador
-            </AlertDialogTitle>
-            <AlertDialogDescription className="lg:text-base">
-              Essa conta pertence a um administrador. Deseja acessar o painel
-              administrativo ou tentar novamente com outro email?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter display="col" className="lg:p-6">
-            <AlertDialogCancel
-              className="cursor-pointer py-5 lg:py-6 lg:text-base"
-              onClick={handleTryAnotherEmail}
-            >
-              Tentar outro email
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="cursor-pointer py-5 lg:py-6 lg:text-base"
-              onClick={handleGoToAdminLogin}
-            >
-              Ir para o painel admin
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }

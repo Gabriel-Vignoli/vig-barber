@@ -49,25 +49,26 @@ export const authOptions: AuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
-          role: user.role,
         }
       },
     }),
   ],
+  // The token carries only the user id. Roles live in Membership and are read
+  // from the database on every request, so removing someone from a shop takes
+  // effect immediately (a role in the token would stay valid for 30 days).
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        token.role = (user as any).role
       }
+      // Tokens issued before the slim-down still carry the old global role
+      delete token.role
       return token
     },
     async session({ session, token }) {
       session.user = {
         ...session.user,
         id: token.id,
-        role: token.role,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
       return session

@@ -3,7 +3,7 @@
 import { registerLoginAttempt } from "../_lib/login-attempt"
 
 type CheckLoginAttemptResult =
-  | { status: "ok"; role: string }
+  | { status: "ok" }
   | { status: "invalid" }
   | { status: "locked"; lockedUntil: string }
 
@@ -21,5 +21,5 @@ export async function checkLoginAttempt(
     return { status: "invalid" }
   }
 
-  return { status: "ok", role: result.user.role }
+  return { status: "ok" }
 }
