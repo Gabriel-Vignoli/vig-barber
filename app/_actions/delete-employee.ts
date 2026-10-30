@@ -3,10 +3,7 @@
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
-import {
-  removeEmployeeFromShop,
-  syncLegacyStaffRole,
-} from "../_lib/staff-removal"
+import { removeEmployeeFromShop } from "../_lib/staff-removal"
 
 // Removes the barber from THIS shop only: a barber with bookings or reviews
 // is deactivated (history stays), otherwise the Employee row is deleted. The
@@ -38,8 +35,6 @@ export const deleteEmployee = async (slug: string, employeeId: string) => {
         role: "EMPLOYEE",
       },
     })
-
-    await syncLegacyStaffRole(tx, employee.userId)
   })
 
   revalidateShop(shop)

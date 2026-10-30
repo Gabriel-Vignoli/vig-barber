@@ -14,7 +14,6 @@ import { deleteAtendente } from "@/app/_actions/delete-atendente"
 import { updateEmployee } from "@/app/_actions/update-employee"
 import { updateEmployeeSchedule } from "@/app/_actions/update-employee-schedule"
 import { createWalkInBooking } from "@/app/_actions/create-walkin-booking"
-import { isStaffDashboardPath } from "@/app/_lib/staff-path"
 import {
   getEmployeeConcludedBookings,
   getEmployeeUpcomingBookings,
@@ -133,7 +132,6 @@ describe("createEmployee with an existing user", () => {
     })
     expect(user.name).toBe("Cliente Original")
     expect(user.password).toBe(ORIGINAL_HASH)
-    expect(user.role).toBe("CLIENT")
     expect(user.employees).toMatchObject([
       { barbershopId: f.shopA.id, bio: "Especialista em degradê" },
     ])
@@ -294,10 +292,6 @@ describe("updateEmployee and the global account", () => {
 
 describe("deleteEmployee", () => {
   it("deactivates a barber with bookings and removes the membership", async () => {
-    await prisma.user.update({
-      where: { id: f.barberA.id },
-      data: { role: "EMPLOYEE" },
-    })
     const booking = await prisma.booking.create({
       data: {
         barbershopId: f.shopA.id,
@@ -310,15 +304,16 @@ describe("deleteEmployee", () => {
 
     await deleteEmployee("barbearia-a", f.employeeA.id)
 
-    const [employee, membershipCount, user, bookingAfter] = await Promise.all([
-      prisma.employee.findUniqueOrThrow({ where: { id: f.employeeA.id } }),
-      prisma.membership.count({ where: { userId: f.barberA.id } }),
-      prisma.user.findUniqueOrThrow({ where: { id: f.barberA.id } }),
-      prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }),
-    ])
+    const [employee, membershipCount, userCount, bookingAfter] =
+      await Promise.all([
+        prisma.employee.findUniqueOrThrow({ where: { id: f.employeeA.id } }),
+        prisma.membership.count({ where: { userId: f.barberA.id } }),
+        prisma.user.count({ where: { id: f.barberA.id } }),
+        prisma.booking.findUniqueOrThrow({ where: { id: booking.id } }),
+      ])
     expect(employee.isActive).toBe(false)
     expect(membershipCount).toBe(0)
-    expect(user.role).toBe("CLIENT")
+    expect(userCount).toBe(1)
     expect(bookingAfter.employeeId).toBe(f.employeeA.id)
   })
 
@@ -633,17 +628,4 @@ describe("staff dashboard fetchers", () => {
     })
     expect(await getShopEmployeeForUser(f.shopA.id, f.barberA.id)).toBeNull()
   })
-})
-
-describe("isStaffDashboardPath (proxy allowlist)", () => {
-  it.each(["/b/x/staff", "/b/x/staff/"])("allows %s", (path) => {
-    expect(isStaffDashboardPath(path)).toBe(true)
-  })
-
-  it.each(["/b/x/staff/foo", "/b/x/admin", "/b/x/y/staff", "/b//staff"])(
-    "does not allow %s",
-    (path) => {
-      expect(isStaffDashboardPath(path)).toBe(false)
-    },
-  )
 })

@@ -6,8 +6,9 @@ import { getFirstShopWithRole } from "./_lib/staff-shop"
 export default async function Home() {
   const userId = await getSessionUserId()
 
-  // Barbers land on their shop's staff dashboard (307, depends on the user)
-  // TODO(Phase 4c): replaced by /painel
+  // Barbers used to have / as their home: keep sending them to their shop's
+  // staff dashboard (307, depends on the user). Admins and atendentes use
+  // /painel or their area links. TODO(Phase 7): revisit with the landing page
   if (userId) {
     const staffShop = await getFirstShopWithRole(userId, ["EMPLOYEE"])
 

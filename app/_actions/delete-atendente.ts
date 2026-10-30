@@ -3,10 +3,7 @@
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
-import {
-  removeEmployeeFromShop,
-  syncLegacyStaffRole,
-} from "../_lib/staff-removal"
+import { removeEmployeeFromShop } from "../_lib/staff-removal"
 
 // Removes the ATENDENTE membership in THIS shop. An Employee row the user
 // still has here (legacy data) is removed the same way as a barber, since
@@ -33,8 +30,6 @@ export const deleteAtendente = async (slug: string, userId: string) => {
     if (employee) {
       await removeEmployeeFromShop(tx, employee, shop.id)
     }
-
-    await syncLegacyStaffRole(tx, userId)
   })
 
   revalidateShop(shop)

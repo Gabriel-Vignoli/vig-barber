@@ -73,8 +73,6 @@ export const createAtendente = async (
       name,
       email,
       password: hashedPassword,
-      // TODO(Phase 4c): drop with User.role
-      role: "ATENDENTE",
       memberships: {
         create: { barbershopId: shop.id, role: "ATENDENTE" },
       },

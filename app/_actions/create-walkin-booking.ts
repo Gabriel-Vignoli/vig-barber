@@ -55,7 +55,6 @@ export const createWalkInBooking = async (
       data: {
         name: clientName.trim(),
         phone: clientPhone?.trim() || null,
-        role: "CLIENT",
       },
       select: { id: true },
     })

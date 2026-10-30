@@ -1,33 +1,32 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
-import { isStaffDashboardPath } from "./app/_lib/staff-path"
+import { isProtectedPath } from "./app/_lib/protected-paths"
 
-const ALLOWED_EMPLOYEE_PATHS = ["/", "/profile"]
-
+// Optimistic check only: protected paths need a session, otherwise the user
+// goes to /login and comes back afterwards. Roles are never read here; the
+// pages check the membership in the shop with requireShopRole.
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, search } = request.nextUrl
+
+  if (!isProtectedPath(pathname)) {
+    return NextResponse.next()
+  }
 
   const token = await getToken({
     req: request,
     secret: process.env.NEXT_AUTH_SECRET,
   })
 
-  if (token?.role === "EMPLOYEE") {
-    const isAllowed =
-      isStaffDashboardPath(pathname) ||
-      ALLOWED_EMPLOYEE_PATHS.some(
-        (path) => pathname === path || pathname.startsWith(`${path}/`),
-      )
-
-    if (!isAllowed) {
-      const url = request.nextUrl.clone()
-      url.pathname = "/"
-      return NextResponse.redirect(url)
-    }
+  if (token) {
+    return NextResponse.next()
   }
 
-  return NextResponse.next()
+  const url = request.nextUrl.clone()
+  url.pathname = "/login"
+  url.search = `?callbackUrl=${encodeURIComponent(`${pathname}${search}`)}`
+
+  return NextResponse.redirect(url)
 }
 
 export const config = {

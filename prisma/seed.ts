@@ -8,7 +8,6 @@ import {
   PaymentMethod,
   Plan,
   PrismaClient,
-  Role,
   SubscriptionStatus,
   Weekday,
 } from "../app/generated/prisma/client"
@@ -116,7 +115,6 @@ const createServices = async (barbershopId: string, data: ServiceSeed[]) => {
 interface UserSeed {
   name: string
   email: string
-  role: Role
   image?: string
   phone?: string
   isPlatformAdmin?: boolean
@@ -389,11 +387,9 @@ async function main() {
     ])
 
   console.log("Criando admin da plataforma...")
-  // Global role ADMIN kept until Phase 4c so the current admin panel still works
   await createUser({
     name: "Gabriel Vignoli",
     email: "admin@vigbarber.com",
-    role: Role.ADMIN,
     isPlatformAdmin: true,
   })
 
@@ -401,20 +397,17 @@ async function main() {
   const ricardo = await createUser({
     name: "Ricardo Mendes",
     email: "ricardo@vigbarber.com",
-    role: Role.ADMIN,
     image: AVATARS.ricardo,
     phone: "(11) 98877-1020",
   })
   const fernando = await createUser({
     name: "Fernando Rocha",
     email: "fernando@navalhadeouro.com",
-    role: Role.ADMIN,
     phone: "(11) 97412-3380",
   })
   const andre = await createUser({
     name: "André Barbosa",
     email: "andre@barbanegra.com",
-    role: Role.ADMIN,
     phone: "(11) 96655-2041",
   })
 
@@ -435,7 +428,6 @@ async function main() {
   const rafael = await createUser({
     name: "Rafael Costa",
     email: "rafael@vigbarber.com",
-    role: Role.EMPLOYEE,
     image: AVATARS.rafael,
   })
   await addMember(rafael.id, centro.id, MemberRole.EMPLOYEE)
@@ -450,7 +442,6 @@ async function main() {
   const lucas = await createUser({
     name: "Lucas Almeida",
     email: "lucas@vigbarber.com",
-    role: Role.EMPLOYEE,
     image: AVATARS.lucas,
   })
   await addMember(lucas.id, centro.id, MemberRole.EMPLOYEE)
@@ -466,7 +457,6 @@ async function main() {
   const miguel = await createUser({
     name: "Miguel Silva Menezes",
     email: "miguel@vigbarber.com",
-    role: Role.EMPLOYEE,
     image: AVATARS.miguel,
   })
   await addMember(miguel.id, centro.id, MemberRole.EMPLOYEE)
@@ -489,7 +479,6 @@ async function main() {
   const thiago = await createUser({
     name: "Thiago Oliveira",
     email: "thiago@navalhadeouro.com",
-    role: Role.EMPLOYEE,
     image: AVATARS.thiago,
   })
   await addMember(thiago.id, navalha.id, MemberRole.EMPLOYEE)
@@ -509,7 +498,6 @@ async function main() {
   const bruno = await createUser({
     name: "Bruno Ferreira",
     email: "bruno@barbanegra.com",
-    role: Role.EMPLOYEE,
     image: AVATARS.bruno,
   })
   await addMember(bruno.id, barbaNegra.id, MemberRole.EMPLOYEE)
@@ -524,7 +512,6 @@ async function main() {
   const diego = await createUser({
     name: "Diego Martins",
     email: "diego@barbanegra.com",
-    role: Role.EMPLOYEE,
     image: AVATARS.diego,
   })
   await addMember(diego.id, barbaNegra.id, MemberRole.EMPLOYEE)
@@ -542,7 +529,6 @@ async function main() {
   const juliana = await createUser({
     name: "Juliana Santos",
     email: "juliana@vigbarber.com",
-    role: Role.ATENDENTE,
     phone: "(11) 99120-4433",
   })
   await addMember(juliana.id, centro.id, MemberRole.ATENDENTE)
@@ -550,13 +536,11 @@ async function main() {
   const joao = await createUser({
     name: "João Cliente",
     email: "cliente@example.com",
-    role: Role.CLIENT,
     phone: "(11) 98111-2233",
   })
   const pedro = await createUser({
     name: "Pedro Henrique Lima",
     email: "pedro@example.com",
-    role: Role.CLIENT,
     phone: "(11) 97333-4455",
   })
 

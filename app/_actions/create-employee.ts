@@ -112,8 +112,6 @@ export const createEmployee = async (
       name,
       email,
       password: hashedPassword,
-      // TODO(Phase 4c): drop with User.role
-      role: "EMPLOYEE",
       employees: {
         create: { barbershopId: shop.id, ...profile },
       },

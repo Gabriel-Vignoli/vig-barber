@@ -29,31 +29,3 @@ export const removeEmployeeFromShop = async (
 
   return { count, deactivated: false }
 }
-
-// TODO(Phase 4c): drop once User.role is gone. Staff removed from their last
-// shop go back to CLIENT, so the global role no longer opens staff screens
-// (proxy.ts still reads it).
-export const syncLegacyStaffRole = async (
-  tx: Prisma.TransactionClient,
-  userId: string,
-) => {
-  const memberships = await tx.membership.findMany({
-    where: { userId },
-    select: { role: true },
-  })
-  const roles = new Set(memberships.map((membership) => membership.role))
-
-  if (!roles.has("EMPLOYEE")) {
-    await tx.user.updateMany({
-      where: { id: userId, role: "EMPLOYEE" },
-      data: { role: "CLIENT" },
-    })
-  }
-
-  if (!roles.has("ATENDENTE") && !roles.has("ADMIN")) {
-    await tx.user.updateMany({
-      where: { id: userId, role: "ATENDENTE" },
-      data: { role: "CLIENT" },
-    })
-  }
-}

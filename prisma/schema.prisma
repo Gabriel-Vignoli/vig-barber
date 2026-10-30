@@ -10,14 +10,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// Global role, kept only until Phase 4c (staff roles move to Membership)
-enum Role {
-  CLIENT
-  EMPLOYEE
-  ATENDENTE
-  ADMIN
-}
-
 enum MemberRole {
   ADMIN
   ATENDENTE
@@ -111,7 +103,6 @@ model User {
   image               String?
   phone               String?
   password            String?
-  role                Role      @default(CLIENT)
   isPlatformAdmin     Boolean   @default(false) @map("is_platform_admin")
   acceptedTermsAt     DateTime? @map("accepted_terms_at")
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
