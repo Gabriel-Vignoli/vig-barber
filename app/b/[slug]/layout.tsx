@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { getTenant } from "@/app/_lib/tenant"
-import ShopFooter from "@/app/components/shop-footer"
 
 export const generateMetadata = async ({
   params,
@@ -18,17 +17,12 @@ export const generateMetadata = async ({
 }
 
 // Every page under /b/[slug] belongs to one shop: 404 when it is missing or
-// suspended, then show the shop's contact block above the platform footer.
+// suspended. The client pages add the shop footer in (client)/layout.tsx.
 const ShopLayout = async ({ children, params }: LayoutProps<"/b/[slug]">) => {
   const { slug } = await params
-  const shop = await getTenant(slug)
+  await getTenant(slug)
 
-  return (
-    <>
-      {children}
-      <ShopFooter shop={shop} />
-    </>
-  )
+  return children
 }
 
 export default ShopLayout
