@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import type { MemberRole } from "@/app/generated/prisma/enums"
 import { getSessionUserId } from "./tenant"
 import { getFirstShopWithRole } from "./staff-shop"
+import { getLoginPath } from "./protected-paths"
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -17,7 +18,7 @@ interface RedirectToShopAreaOptions {
 // Legacy URLs from the single-shop era (/admin/*, /admin/atendente/*): send
 // the user to the same section of their shop. Temporary (307) because the
 // target depends on who is signed in.
-// TODO(Phase 4c): replaced by next.config redirects to /painel
+// TODO(Phase 8): remove with the legacy redirects
 export const redirectToShopArea = async ({
   area,
   roles,
@@ -27,7 +28,7 @@ export const redirectToShopArea = async ({
   const userId = await getSessionUserId()
 
   if (!userId) {
-    redirect("/admin/login")
+    redirect(getLoginPath())
   }
 
   const shop = await getFirstShopWithRole(userId, roles)

@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation"
 import type { MemberRole } from "@/app/generated/prisma/enums"
 import { authOptions } from "./auth"
 import { prisma } from "./prisma"
+import { getLoginPath } from "./protected-paths"
 
 // Cache tag for everything that belongs to one shop (services, employees, stats...)
 export const shopTag = (barbershopId: string) => `shop:${barbershopId}`
@@ -113,8 +114,9 @@ export const requireShopRole = async (
   const userId = await getSessionUserId()
 
   if (!userId) {
-    // TODO(Phase 4c): switch to the global /login page
-    redirect(`/admin/login?callbackUrl=${encodeURIComponent(`/b/${slug}`)}`)
+    // proxy.ts already sends signed-out users to /login with the exact URL;
+    // this is the fallback (e.g. the session expired mid-request)
+    redirect(getLoginPath(`/b/${slug}`))
   }
 
   const membership = await getMembership(shop.id, userId)

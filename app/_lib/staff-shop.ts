@@ -1,12 +1,10 @@
 import type { MemberRole } from "@/app/generated/prisma/enums"
+import { getShopAreaPath } from "../_constants/roles"
 import { prisma } from "./prisma"
+import { getSafeCallbackUrl } from "./safe-callback-url"
 
-// Transitional helpers for URLs that do not carry a shop slug (legacy
-// /admin/*, /admin/atendente/*, the EMPLOYEE branch of /, and the redirect
-// after /admin/login).
-// TODO(Phase 4c): replaced by the /painel membership chooser
-
-// The oldest active shop where the user holds one of these roles
+// The oldest active shop where the user holds one of these roles. Used by the
+// legacy URLs that carry no slug (/admin/*, /admin/atendente/*) and by /.
 export const getFirstShopWithRole = async (
   userId: string,
   roles: MemberRole[],
@@ -24,20 +22,27 @@ export const getFirstShopWithRole = async (
   return membership?.barbershop ?? null
 }
 
-// Where a staff member lands after logging in on /admin/login, or null when
-// the user has no staff role in any active shop
+// Where a staff member lands after logging in: the area of their only active
+// shop, /painel when they belong to several, or null without memberships
 export const getStaffLandingPath = async (userId: string) => {
-  const adminShop = await getFirstShopWithRole(userId, ["ADMIN"])
+  const memberships = await prisma.membership.findMany({
+    where: { userId, barbershop: { status: "ACTIVE" } },
+    orderBy: { createdAt: "asc" },
+    take: 2,
+    select: { role: true, barbershop: { select: { slug: true } } },
+  })
 
-  if (adminShop) return `/b/${adminShop.slug}/admin`
+  if (memberships.length === 0) return null
+  if (memberships.length > 1) return "/painel"
 
-  const atendenteShop = await getFirstShopWithRole(userId, ["ATENDENTE"])
+  const [membership] = memberships
 
-  if (atendenteShop) return `/b/${atendenteShop.slug}/atendente`
-
-  const employeeShop = await getFirstShopWithRole(userId, ["EMPLOYEE"])
-
-  if (employeeShop) return `/b/${employeeShop.slug}/staff`
-
-  return null
+  return getShopAreaPath(membership.barbershop.slug, membership.role)
 }
+
+// After login: a safe same-origin callbackUrl wins, then the staff area, then /
+export const resolvePostLoginPath = async (
+  userId: string,
+  callbackUrl?: unknown,
+) =>
+  getSafeCallbackUrl(callbackUrl) ?? (await getStaffLandingPath(userId)) ?? "/"

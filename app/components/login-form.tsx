@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
@@ -9,29 +10,32 @@ import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
-import { getStaffLandingPath } from "../_actions/get-staff-landing-path"
+import { getPostLoginPath } from "../_actions/get-post-login-path"
 import { checkLoginAttempt } from "../_actions/check-login-attempt"
 import ForgotPasswordDialog from "./forgot-password-dialog"
 import { formatCountdown, useLoginLockout } from "../_hooks/use-login-lockout"
-import {
-  adminLoginSchema,
-  AdminLoginFormValues,
-} from "../_lib/validations/admin-login"
+import { loginSchema, LoginFormValues } from "../_lib/validations/auth"
 
-const AdminLoginForm = () => {
+interface LoginFormProps {
+  // Already sanitised by the page (same-origin relative path or null)
+  callbackUrl: string | null
+}
+
+const LoginForm = ({ callbackUrl }: LoginFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [visiblePassword, setVisiblePassword] = useState(false)
 
-  const { register, handleSubmit, formState, watch } =
-    useForm<AdminLoginFormValues>({
-      resolver: zodResolver(adminLoginSchema),
+  const { register, handleSubmit, formState, watch } = useForm<LoginFormValues>(
+    {
+      resolver: zodResolver(loginSchema),
       defaultValues: { email: "", password: "" },
-    })
+    },
+  )
 
   const { isLocked, remainingSeconds, startLockout, clearLockout } =
     useLoginLockout(watch("email"))
 
-  const onSubmit = async (values: AdminLoginFormValues) => {
+  const onSubmit = async (values: LoginFormValues) => {
     setIsSubmitting(true)
 
     try {
@@ -66,8 +70,9 @@ const AdminLoginForm = () => {
         return
       }
 
-      // The admin lands in their shop's admin, the atendente on the front desk
-      const target = (await getStaffLandingPath()) ?? "/"
+      // The callbackUrl when it is safe, otherwise the staff area (or /painel
+      // for several shops), otherwise the home page
+      const target = await getPostLoginPath(callbackUrl)
 
       // Full page navigation, the same thing a manual reload does. It skips the
       // client router cache (which can hold a stale "redirect to login" for
@@ -80,21 +85,48 @@ const AdminLoginForm = () => {
     }
   }
 
+  const handleGoogleClick = () => {
+    sessionStorage.setItem("pending-auth-toast", "google")
+    // Back to /login, which redirects a signed-in user to the same target
+    signIn("google", {
+      callbackUrl: callbackUrl
+        ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`
+        : "/login",
+    })
+  }
+
   return (
     // ForgotPasswordDialog stays outside the <form>: React bubbles its inner
     // form submits through the portal, which would also submit the login.
     <div className="w-full max-w-sm space-y-4 xl:max-w-md xl:space-y-6">
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full cursor-pointer gap-2 py-5 xl:p-6 xl:text-base"
+        onClick={handleGoogleClick}
+        disabled={isSubmitting}
+      >
+        <Image src="/google.svg" alt="" width={18} height={18} />
+        Entrar com Google
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <div className="bg-border h-px flex-1" />
+        <span className="text-muted-foreground text-xs xl:text-base">ou</span>
+        <div className="bg-border h-px flex-1" />
+      </div>
+
       <form
         className="space-y-4 xl:space-y-6"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
         <div className="space-y-1">
-          <Label htmlFor="admin-login-email" className="xl:text-base">
+          <Label htmlFor="login-email" className="xl:text-base">
             Email
           </Label>
           <Input
-            id="admin-login-email"
+            id="login-email"
             type="email"
             className="xl:p-5 xl:text-base"
             {...register("email")}
@@ -107,12 +139,12 @@ const AdminLoginForm = () => {
         </div>
 
         <div className="space-y-1">
-          <Label htmlFor="admin-login-password" className="xl:text-base">
+          <Label htmlFor="login-password" className="xl:text-base">
             Senha
           </Label>
           <div className="relative">
             <Input
-              id="admin-login-password"
+              id="login-password"
               type={visiblePassword ? "text" : "password"}
               className="pr-10 xl:p-5 xl:text-base"
               {...register("password")}
@@ -163,4 +195,4 @@ const AdminLoginForm = () => {
   )
 }
 
-export default AdminLoginForm
+export default LoginForm

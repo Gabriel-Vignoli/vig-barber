@@ -45,7 +45,7 @@ describe("requireShopRole", () => {
     await createShop({ slug: "barbearia-a" })
 
     await expect(requireShopRole("barbearia-a", ["ADMIN"])).rejects.toEqual(
-      redirectTo("/admin/login?callbackUrl=%2Fb%2Fbarbearia-a"),
+      redirectTo("/login?callbackUrl=%2Fb%2Fbarbearia-a"),
     )
   })
 

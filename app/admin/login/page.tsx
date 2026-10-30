@@ -1,37 +1,15 @@
 import { redirect } from "next/navigation"
-import { getSessionUserId } from "../../_lib/tenant"
-import { getStaffLandingPath } from "../../_lib/staff-shop"
-import AdminLoginForm from "../../components/admin-login-form"
-import { ShieldIcon } from "lucide-react"
+import { getSafeCallbackUrl } from "@/app/_lib/safe-callback-url"
+import { getLoginPath } from "@/app/_lib/protected-paths"
 
-const AdminLoginPage = async () => {
-  const userId = await getSessionUserId()
+// Legacy /admin/login: the global /login replaces it (keeps a safe callbackUrl)
+// TODO(Phase 8): remove the legacy redirects
+const LegacyAdminLoginPage = async ({
+  searchParams,
+}: PageProps<"/admin/login">) => {
+  const { callbackUrl } = await searchParams
 
-  if (userId) {
-    // Staff already signed in go straight to their shop's area
-    const landingPath = await getStaffLandingPath(userId)
-
-    if (landingPath) {
-      redirect(landingPath)
-    }
-  }
-
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4 xl:gap-8">
-      <div className="bg-primary/10 flex size-14 items-center justify-center rounded-full xl:size-18">
-        <ShieldIcon size={26} className="text-primary xl:size-8" />
-      </div>
-
-      <div className="space-y-1 text-center xl:space-y-2">
-        <h1 className="text-xl font-bold xl:text-2xl">Painel Admin</h1>
-        <p className="text-muted-foreground text-sm xl:text-base">
-          Acesso restrito a administradores.
-        </p>
-      </div>
-
-      <AdminLoginForm />
-    </div>
-  )
+  redirect(getLoginPath(getSafeCallbackUrl(callbackUrl)))
 }
 
-export default AdminLoginPage
+export default LegacyAdminLoginPage
