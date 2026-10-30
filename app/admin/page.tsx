@@ -1,9 +1,13 @@
-import { redirectToShopAdmin } from "@/app/_lib/redirect-to-shop-admin"
+import { redirectToShopArea } from "@/app/_lib/redirect-to-shop-area"
 
 // Legacy /admin: redirects to the admin's shop dashboard
 // TODO(Phase 8): remove the legacy redirects
 const LegacyAdminPage = async ({ searchParams }: PageProps<"/admin">) => {
-  return redirectToShopAdmin(null, await searchParams)
+  return redirectToShopArea({
+    area: "admin",
+    roles: ["ADMIN"],
+    searchParams: await searchParams,
+  })
 }
 
 export default LegacyAdminPage

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { redirectToShopAdmin } from "@/app/_lib/redirect-to-shop-admin"
+import { redirectToShopArea } from "@/app/_lib/redirect-to-shop-area"
 
 // The static /admin/login and /admin/atendente routes win over this segment
 const LEGACY_SECTIONS = [
@@ -22,7 +22,12 @@ const LegacyAdminSectionPage = async ({
     notFound()
   }
 
-  return redirectToShopAdmin(section, await searchParams)
+  return redirectToShopArea({
+    area: "admin",
+    roles: ["ADMIN"],
+    section,
+    searchParams: await searchParams,
+  })
 }
 
 export default LegacyAdminSectionPage
