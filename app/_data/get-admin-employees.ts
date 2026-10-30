@@ -2,10 +2,12 @@ import { prisma } from "../_lib/prisma"
 
 const PAGE_SIZE = 10
 
-// Barbeiros only: the shop's Employee rows whose user is not an atendente of
-// this shop (an ADMIN who also cuts hair still shows up here)
+// Barbeiros only: the shop's active Employee rows whose user is not an
+// atendente of this shop (an ADMIN who also cuts hair still shows up here).
+// Removed barbers with history stay in the database as inactive rows.
 const employeesWhere = (shopId: string) => ({
   barbershopId: shopId,
+  isActive: true,
   user: {
     memberships: {
       none: { barbershopId: shopId, role: "ATENDENTE" as const },

@@ -3,21 +3,23 @@
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
-import { Weekday } from "@/app/generated/prisma/enums"
-
-interface ScheduleInput {
-  weekday: Weekday
-  startTime: string
-  endTime: string
-  isDayOff: boolean
-}
+import {
+  employeeScheduleSchema,
+  EmployeeScheduleEntry,
+} from "../_lib/validations/schedule"
 
 export const updateEmployeeSchedule = async (
   slug: string,
   employeeId: string,
-  schedules: ScheduleInput[],
+  schedules: EmployeeScheduleEntry[],
 ) => {
   const { shop } = await assertShopRole(slug, ["ADMIN"])
+
+  const parsed = employeeScheduleSchema.safeParse(schedules)
+
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0].message)
+  }
 
   const employee = await prisma.employee.findFirst({
     where: { id: employeeId, barbershopId: shop.id },
@@ -29,7 +31,7 @@ export const updateEmployeeSchedule = async (
   }
 
   await prisma.$transaction(
-    schedules.map((schedule) =>
+    parsed.data.map((schedule) =>
       prisma.employeeSchedule.upsert({
         where: {
           employeeId_weekday: {

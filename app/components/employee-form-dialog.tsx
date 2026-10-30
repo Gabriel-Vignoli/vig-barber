@@ -59,8 +59,12 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      await createEmployee(slug, values)
-      toast.success("Funcionário criado com sucesso!")
+      const { attached } = await createEmployee(slug, values)
+      toast.success(
+        attached
+          ? "Usuário existente adicionado como funcionário!"
+          : "Funcionário criado com sucesso!",
+      )
       setOpen(false)
       router.refresh()
     } catch (error) {
@@ -89,7 +93,8 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
         <DialogHeader>
           <DialogTitle>Novo funcionário</DialogTitle>
           <DialogDescription>
-            Cria um usuário com papel de funcionário.
+            Cria um usuário com papel de funcionário. Se o email já tiver conta,
+            ela é adicionada à barbearia e mantém o próprio nome e senha.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,7 +104,9 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
           noValidate
         >
           <div className="space-y-1">
-            <Label htmlFor="employee-name">Nome</Label>
+            <Label htmlFor="employee-name">
+              Nome (apenas para novo usuário)
+            </Label>
             <Input id="employee-name" type="text" {...register("name")} />
             {formState.errors.name && (
               <p className="text-destructive text-xs">
@@ -119,7 +126,9 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="employee-password">Senha</Label>
+            <Label htmlFor="employee-password">
+              Senha (apenas para novo usuário)
+            </Label>
             <div className="relative">
               <Input
                 id="employee-password"

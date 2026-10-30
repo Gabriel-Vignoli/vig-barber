@@ -51,8 +51,12 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      await createAtendente(slug, values)
-      toast.success("Atendente criado com sucesso!")
+      const { attached } = await createAtendente(slug, values)
+      toast.success(
+        attached
+          ? "Usuário existente adicionado como atendente!"
+          : "Atendente criado com sucesso!",
+      )
       setOpen(false)
       router.refresh()
     } catch (error) {
@@ -81,7 +85,9 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
         <DialogHeader>
           <DialogTitle>Novo atendente</DialogTitle>
           <DialogDescription>
-            Cria um usuário com acesso apenas ao agendamento para clientes.
+            Cria um usuário com acesso apenas ao agendamento para clientes. Se o
+            email já tiver conta, ela é adicionada à barbearia e mantém o
+            próprio nome e senha.
           </DialogDescription>
         </DialogHeader>
 
@@ -91,7 +97,9 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
           noValidate
         >
           <div className="space-y-1">
-            <Label htmlFor="atendente-name">Nome</Label>
+            <Label htmlFor="atendente-name">
+              Nome (apenas para novo usuário)
+            </Label>
             <Input id="atendente-name" type="text" {...register("name")} />
             {formState.errors.name && (
               <p className="text-destructive text-xs">
@@ -111,7 +119,9 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="atendente-password">Senha</Label>
+            <Label htmlFor="atendente-password">
+              Senha (apenas para novo usuário)
+            </Label>
             <div className="relative">
               <Input
                 id="atendente-password"

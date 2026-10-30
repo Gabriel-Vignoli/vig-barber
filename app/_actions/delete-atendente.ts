@@ -3,9 +3,15 @@
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
+import {
+  removeEmployeeFromShop,
+  syncLegacyStaffRole,
+} from "../_lib/staff-removal"
 
-// Removes the ATENDENTE membership in THIS shop. The global User is kept,
-// since they may be staff elsewhere or book as a client.
+// Removes the ATENDENTE membership in THIS shop. An Employee row the user
+// still has here (legacy data) is removed the same way as a barber, since
+// without a membership they are no longer staff of this shop. The global
+// User is kept.
 export const deleteAtendente = async (slug: string, userId: string) => {
   const { shop } = await assertShopRole(slug, ["ADMIN"])
 
@@ -19,18 +25,16 @@ export const deleteAtendente = async (slug: string, userId: string) => {
       throw new Error("Atendente não encontrado.")
     }
 
-    // TODO(Phase 4c): drop once User.role is gone. Without a staff role
-    // anywhere, the global ATENDENTE role would still open /admin/atendente.
-    const remainingStaff = await tx.membership.count({
-      where: { userId, role: { in: ["ADMIN", "ATENDENTE"] } },
+    const employee = await tx.employee.findFirst({
+      where: { userId, barbershopId: shop.id, isActive: true },
+      select: { id: true },
     })
 
-    if (remainingStaff === 0) {
-      await tx.user.updateMany({
-        where: { id: userId, role: "ATENDENTE" },
-        data: { role: "CLIENT" },
-      })
+    if (employee) {
+      await removeEmployeeFromShop(tx, employee, shop.id)
     }
+
+    await syncLegacyStaffRole(tx, userId)
   })
 
   revalidateShop(shop)

@@ -6,14 +6,17 @@ import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
 import { createAtendenteSchema } from "../_lib/validations/atendente"
 
+// Adds an atendente to the shop. An email that already has an account is
+// attached through a Membership and keeps its own name, password and every
+// other global field. Only a brand-new user gets name and password.
 export const createAtendente = async (
   slug: string,
   input: {
-    name: string
+    name?: string
     email: string
-    password: string
+    password?: string
   },
-) => {
+): Promise<{ attached: boolean }> => {
   const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = createAtendenteSchema.safeParse(input)
@@ -22,23 +25,55 @@ export const createAtendente = async (
     throw new Error(parsed.error.issues[0].message)
   }
 
-  // TODO(Phase 4b): attach an existing user through a Membership instead
+  const { name, email, password } = parsed.data
+
   const existingUser = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
+    where: { email },
     select: { id: true },
   })
 
   if (existingUser) {
-    throw new Error("Já existe um usuário com esse email.")
+    const membership = await prisma.membership.findUnique({
+      where: {
+        userId_barbershopId: { userId: existingUser.id, barbershopId: shop.id },
+      },
+      select: { role: true },
+    })
+
+    if (membership?.role === "ATENDENTE") {
+      throw new Error("Este usuário já é atendente desta barbearia.")
+    }
+
+    // One role per shop: remove the current role first to change it
+    if (membership) {
+      throw new Error("Este usuário já faz parte da equipe desta barbearia.")
+    }
+
+    await prisma.membership.create({
+      data: {
+        userId: existingUser.id,
+        barbershopId: shop.id,
+        role: "ATENDENTE",
+      },
+    })
+
+    revalidateShop(shop)
+
+    return { attached: true }
   }
 
-  const hashedPassword = await bcrypt.hash(parsed.data.password, 10)
+  if (!name || !password) {
+    throw new Error("Informe nome e senha para criar um novo usuário.")
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10)
 
   await prisma.user.create({
     data: {
-      name: parsed.data.name,
-      email: parsed.data.email,
+      name,
+      email,
       password: hashedPassword,
+      // TODO(Phase 4c): drop with User.role
       role: "ATENDENTE",
       memberships: {
         create: { barbershopId: shop.id, role: "ATENDENTE" },
@@ -47,4 +82,6 @@ export const createAtendente = async (
   })
 
   revalidateShop(shop)
+
+  return { attached: false }
 }
