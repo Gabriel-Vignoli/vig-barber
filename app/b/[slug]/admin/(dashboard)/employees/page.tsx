@@ -1,3 +1,4 @@
+import { requireShopRole } from "@/app/_lib/tenant"
 import { getAdminEmployees } from "@/app/_data/get-admin-employees"
 import { getAdminAtendentes } from "@/app/_data/get-admin-atendentes"
 import { getAllServices } from "@/app/_data/get-all-services"
@@ -6,12 +7,16 @@ import AdminAtendentesTable from "@/app/components/admin-atendentes-table"
 import AdminPagination from "@/app/components/admin-pagination"
 
 interface AdminEmployeesPageProps {
+  params: Promise<{ slug: string }>
   searchParams: Promise<{ page?: string }>
 }
 
 const AdminEmployeesPage = async ({
+  params,
   searchParams,
 }: AdminEmployeesPageProps) => {
+  const { slug } = await params
+  const { shop } = await requireShopRole(slug, ["ADMIN"])
   const { page } = await searchParams
   const pageNumber = Number(page) > 0 ? Number(page) : 1
 
@@ -20,9 +25,9 @@ const AdminEmployeesPage = async ({
     { atendentes, totalCount: atendentesCount },
     allServices,
   ] = await Promise.all([
-    getAdminEmployees(pageNumber),
-    getAdminAtendentes(),
-    getAllServices(),
+    getAdminEmployees(shop.id, pageNumber),
+    getAdminAtendentes(shop.id),
+    getAllServices(shop.id),
   ])
 
   return (
@@ -39,6 +44,7 @@ const AdminEmployeesPage = async ({
 
       <section className="space-y-4">
         <AdminEmployeesTable
+          slug={slug}
           employees={employees}
           totalCount={totalCount}
           allServices={allServices}
@@ -47,12 +53,13 @@ const AdminEmployeesPage = async ({
         <AdminPagination
           currentPage={currentPage}
           totalPages={totalPages}
-          basePath="/admin/employees"
+          basePath={`/b/${slug}/admin/employees`}
         />
       </section>
 
       <section>
         <AdminAtendentesTable
+          slug={slug}
           atendentes={atendentes}
           totalCount={atendentesCount}
         />

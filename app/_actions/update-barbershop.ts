@@ -1,16 +1,18 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { prisma } from "../_lib/prisma"
-import { requireAdmin } from "../_lib/require-admin"
+import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
 import {
   updateBarbershopSchema,
   UpdateBarbershopFormValues,
 } from "../_lib/validations/barbershop"
 
-export const updateBarbershop = async (input: UpdateBarbershopFormValues) => {
-  await requireAdmin()
+export const updateBarbershop = async (
+  slug: string,
+  input: UpdateBarbershopFormValues,
+) => {
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   // validate again on the server, the client check can be bypassed
   const parsed = updateBarbershopSchema.safeParse(input)
@@ -18,18 +20,12 @@ export const updateBarbershop = async (input: UpdateBarbershopFormValues) => {
     throw new Error(parsed.error.issues[0].message)
   }
 
-  const barbershop = await prisma.barbershop.findFirst({
-    select: { id: true, slug: true },
-  })
-  if (!barbershop) {
-    throw new Error("Barbearia não encontrada.")
-  }
-
   const { name, description, address, bannerUrl, instagramUrl, phones } =
     parsed.data
 
+  // shop.id comes from the membership check, never from the client
   await prisma.barbershop.update({
-    where: { id: barbershop.id },
+    where: { id: shop.id },
     data: {
       name,
       description,
@@ -41,6 +37,5 @@ export const updateBarbershop = async (input: UpdateBarbershopFormValues) => {
   })
 
   // Expires the shop caches (tenant lookup, services, employees) and its pages
-  revalidateShop(barbershop)
-  revalidatePath("/", "layout")
+  revalidateShop(shop)
 }

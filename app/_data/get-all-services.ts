@@ -1,7 +1,9 @@
 import { prisma } from "../_lib/prisma"
 
-export const getAllServices = async () => {
+// Every service of the shop (id + name), for the admin's service pickers
+export const getAllServices = async (shopId: string) => {
   const services = await prisma.barbershopService.findMany({
+    where: { barbershopId: shopId },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   })

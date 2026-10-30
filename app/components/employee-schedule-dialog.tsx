@@ -47,6 +47,7 @@ interface ExistingSchedule {
 }
 
 interface EmployeeScheduleDialogProps {
+  slug: string
   employeeId: string
   currentSchedules: ExistingSchedule[]
 }
@@ -66,6 +67,7 @@ const buildInitialState = (currentSchedules: ExistingSchedule[]) => {
 }
 
 const EmployeeScheduleDialog = ({
+  slug,
   employeeId,
   currentSchedules,
 }: EmployeeScheduleDialogProps) => {
@@ -95,7 +97,7 @@ const EmployeeScheduleDialog = ({
     setIsSubmitting(true)
 
     try {
-      await updateEmployeeSchedule(employeeId, schedules)
+      await updateEmployeeSchedule(slug, employeeId, schedules)
       toast.success("Horários atualizados com sucesso!")
       setOpen(false)
       router.refresh()

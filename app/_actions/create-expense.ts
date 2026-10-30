@@ -1,17 +1,20 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import { assertShopRole } from "../_lib/tenant"
+import { revalidateShop } from "../_lib/revalidate"
 import { expenseFormSchema } from "../_lib/validations/expense"
 
-export const createExpense = async (input: {
-  description: string
-  amount: number
-  category: string
-  date: Date
-}) => {
-  await requireAdmin()
+export const createExpense = async (
+  slug: string,
+  input: {
+    description: string
+    amount: number
+    category: string
+    date: Date
+  },
+) => {
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = expenseFormSchema.safeParse(input)
 
@@ -19,18 +22,9 @@ export const createExpense = async (input: {
     throw new Error(parsed.error.issues[0].message)
   }
 
-  // single-shop for now; scoped to the tenant in Phase 4a
-  const barbershop = await prisma.barbershop.findFirst({
-    select: { id: true },
-  })
-  if (!barbershop) {
-    throw new Error("Barbearia não encontrada.")
-  }
-
   await prisma.expense.create({
-    data: { ...parsed.data, barbershopId: barbershop.id },
+    data: { ...parsed.data, barbershopId: shop.id },
   })
 
-  revalidatePath("/admin/expenses")
-  revalidatePath("/admin")
+  revalidateShop(shop)
 }

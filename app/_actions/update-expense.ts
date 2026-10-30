@@ -1,11 +1,12 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import { assertShopRole } from "../_lib/tenant"
+import { revalidateShop } from "../_lib/revalidate"
 import { expenseFormSchema } from "../_lib/validations/expense"
 
 export const updateExpense = async (
+  slug: string,
   expenseId: string,
   input: {
     description: string
@@ -14,7 +15,7 @@ export const updateExpense = async (
     date: Date
   },
 ) => {
-  await requireAdmin()
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = expenseFormSchema.safeParse(input)
 
@@ -22,11 +23,14 @@ export const updateExpense = async (
     throw new Error(parsed.error.issues[0].message)
   }
 
-  await prisma.expense.update({
-    where: { id: expenseId },
+  const { count } = await prisma.expense.updateMany({
+    where: { id: expenseId, barbershopId: shop.id },
     data: parsed.data,
   })
 
-  revalidatePath("/admin/expenses")
-  revalidatePath("/admin")
+  if (count === 0) {
+    throw new Error("Despesa não encontrada.")
+  }
+
+  revalidateShop(shop)
 }

@@ -1,8 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import { assertShopRole } from "../_lib/tenant"
+import { revalidateShop } from "../_lib/revalidate"
 import { Weekday } from "@/app/generated/prisma/enums"
 
 interface ScheduleInput {
@@ -13,18 +13,37 @@ interface ScheduleInput {
 }
 
 export const updateEmployeeSchedule = async (
+  slug: string,
   employeeId: string,
   schedules: ScheduleInput[],
 ) => {
-  await requireAdmin()
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
+
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, barbershopId: shop.id },
+    select: { id: true },
+  })
+
+  if (!employee) {
+    throw new Error("Funcionário não encontrado.")
+  }
 
   await prisma.$transaction(
     schedules.map((schedule) =>
       prisma.employeeSchedule.upsert({
         where: {
-          employeeId_weekday: { employeeId, weekday: schedule.weekday },
+          employeeId_weekday: {
+            employeeId: employee.id,
+            weekday: schedule.weekday,
+          },
         },
-        create: { employeeId, ...schedule },
+        create: {
+          employeeId: employee.id,
+          weekday: schedule.weekday,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          isDayOff: schedule.isDayOff,
+        },
         update: {
           startTime: schedule.startTime,
           endTime: schedule.endTime,
@@ -34,8 +53,5 @@ export const updateEmployeeSchedule = async (
     ),
   )
 
-  revalidatePath("/admin/employees")
-  revalidatePath("/")
-  // TODO(Phase 4a): replace with revalidateShop(shop) once admin is shop-scoped
-  revalidatePath("/b/[slug]", "layout")
+  revalidateShop(shop)
 }

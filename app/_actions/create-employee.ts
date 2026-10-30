@@ -1,20 +1,23 @@
 "use server"
 
 import bcrypt from "bcryptjs"
-import { revalidatePath } from "next/cache"
-import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import { assertShopRole } from "../_lib/tenant"
+import { revalidateShop } from "../_lib/revalidate"
 import { createEmployeeSchema } from "../_lib/validations/employee"
 
-export const createEmployee = async (input: {
-  name: string
-  email: string
-  password: string
-  bio?: string
-  imageUrl?: string
-  phone?: string
-}) => {
-  await requireAdmin()
+export const createEmployee = async (
+  slug: string,
+  input: {
+    name: string
+    email: string
+    password: string
+    bio?: string
+    imageUrl?: string
+    phone?: string
+  },
+) => {
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = createEmployeeSchema.safeParse(input)
 
@@ -22,20 +25,14 @@ export const createEmployee = async (input: {
     throw new Error(parsed.error.issues[0].message)
   }
 
+  // TODO(Phase 4b): attach an existing user through a Membership instead
   const existingUser = await prisma.user.findUnique({
     where: { email: parsed.data.email },
+    select: { id: true },
   })
 
   if (existingUser) {
     throw new Error("Já existe um usuário com esse email.")
-  }
-
-  // single-shop for now; memberships come in Phase 4b
-  const barbershop = await prisma.barbershop.findFirst({
-    select: { id: true },
-  })
-  if (!barbershop) {
-    throw new Error("Barbearia não encontrada.")
   }
 
   const hashedPassword = await bcrypt.hash(parsed.data.password, 10)
@@ -48,17 +45,17 @@ export const createEmployee = async (input: {
       role: "EMPLOYEE",
       employees: {
         create: {
-          barbershopId: barbershop.id,
+          barbershopId: shop.id,
           bio: parsed.data.bio || null,
           imageUrl: parsed.data.imageUrl || null,
           phone: parsed.data.phone || null,
         },
       },
+      memberships: {
+        create: { barbershopId: shop.id, role: "EMPLOYEE" },
+      },
     },
   })
 
-  revalidatePath("/admin/employees")
-  revalidatePath("/")
-  // TODO(Phase 4a): replace with revalidateShop(shop) once admin is shop-scoped
-  revalidatePath("/b/[slug]", "layout")
+  revalidateShop(shop)
 }

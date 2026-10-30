@@ -18,12 +18,14 @@ import {
 import { updateEmployeeServices } from "../_actions/update-employee-services"
 
 interface EmployeeServicesDialogProps {
+  slug: string
   employeeId: string
   allServices: { id: string; name: string }[]
   currentServiceIds: string[]
 }
 
 const EmployeeServicesDialog = ({
+  slug,
   employeeId,
   allServices,
   currentServiceIds,
@@ -50,7 +52,7 @@ const EmployeeServicesDialog = ({
     setIsSubmitting(true)
 
     try {
-      await updateEmployeeServices(employeeId, selectedIds)
+      await updateEmployeeServices(slug, employeeId, selectedIds)
       toast.success("Serviços atualizados com sucesso!")
       setOpen(false)
       router.refresh()

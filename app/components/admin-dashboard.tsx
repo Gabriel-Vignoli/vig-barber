@@ -38,7 +38,11 @@ const currency = (value: number) =>
     value,
   )
 
-const AdminDashboard = () => {
+interface AdminDashboardProps {
+  slug: string
+}
+
+const AdminDashboard = ({ slug }: AdminDashboardProps) => {
   const [period, setPeriod] = useState<DashboardPeriod>("day")
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -46,10 +50,13 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     startTransition(async () => {
-      const result = await getDashboardStats({ period, date: selectedDate })
+      const result = await getDashboardStats(slug, {
+        period,
+        date: selectedDate,
+      })
       setStats(result)
     })
-  }, [period, selectedDate])
+  }, [slug, period, selectedDate])
 
   const rangeLabel = stats
     ? period === "day"
@@ -195,18 +202,18 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      <AdminOverviewChart />
+      <AdminOverviewChart slug={slug} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <AdminEmployeesAreaChart />
+        <AdminEmployeesAreaChart slug={slug} />
         <AdminBookingsPieChart
           serviceStats={stats?.serviceStats ?? []}
           rangeLabel={rangeLabel}
         />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <AdminExpensesChart />
-        <AdminNetProfitCard />
+        <AdminExpensesChart slug={slug} />
+        <AdminNetProfitCard slug={slug} />
       </div>
     </div>
   )

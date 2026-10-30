@@ -1,12 +1,18 @@
 import { prisma } from "@/app/_lib/prisma"
-import { requireAdmin } from "@/app/_lib/require-admin"
+import { requireShopRole } from "@/app/_lib/tenant"
 import BarbershopForm from "@/app/components/barbershop-form"
 
-const AdminBarbershopPage = async () => {
-  await requireAdmin()
+interface AdminBarbershopPageProps {
+  params: Promise<{ slug: string }>
+}
 
-  // read straight from the DB (not the cached fetcher) so the form is never stale
-  const barbershop = await prisma.barbershop.findFirst({
+const AdminBarbershopPage = async ({ params }: AdminBarbershopPageProps) => {
+  const { slug } = await params
+  const { shop } = await requireShopRole(slug, ["ADMIN"])
+
+  // read straight from the DB (not the cached tenant) so the form is never stale
+  const barbershop = await prisma.barbershop.findUnique({
+    where: { id: shop.id },
     select: {
       name: true,
       description: true,
@@ -27,7 +33,7 @@ const AdminBarbershopPage = async () => {
       </div>
 
       {barbershop ? (
-        <BarbershopForm barbershop={barbershop} />
+        <BarbershopForm slug={slug} barbershop={barbershop} />
       ) : (
         <p className="text-muted-foreground py-8 text-center text-sm">
           Nenhuma barbearia cadastrada.

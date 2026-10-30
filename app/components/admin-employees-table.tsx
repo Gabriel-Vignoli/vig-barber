@@ -54,12 +54,14 @@ interface AdminEmployee {
 }
 
 interface AdminEmployeesTableProps {
+  slug: string
   employees: AdminEmployee[]
   totalCount: number
   allServices: { id: string; name: string }[]
 }
 
 const AdminEmployeesTable = ({
+  slug,
   employees,
   totalCount,
   allServices,
@@ -74,7 +76,7 @@ const AdminEmployeesTable = ({
     setIsDeleting(true)
 
     try {
-      await deleteEmployee(employeeId)
+      await deleteEmployee(slug, employeeId)
       toast.success("Funcionário removido com sucesso!")
       setDeleteDialogOpenId(null)
       router.refresh()
@@ -94,7 +96,7 @@ const AdminEmployeesTable = ({
           Barbeiros
           <Badge variant="secondary">{totalCount}</Badge>
         </h2>
-        <EmployeeFormDialog />
+        <EmployeeFormDialog slug={slug} />
       </div>
 
       {employees.length === 0 ? (
@@ -150,6 +152,7 @@ const AdminEmployeesTable = ({
 
                   <div className="flex items-center gap-1 border-t pt-3 sm:border-t-0 sm:pt-0">
                     <EmployeeEditDialog
+                      slug={slug}
                       employeeId={employee.id}
                       employeeName={employeeName}
                       defaultValues={{
@@ -159,10 +162,12 @@ const AdminEmployeesTable = ({
                       }}
                     />
                     <EmployeeStatsDialog
+                      slug={slug}
                       employeeId={employee.id}
                       employeeName={employeeName}
                     />
                     <EmployeeServicesDialog
+                      slug={slug}
                       employeeId={employee.id}
                       allServices={allServices}
                       currentServiceIds={employee.services.map(
@@ -170,6 +175,7 @@ const AdminEmployeesTable = ({
                       )}
                     />
                     <EmployeeScheduleDialog
+                      slug={slug}
                       employeeId={employee.id}
                       currentSchedules={employee.schedules}
                     />

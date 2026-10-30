@@ -1,12 +1,13 @@
 "use server"
 
 import bcrypt from "bcryptjs"
-import { revalidatePath } from "next/cache"
-import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import { assertShopRole } from "../_lib/tenant"
+import { revalidateShop } from "../_lib/revalidate"
 import { updateEmployeeSchema } from "../_lib/validations/employee"
 
 export const updateEmployee = async (
+  slug: string,
   employeeId: string,
   input: {
     bio?: string
@@ -15,7 +16,7 @@ export const updateEmployee = async (
     password?: string
   },
 ) => {
-  await requireAdmin()
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = updateEmployeeSchema.safeParse(input)
 
@@ -23,8 +24,17 @@ export const updateEmployee = async (
     throw new Error(parsed.error.issues[0].message)
   }
 
-  await prisma.employee.update({
-    where: { id: employeeId },
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, barbershopId: shop.id },
+    select: { id: true, userId: true },
+  })
+
+  if (!employee) {
+    throw new Error("Funcionário não encontrado.")
+  }
+
+  const { count } = await prisma.employee.updateMany({
+    where: { id: employee.id, barbershopId: shop.id },
     data: {
       bio: parsed.data.bio || null,
       imageUrl: parsed.data.imageUrl || null,
@@ -32,16 +42,13 @@ export const updateEmployee = async (
     },
   })
 
+  if (count === 0) {
+    throw new Error("Funcionário não encontrado.")
+  }
+
+  // TODO(Phase 4b): the account is global, so decide whether a shop admin
+  // may still reset a staff member's password
   if (parsed.data.password) {
-    const employee = await prisma.employee.findUnique({
-      where: { id: employeeId },
-      select: { userId: true },
-    })
-
-    if (!employee) {
-      throw new Error("Funcionário não encontrado.")
-    }
-
     const hashedPassword = await bcrypt.hash(parsed.data.password, 10)
 
     await prisma.user.update({
@@ -50,8 +57,5 @@ export const updateEmployee = async (
     })
   }
 
-  revalidatePath("/admin/employees")
-  revalidatePath("/")
-  // TODO(Phase 4a): replace with revalidateShop(shop) once admin is shop-scoped
-  revalidatePath("/b/[slug]", "layout")
+  revalidateShop(shop)
 }

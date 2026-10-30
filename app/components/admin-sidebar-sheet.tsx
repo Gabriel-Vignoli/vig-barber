@@ -16,17 +16,20 @@ import { Button } from "./ui/button"
 
 interface AdminSidebarSheetProps {
   adminName: string
+  slug: string
 }
 
-const NAV_ITEMS = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "/admin/bookings", label: "Agendamentos", icon: CalendarIcon },
-  { href: "/admin/services", label: "Serviços", icon: BriefcaseIcon },
-  { href: "/admin/employees", label: "Funcionários", icon: UsersIcon },
+const getNavItems = (adminPath: string) => [
+  { href: adminPath, label: "Dashboard", icon: LayoutDashboardIcon },
+  { href: `${adminPath}/bookings`, label: "Agendamentos", icon: CalendarIcon },
+  { href: `${adminPath}/services`, label: "Serviços", icon: BriefcaseIcon },
+  { href: `${adminPath}/employees`, label: "Funcionários", icon: UsersIcon },
 ]
 
-const AdminSidebarSheet = ({ adminName }: AdminSidebarSheetProps) => {
+const AdminSidebarSheet = ({ adminName, slug }: AdminSidebarSheetProps) => {
   const pathname = usePathname()
+  const adminPath = `/b/${slug}/admin`
+  const navItems = getNavItems(adminPath)
 
   const handleLogoutClick = () => {
     sessionStorage.setItem("pending-auth-toast", "logout")
@@ -50,10 +53,10 @@ const AdminSidebarSheet = ({ adminName }: AdminSidebarSheetProps) => {
       </div>
 
       <div className="flex flex-col gap-3 border-b p-4 pt-2">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
+            item.href === adminPath
+              ? pathname === adminPath
               : pathname.startsWith(item.href)
 
           return (

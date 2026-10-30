@@ -1,14 +1,23 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import { assertShopRole } from "../_lib/tenant"
+import { revalidateShop } from "../_lib/revalidate"
 
-export const deleteService = async (serviceId: string) => {
-  await requireAdmin()
+export const deleteService = async (slug: string, serviceId: string) => {
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
+
+  const service = await prisma.barbershopService.findFirst({
+    where: { id: serviceId, barbershopId: shop.id },
+    select: { id: true },
+  })
+
+  if (!service) {
+    throw new Error("Serviço não encontrado.")
+  }
 
   const bookingCount = await prisma.booking.count({
-    where: { barbershopServiceId: serviceId },
+    where: { barbershopServiceId: service.id, barbershopId: shop.id },
   })
 
   if (bookingCount > 0) {
@@ -17,10 +26,13 @@ export const deleteService = async (serviceId: string) => {
     )
   }
 
-  await prisma.barbershopService.delete({ where: { id: serviceId } })
+  const { count } = await prisma.barbershopService.deleteMany({
+    where: { id: service.id, barbershopId: shop.id },
+  })
 
-  revalidatePath("/admin/services")
-  revalidatePath("/")
-  // TODO(Phase 4a): replace with revalidateShop(shop) once admin is shop-scoped
-  revalidatePath("/b/[slug]", "layout")
+  if (count === 0) {
+    throw new Error("Serviço não encontrado.")
+  }
+
+  revalidateShop(shop)
 }

@@ -11,12 +11,10 @@ const FILTERS = [
 ] as const
 
 interface AdminBookingFiltersProps {
-  basePath?: string
+  basePath: string
 }
 
-const AdminBookingFilters = ({
-  basePath = "/admin/bookings",
-}: AdminBookingFiltersProps) => {
+const AdminBookingFilters = ({ basePath }: AdminBookingFiltersProps) => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeFilter = searchParams.get("filter") ?? "all"

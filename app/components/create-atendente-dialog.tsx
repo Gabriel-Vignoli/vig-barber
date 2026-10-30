@@ -23,7 +23,11 @@ import {
   CreateAtendenteFormValues,
 } from "../_lib/validations/atendente"
 
-const CreateAtendenteDialog = () => {
+interface CreateAtendenteDialogProps {
+  slug: string
+}
+
+const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -47,7 +51,7 @@ const CreateAtendenteDialog = () => {
     setIsSubmitting(true)
 
     try {
-      await createAtendente(values)
+      await createAtendente(slug, values)
       toast.success("Atendente criado com sucesso!")
       setOpen(false)
       router.refresh()

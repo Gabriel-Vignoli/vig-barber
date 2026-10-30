@@ -34,6 +34,7 @@ import {
 } from "../_lib/validations/expense"
 
 interface ExpenseFormDialogProps {
+  slug: string
   mode: "create" | "edit"
   expenseId?: string
   defaultValues?: ExpenseFormValues
@@ -48,6 +49,7 @@ const EMPTY_VALUES: ExpenseFormValues = {
 }
 
 const ExpenseFormDialog = ({
+  slug,
   mode,
   expenseId,
   defaultValues,
@@ -73,11 +75,11 @@ const ExpenseFormDialog = ({
 
     try {
       if (mode === "create") {
-        await createExpense(values)
+        await createExpense(slug, values)
         toast.success("Despesa criada com sucesso!")
       } else {
         if (!expenseId) return
-        await updateExpense(expenseId, values)
+        await updateExpense(slug, expenseId, values)
         toast.success("Despesa atualizada com sucesso!")
       }
 

@@ -1,4 +1,6 @@
+import { notFound } from "next/navigation"
 import { requireAtendente } from "@/app/_lib/require-admin"
+import { getAtendenteShop } from "@/app/_lib/staff-shop"
 import {
   getAdminBookings,
   AdminBookingFilter,
@@ -23,6 +25,14 @@ const AtendenteBookingsPage = async ({
   searchParams,
 }: AtendenteBookingsPageProps) => {
   const user = await requireAtendente()
+
+  // TODO(Phase 4b): this page moves to /b/[slug]/atendente/bookings
+  const barbershop = await getAtendenteShop(user.id)
+
+  if (!barbershop) {
+    notFound()
+  }
+
   const { filter, page } = await searchParams
 
   const activeFilter = VALID_FILTERS.includes(filter as AdminBookingFilter)
@@ -31,7 +41,7 @@ const AtendenteBookingsPage = async ({
   const pageNumber = Number(page) > 0 ? Number(page) : 1
 
   const { bookings, totalCount, totalPages, currentPage } =
-    await getAdminBookings(activeFilter, pageNumber)
+    await getAdminBookings(barbershop.id, activeFilter, pageNumber)
 
   return (
     <>

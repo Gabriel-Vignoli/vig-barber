@@ -1,12 +1,14 @@
+import { requireShopRole } from "@/app/_lib/tenant"
 import {
   getAdminBookings,
   AdminBookingFilter,
-} from "../../../_data/get-admin-bookings"
-import AdminBookingsTable from "../../../components/admin-bookings-table"
-import AdminBookingFilters from "../../../components/admin-booking-filters"
-import AdminPagination from "../../../components/admin-pagination"
+} from "@/app/_data/get-admin-bookings"
+import AdminBookingsTable from "@/app/components/admin-bookings-table"
+import AdminBookingFilters from "@/app/components/admin-booking-filters"
+import AdminPagination from "@/app/components/admin-pagination"
 
 interface AdminBookingsPageProps {
+  params: Promise<{ slug: string }>
   searchParams: Promise<{ filter?: string; page?: string }>
 }
 
@@ -17,15 +19,21 @@ const VALID_FILTERS: AdminBookingFilter[] = [
   "cancelled",
 ]
 
-const AdminBookingsPage = async ({ searchParams }: AdminBookingsPageProps) => {
+const AdminBookingsPage = async ({
+  params,
+  searchParams,
+}: AdminBookingsPageProps) => {
+  const { slug } = await params
+  const { shop } = await requireShopRole(slug, ["ADMIN"])
   const { filter, page } = await searchParams
   const activeFilter = VALID_FILTERS.includes(filter as AdminBookingFilter)
     ? (filter as AdminBookingFilter)
     : "all"
   const pageNumber = Number(page) > 0 ? Number(page) : 1
+  const basePath = `/b/${slug}/admin/bookings`
 
   const { bookings, totalCount, totalPages, currentPage } =
-    await getAdminBookings(activeFilter, pageNumber)
+    await getAdminBookings(shop.id, activeFilter, pageNumber)
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 lg:p-8">
@@ -38,7 +46,7 @@ const AdminBookingsPage = async ({ searchParams }: AdminBookingsPageProps) => {
             {totalCount} agendamento{totalCount !== 1 ? "s" : ""}
           </p>
         </div>
-        <AdminBookingFilters />
+        <AdminBookingFilters basePath={basePath} />
       </div>
 
       <AdminBookingsTable bookings={bookings} />
@@ -46,7 +54,7 @@ const AdminBookingsPage = async ({ searchParams }: AdminBookingsPageProps) => {
       <AdminPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath="/admin/bookings"
+        basePath={basePath}
       />
     </div>
   )

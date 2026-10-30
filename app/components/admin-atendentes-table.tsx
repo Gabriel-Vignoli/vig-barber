@@ -41,11 +41,13 @@ interface AdminAtendente {
 }
 
 interface AdminAtendentesTableProps {
+  slug: string
   atendentes: AdminAtendente[]
   totalCount: number
 }
 
 const AdminAtendentesTable = ({
+  slug,
   atendentes,
   totalCount,
 }: AdminAtendentesTableProps) => {
@@ -59,7 +61,7 @@ const AdminAtendentesTable = ({
     setIsDeleting(true)
 
     try {
-      await deleteAtendente(userId)
+      await deleteAtendente(slug, userId)
       toast.success("Atendente removido com sucesso!")
       setDeleteDialogOpenId(null)
       router.refresh()
@@ -79,7 +81,7 @@ const AdminAtendentesTable = ({
           Atendentes
           <Badge variant="secondary">{totalCount}</Badge>
         </h2>
-        <CreateAtendenteDialog />
+        <CreateAtendenteDialog slug={slug} />
       </div>
 
       {atendentes.length === 0 ? (

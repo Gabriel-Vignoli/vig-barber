@@ -1,6 +1,6 @@
 "use server"
 
-import { requireAdmin } from "../_lib/require-admin"
+import { assertShopRole } from "../_lib/tenant"
 import { prisma } from "../_lib/prisma"
 import { getBrazilMonthRange } from "../_lib/timezone"
 
@@ -10,14 +10,15 @@ export interface NetProfitResult {
   netProfit: number
 }
 
-export const getNetProfit = async (): Promise<NetProfitResult> => {
-  await requireAdmin()
+export const getNetProfit = async (slug: string): Promise<NetProfitResult> => {
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const now = new Date()
   const { rangeStart, rangeEnd } = getBrazilMonthRange(now)
 
   const bookings = await prisma.booking.findMany({
     where: {
+      barbershopId: shop.id,
       bookingDate: { gte: rangeStart, lt: rangeEnd },
       status: { not: "CANCELLED" },
     },
@@ -36,7 +37,7 @@ export const getNetProfit = async (): Promise<NetProfitResult> => {
   }
 
   const expenses = await prisma.expense.findMany({
-    where: { date: { gte: rangeStart, lt: rangeEnd } },
+    where: { barbershopId: shop.id, date: { gte: rangeStart, lt: rangeEnd } },
   })
 
   const totalExpenses = expenses.reduce(

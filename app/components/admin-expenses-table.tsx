@@ -39,10 +39,11 @@ interface AdminExpense {
 }
 
 interface AdminExpensesTableProps {
+  slug: string
   expenses: AdminExpense[]
 }
 
-const AdminExpensesTable = ({ expenses }: AdminExpensesTableProps) => {
+const AdminExpensesTable = ({ slug, expenses }: AdminExpensesTableProps) => {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteDialogOpenId, setDeleteDialogOpenId] = useState<string | null>(
@@ -53,7 +54,7 @@ const AdminExpensesTable = ({ expenses }: AdminExpensesTableProps) => {
     setIsDeleting(true)
 
     try {
-      await deleteExpense(expenseId)
+      await deleteExpense(slug, expenseId)
       toast.success("Despesa removida com sucesso!")
       setDeleteDialogOpenId(null)
       router.refresh()
@@ -70,6 +71,7 @@ const AdminExpensesTable = ({ expenses }: AdminExpensesTableProps) => {
     <div className="space-y-3">
       <div className="flex justify-end">
         <ExpenseFormDialog
+          slug={slug}
           mode="create"
           renderTrigger={(triggerProps) => (
             <Button
@@ -118,6 +120,7 @@ const AdminExpensesTable = ({ expenses }: AdminExpensesTableProps) => {
 
                   <div className="flex gap-1">
                     <ExpenseFormDialog
+                      slug={slug}
                       mode="edit"
                       expenseId={expense.id}
                       defaultValues={{

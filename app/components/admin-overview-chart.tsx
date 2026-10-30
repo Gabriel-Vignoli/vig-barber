@@ -50,7 +50,11 @@ const currency = (value: number) =>
     value,
   )
 
-const AdminOverviewChart = () => {
+interface AdminOverviewChartProps {
+  slug: string
+}
+
+const AdminOverviewChart = ({ slug }: AdminOverviewChartProps) => {
   const [activeMetric, setActiveMetric] = useState<"bookings" | "revenue">(
     "bookings",
   )
@@ -62,7 +66,7 @@ const AdminOverviewChart = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const result = await getMonthlyOverview()
+      const result = await getMonthlyOverview(slug)
       setData(result.data)
       setTotals({
         totalConcludedBookings: result.totalConcludedBookings,
@@ -70,7 +74,7 @@ const AdminOverviewChart = () => {
       })
     }
     fetch()
-  }, [])
+  }, [slug])
 
   const chartConfig =
     activeMetric === "bookings" ? bookingsChartConfig : revenueChartConfig

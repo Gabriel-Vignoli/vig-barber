@@ -23,11 +23,13 @@ const PERIODS: { value: StatsPeriod; label: string }[] = [
 ]
 
 interface EmployeeStatsDialogProps {
+  slug: string
   employeeId: string
   employeeName: string
 }
 
 const EmployeeStatsDialog = ({
+  slug,
   employeeId,
   employeeName,
 }: EmployeeStatsDialogProps) => {
@@ -44,7 +46,7 @@ const EmployeeStatsDialog = ({
     setPeriod(selectedPeriod)
 
     try {
-      const result = await getEmployeeStats(employeeId, selectedPeriod)
+      const result = await getEmployeeStats(slug, employeeId, selectedPeriod)
       setStats(result)
     } catch (error) {
       toast.error("Erro ao carregar estatísticas.")

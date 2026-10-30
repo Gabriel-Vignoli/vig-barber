@@ -36,7 +36,11 @@ const currency = (value: number) =>
     value,
   )
 
-const AdminExpensesChart = () => {
+interface AdminExpensesChartProps {
+  slug: string
+}
+
+const AdminExpensesChart = ({ slug }: AdminExpensesChartProps) => {
   const [totalExpenses, setTotalExpenses] = useState(0)
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryExpense[]>(
     [],
@@ -44,12 +48,12 @@ const AdminExpensesChart = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const result = await getExpensesOverview()
+      const result = await getExpensesOverview(slug)
       setTotalExpenses(result.totalExpenses)
       setCategoryBreakdown(result.categoryBreakdown)
     }
     fetch()
-  }, [])
+  }, [slug])
 
   const chartData = categoryBreakdown.map((item, index) => ({
     name: item.label,

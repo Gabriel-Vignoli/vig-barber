@@ -17,6 +17,7 @@ import {
 } from "../_lib/validations/barbershop"
 
 interface BarbershopFormProps {
+  slug: string
   barbershop: {
     name: string
     description: string
@@ -29,7 +30,7 @@ interface BarbershopFormProps {
 
 const MAX_PHONES = 5
 
-const BarbershopForm = ({ barbershop }: BarbershopFormProps) => {
+const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
   const router = useRouter()
 
   const defaultValues: UpdateBarbershopFormValues = {
@@ -79,7 +80,7 @@ const BarbershopForm = ({ barbershop }: BarbershopFormProps) => {
 
   const onSubmit = async (values: UpdateBarbershopFormValues) => {
     try {
-      await updateBarbershop(values)
+      await updateBarbershop(slug, values)
       toast.success("Informações da barbearia atualizadas!")
       reset(values) // new baseline, so the save button disables again
       router.refresh()

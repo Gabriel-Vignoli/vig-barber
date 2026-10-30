@@ -19,18 +19,22 @@ const currency = (value: number) =>
     value,
   )
 
-const AdminNetProfitCard = () => {
+interface AdminNetProfitCardProps {
+  slug: string
+}
+
+const AdminNetProfitCard = ({ slug }: AdminNetProfitCardProps) => {
   const [data, setData] = useState<NetProfitResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetch = async () => {
-      const result = await getNetProfit()
+      const result = await getNetProfit(slug)
       setData(result)
       setIsLoading(false)
     }
     fetch()
-  }, [])
+  }, [slug])
 
   const monthLabel = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })
   const isPositive = (data?.netProfit ?? 0) >= 0
@@ -92,7 +96,7 @@ const AdminNetProfitCard = () => {
           className="mt-auto w-full cursor-pointer gap-2 p-4 lg:p-5 xl:text-base"
           nativeButton={false}
           render={(buttonProps) => (
-            <Link href="/admin/expenses" {...buttonProps}>
+            <Link href={`/b/${slug}/admin/expenses`} {...buttonProps}>
               <ReceiptIcon size={16} />
               Ver despesas
             </Link>

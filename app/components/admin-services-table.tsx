@@ -32,10 +32,11 @@ interface AdminService {
 }
 
 interface AdminServicesTableProps {
+  slug: string
   services: AdminService[]
 }
 
-const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
+const AdminServicesTable = ({ slug, services }: AdminServicesTableProps) => {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteDialogOpenId, setDeleteDialogOpenId] = useState<string | null>(
@@ -46,7 +47,7 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
     setIsDeleting(true)
 
     try {
-      await deleteService(serviceId)
+      await deleteService(slug, serviceId)
       toast.success("Serviço removido com sucesso!")
       setDeleteDialogOpenId(null)
       router.refresh()
@@ -63,6 +64,7 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
     <div className="space-y-3">
       <div className="flex justify-end">
         <ServiceFormDialog
+          slug={slug}
           mode="create"
           renderTrigger={(triggerProps) => (
             <Button
@@ -126,6 +128,7 @@ const AdminServicesTable = ({ services }: AdminServicesTableProps) => {
 
                   <div className="flex gap-1">
                     <ServiceFormDialog
+                      slug={slug}
                       mode="edit"
                       serviceId={service.id}
                       defaultValues={{

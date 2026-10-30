@@ -21,19 +21,22 @@ import Image from "next/image"
 
 interface AdminHeaderProps {
   adminName: string
+  slug: string
 }
 
-const NAV_ITEMS = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboardIcon },
-  { href: "/admin/bookings", label: "Agendamentos", icon: CalendarIcon },
-  { href: "/admin/services", label: "Serviços", icon: BriefcaseIcon },
-  { href: "/admin/employees", label: "Funcionários", icon: UsersIcon },
-  { href: "/admin/expenses", label: "Despesas", icon: ReceiptIcon },
-  { href: "/admin/barbershop", label: "Barbearia", icon: StoreIcon },
+const getNavItems = (adminPath: string) => [
+  { href: adminPath, label: "Dashboard", icon: LayoutDashboardIcon },
+  { href: `${adminPath}/bookings`, label: "Agendamentos", icon: CalendarIcon },
+  { href: `${adminPath}/services`, label: "Serviços", icon: BriefcaseIcon },
+  { href: `${adminPath}/employees`, label: "Funcionários", icon: UsersIcon },
+  { href: `${adminPath}/expenses`, label: "Despesas", icon: ReceiptIcon },
+  { href: `${adminPath}/barbershop`, label: "Barbearia", icon: StoreIcon },
 ]
 
-const AdminHeader = ({ adminName }: AdminHeaderProps) => {
+const AdminHeader = ({ adminName, slug }: AdminHeaderProps) => {
   const pathname = usePathname()
+  const adminPath = `/b/${slug}/admin`
+  const navItems = getNavItems(adminPath)
 
   const handleLogoutClick = () => {
     sessionStorage.setItem("pending-auth-toast", "logout")
@@ -43,7 +46,7 @@ const AdminHeader = ({ adminName }: AdminHeaderProps) => {
   return (
     <Card className="bg-background rounded-none">
       <CardContent className="flex items-center justify-between gap-2 md:px-6 md:py-2 lg:px-10 xl:px-32">
-        <Link href="/admin" className="shrink-0">
+        <Link href={adminPath} className="shrink-0">
           <Image
             src="/logo.png"
             alt="Vig Barber"
@@ -54,10 +57,10 @@ const AdminHeader = ({ adminName }: AdminHeaderProps) => {
         </Link>
 
         <nav className="hidden min-w-0 items-center gap-1 md:flex xl:gap-2">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin"
+              item.href === adminPath
+                ? pathname === adminPath
                 : pathname.startsWith(item.href)
 
             return (
@@ -105,7 +108,7 @@ const AdminHeader = ({ adminName }: AdminHeaderProps) => {
                 </Button>
               )}
             />
-            <AdminSidebarSheet adminName={adminName} />
+            <AdminSidebarSheet adminName={adminName} slug={slug} />
           </Sheet>
         </div>
       </CardContent>

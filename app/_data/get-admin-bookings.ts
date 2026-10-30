@@ -5,6 +5,7 @@ export type AdminBookingFilter = "all" | "upcoming" | "past" | "cancelled"
 const PAGE_SIZE = 10
 
 export const getAdminBookings = async (
+  shopId: string,
   filter: AdminBookingFilter = "all",
   page: number = 1,
 ) => {
@@ -32,10 +33,12 @@ export const getAdminBookings = async (
     const now = new Date()
 
     const pendingWhere = {
+      barbershopId: shopId,
       status: "PENDING" as const,
       bookingDate: { gte: now },
     }
     const concludedWhere = {
+      barbershopId: shopId,
       status: { not: "CANCELLED" as const },
       OR: [{ status: "COMPLETED" as const }, { bookingDate: { lt: now } }],
     }
@@ -70,7 +73,7 @@ export const getAdminBookings = async (
     }
   }
 
-  const where =
+  const filterWhere =
     filter === "upcoming"
       ? {
           bookingDate: { gte: new Date() },
@@ -82,6 +85,8 @@ export const getAdminBookings = async (
             status: { not: "CANCELLED" as const },
           }
         : { status: "CANCELLED" as const }
+
+  const where = { barbershopId: shopId, ...filterWhere }
 
   const totalCount = await prisma.booking.count({ where })
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))

@@ -1,17 +1,24 @@
-import { getAdminServices } from "../../../_data/get-admin-services"
-import AdminServicesTable from "../../../components/admin-services-table"
-import AdminPagination from "../../../components/admin-pagination"
+import { requireShopRole } from "@/app/_lib/tenant"
+import { getAdminServices } from "@/app/_data/get-admin-services"
+import AdminServicesTable from "@/app/components/admin-services-table"
+import AdminPagination from "@/app/components/admin-pagination"
 
 interface AdminServicesPageProps {
+  params: Promise<{ slug: string }>
   searchParams: Promise<{ page?: string }>
 }
 
-const AdminServicesPage = async ({ searchParams }: AdminServicesPageProps) => {
+const AdminServicesPage = async ({
+  params,
+  searchParams,
+}: AdminServicesPageProps) => {
+  const { slug } = await params
+  const { shop } = await requireShopRole(slug, ["ADMIN"])
   const { page } = await searchParams
   const pageNumber = Number(page) > 0 ? Number(page) : 1
 
   const { services, totalCount, totalPages, currentPage } =
-    await getAdminServices(pageNumber)
+    await getAdminServices(shop.id, pageNumber)
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 lg:p-8">
@@ -23,12 +30,12 @@ const AdminServicesPage = async ({ searchParams }: AdminServicesPageProps) => {
         </p>
       </div>
 
-      <AdminServicesTable services={services} />
+      <AdminServicesTable slug={slug} services={services} />
 
       <AdminPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath="/admin/services"
+        basePath={`/b/${slug}/admin/services`}
       />
     </div>
   )

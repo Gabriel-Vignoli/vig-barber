@@ -27,6 +27,7 @@ import {
 } from "../_lib/validations/service"
 
 interface ServiceFormDialogProps {
+  slug: string
   mode: "create" | "edit"
   serviceId?: string
   defaultValues?: ServiceFormValues
@@ -42,6 +43,7 @@ const EMPTY_VALUES: ServiceFormValues = {
 }
 
 const ServiceFormDialog = ({
+  slug,
   mode,
   serviceId,
   defaultValues,
@@ -69,11 +71,11 @@ const ServiceFormDialog = ({
 
     try {
       if (mode === "create") {
-        await createService(values)
+        await createService(slug, values)
         toast.success("Serviço criado com sucesso!")
       } else {
         if (!serviceId) return
-        await updateService(serviceId, values)
+        await updateService(slug, serviceId, values)
         toast.success("Serviço atualizado com sucesso!")
       }
 

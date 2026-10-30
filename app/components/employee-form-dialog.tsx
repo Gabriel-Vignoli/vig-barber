@@ -24,7 +24,11 @@ import {
   CreateEmployeeFormValues,
 } from "../_lib/validations/employee"
 
-const EmployeeFormDialog = () => {
+interface EmployeeFormDialogProps {
+  slug: string
+}
+
+const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -55,7 +59,7 @@ const EmployeeFormDialog = () => {
     setIsSubmitting(true)
 
     try {
-      await createEmployee(values)
+      await createEmployee(slug, values)
       toast.success("Funcionário criado com sucesso!")
       setOpen(false)
       router.refresh()

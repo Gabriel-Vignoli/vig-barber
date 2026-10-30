@@ -1,18 +1,21 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import { assertShopRole } from "../_lib/tenant"
+import { revalidateShop } from "../_lib/revalidate"
 import { serviceFormSchema } from "../_lib/validations/service"
 
-export const createService = async (input: {
-  name: string
-  description: string
-  price: number
-  durationInMinutes: number
-  imageUrl: string
-}) => {
-  await requireAdmin()
+export const createService = async (
+  slug: string,
+  input: {
+    name: string
+    description: string
+    price: number
+    durationInMinutes: number
+    imageUrl: string
+  },
+) => {
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = serviceFormSchema.safeParse(input)
 
@@ -20,21 +23,9 @@ export const createService = async (input: {
     throw new Error(parsed.error.issues[0].message)
   }
 
-  const barbershop = await prisma.barbershop.findFirst()
-
-  if (!barbershop) {
-    throw new Error("Nenhuma barbearia cadastrada.")
-  }
-
   await prisma.barbershopService.create({
-    data: {
-      ...parsed.data,
-      barbershopId: barbershop.id,
-    },
+    data: { ...parsed.data, barbershopId: shop.id },
   })
 
-  revalidatePath("/admin/services")
-  revalidatePath("/")
-  // TODO(Phase 4a): replace with revalidateShop(shop) once admin is shop-scoped
-  revalidatePath("/b/[slug]", "layout")
+  revalidateShop(shop)
 }

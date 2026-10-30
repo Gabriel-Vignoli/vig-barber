@@ -25,6 +25,7 @@ import {
 } from "../_lib/validations/employee"
 
 interface EmployeeEditDialogProps {
+  slug: string
   employeeId: string
   employeeName: string
   defaultValues: {
@@ -35,6 +36,7 @@ interface EmployeeEditDialogProps {
 }
 
 const EmployeeEditDialog = ({
+  slug,
   employeeId,
   employeeName,
   defaultValues,
@@ -72,7 +74,7 @@ const EmployeeEditDialog = ({
     setIsSubmitting(true)
 
     try {
-      await updateEmployee(employeeId, values)
+      await updateEmployee(slug, employeeId, values)
       toast.success("Funcionário atualizado com sucesso!")
       setOpen(false)
       router.refresh()

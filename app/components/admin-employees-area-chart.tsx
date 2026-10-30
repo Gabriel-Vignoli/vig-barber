@@ -29,18 +29,22 @@ const CHART_COLORS = [
   "var(--chart-5)",
 ]
 
-const AdminEmployeesAreaChart = () => {
+interface AdminEmployeesAreaChartProps {
+  slug: string
+}
+
+const AdminEmployeesAreaChart = ({ slug }: AdminEmployeesAreaChartProps) => {
   const [data, setData] = useState<Record<string, string | number>[]>([])
   const [employeeNames, setEmployeeNames] = useState<string[]>([])
 
   useEffect(() => {
     const fetch = async () => {
-      const result = await getEmployeesOverview()
+      const result = await getEmployeesOverview(slug)
       setData(result.data)
       setEmployeeNames(result.employeeNames)
     }
     fetch()
-  }, [])
+  }, [slug])
 
   const employeeTotals = employeeNames
     .map((name, index) => ({

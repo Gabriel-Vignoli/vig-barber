@@ -1,6 +1,6 @@
 "use server"
 
-import { requireAdmin } from "../_lib/require-admin"
+import { assertShopRole } from "../_lib/tenant"
 import { prisma } from "../_lib/prisma"
 import {
   getBrazilDayRange,
@@ -11,10 +11,11 @@ import {
 export type StatsPeriod = "day" | "week" | "month" | "all"
 
 export const getEmployeeStats = async (
+  slug: string,
   employeeId: string,
   period: StatsPeriod,
 ) => {
-  await requireAdmin()
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const now = new Date()
 
@@ -38,6 +39,7 @@ export const getEmployeeStats = async (
 
   const bookings = await prisma.booking.findMany({
     where: {
+      barbershopId: shop.id,
       employeeId,
       ...(dateFilter && { bookingDate: dateFilter }),
       status: { not: "CANCELLED" },

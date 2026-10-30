@@ -1,11 +1,12 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-import { requireAdmin } from "../_lib/require-admin"
 import { prisma } from "../_lib/prisma"
+import { assertShopRole } from "../_lib/tenant"
+import { revalidateShop } from "../_lib/revalidate"
 import { serviceFormSchema } from "../_lib/validations/service"
 
 export const updateService = async (
+  slug: string,
   serviceId: string,
   input: {
     name: string
@@ -15,7 +16,7 @@ export const updateService = async (
     imageUrl: string
   },
 ) => {
-  await requireAdmin()
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = serviceFormSchema.safeParse(input)
 
@@ -23,13 +24,14 @@ export const updateService = async (
     throw new Error(parsed.error.issues[0].message)
   }
 
-  await prisma.barbershopService.update({
-    where: { id: serviceId },
+  const { count } = await prisma.barbershopService.updateMany({
+    where: { id: serviceId, barbershopId: shop.id },
     data: parsed.data,
   })
 
-  revalidatePath("/admin/services")
-  revalidatePath("/")
-  // TODO(Phase 4a): replace with revalidateShop(shop) once admin is shop-scoped
-  revalidatePath("/b/[slug]", "layout")
+  if (count === 0) {
+    throw new Error("Serviço não encontrado.")
+  }
+
+  revalidateShop(shop)
 }

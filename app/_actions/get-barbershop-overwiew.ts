@@ -1,7 +1,7 @@
 "use server"
 
 import { subDays, startOfDay, endOfDay, format } from "date-fns"
-import { requireAdmin } from "../_lib/require-admin"
+import { assertShopRole } from "../_lib/tenant"
 import { prisma } from "../_lib/prisma"
 
 export type OverviewRange = "7d" | "30d" | "90d"
@@ -19,9 +19,10 @@ const RANGE_DAYS: Record<OverviewRange, number> = {
 }
 
 export const getBarbershopOverview = async (
+  slug: string,
   range: OverviewRange,
 ): Promise<OverviewDataPoint[]> => {
-  await requireAdmin()
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const days = RANGE_DAYS[range]
   const rangeStart = startOfDay(subDays(new Date(), days - 1))
@@ -29,6 +30,7 @@ export const getBarbershopOverview = async (
 
   const bookings = await prisma.booking.findMany({
     where: {
+      barbershopId: shop.id,
       bookingDate: { gte: rangeStart, lte: rangeEnd },
       status: { not: "CANCELLED" },
     },

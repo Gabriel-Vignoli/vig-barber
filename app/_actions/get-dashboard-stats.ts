@@ -1,6 +1,6 @@
 "use server"
 
-import { requireAdmin } from "../_lib/require-admin"
+import { assertShopRole } from "../_lib/tenant"
 import { prisma } from "../_lib/prisma"
 import {
   getBrazilDayRange,
@@ -50,11 +50,11 @@ export interface DashboardStats {
   serviceStats: ServiceStat[]
 }
 
-export const getDashboardStats = async ({
-  period,
-  date,
-}: GetDashboardStatsParams): Promise<DashboardStats> => {
-  await requireAdmin()
+export const getDashboardStats = async (
+  slug: string,
+  { period, date }: GetDashboardStatsParams,
+): Promise<DashboardStats> => {
+  const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const { rangeStart, rangeEnd } =
     period === "day"
@@ -65,6 +65,7 @@ export const getDashboardStats = async ({
 
   const bookings = await prisma.booking.findMany({
     where: {
+      barbershopId: shop.id,
       bookingDate: { gte: rangeStart, lt: rangeEnd },
       status: { not: "CANCELLED" },
     },
