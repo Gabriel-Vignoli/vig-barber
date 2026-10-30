@@ -6,7 +6,7 @@
 - [x] Phase 1 — schema + seed
 - [x] Phase 2 — tenant library + Vitest
 - [x] Phase 3 — client routes under /b/[slug]
-- [ ] Phase 4a — admin + ownership fixes
+- [x] Phase 4a — admin + ownership fixes
 - [ ] Phase 4b — staff/atendente/memberships
 - [ ] Phase 4c — auth
 - [ ] Phase 5 — branding
@@ -106,10 +106,17 @@ Each phase leaves lint, build and tests green and ships as small conventional co
   - `create-employee` and `create-atendente` attach existing users through a Membership and never overwrite their name or password.
   - Delete actions remove the Membership.
   - `create-walkin-booking` gets the shop from `slug`.
+  - Carried over from the 4a review:
+    - Remove the `findFirst` fallback in `getAtendenteShop` (`app/_lib/staff-shop.ts`). Today an atendente of a suspended shop sees the bookings of the oldest active shop.
+    - `update-employee` resets the global password. Drop it, or allow it only when the user's only membership is in this shop. Otherwise an admin of shop A can take over a user who is admin of shop B.
+    - `create-walkin-booking` still revalidates the removed `/admin/bookings` route.
+    - Deleting a barber who has bookings is blocked. Deactivate the Employee and delete the membership instead. `delete-atendente` should also handle an Employee row in the same shop.
+    - Validate the `update-employee-schedule` input with zod.
 - **Phase 4c — auth**
   - Add `/login` and `/painel`. Slim the JWT.
-  - Rewrite `proxy.ts`. Remove `require-admin.ts` and `get-user-role.ts`.
-  - Drop `User.role` and add the `/admin/*` redirects.
+  - Rewrite `proxy.ts`. Remove `require-admin.ts` (`get-user-role.ts` was already deleted in 4a).
+  - Drop `User.role`, along with the demotion to CLIENT in `delete-employee` and `delete-atendente`. The temporary `/admin` and `/admin/[section]` redirects have existed since 4a.
+  - The login form honours a same-origin `/b/...` `callbackUrl`.
   - Update `sign-in-dialog`, `sidebar-sheet`, `header` and `admin-login-form`.
 - **Phase 5 — branding**
   - Install UploadThing. Its middleware runs `assertShopRole`. Add `*.ufs.sh` to `next.config.ts`.
