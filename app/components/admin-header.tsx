@@ -7,6 +7,7 @@ import {
   BriefcaseIcon,
   CalendarIcon,
   LayoutDashboardIcon,
+  LayoutGridIcon,
   LogOutIcon,
   MenuIcon,
   ReceiptIcon,
@@ -40,7 +41,7 @@ const AdminHeader = ({ adminName, slug }: AdminHeaderProps) => {
 
   const handleLogoutClick = () => {
     sessionStorage.setItem("pending-auth-toast", "logout")
-    signOut({ callbackUrl: "/admin/login" })
+    signOut({ callbackUrl: "/login" })
   }
 
   return (
@@ -85,6 +86,18 @@ const AdminHeader = ({ adminName, slug }: AdminHeaderProps) => {
           <span className="text-muted-foreground hidden text-sm md:inline">
             {adminName}
           </span>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden cursor-pointer md:flex"
+            nativeButton={false}
+            render={(buttonProps) => (
+              <Link href="/painel" title="Minhas barbearias" {...buttonProps}>
+                <LayoutGridIcon size={18} />
+              </Link>
+            )}
+          />
 
           <Button
             variant="ghost"

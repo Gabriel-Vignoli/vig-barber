@@ -5,6 +5,7 @@ import { Button } from "./ui/button"
 import {
   CalendarIcon,
   HomeIcon,
+  LayoutGridIcon,
   LogInIcon,
   LogOutIcon,
   UserCogIcon,
@@ -17,6 +18,7 @@ import Link from "next/link"
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
 import { signOut, useSession } from "next-auth/react"
 import SignInDialog from "./sign-in-dialog"
+import { useHasStaffMembership } from "../_hooks/use-has-staff-membership"
 
 const getInitials = (name?: string | null) => {
   if (!name) return "?"
@@ -32,8 +34,7 @@ const SidebarSheet = () => {
   const { data } = useSession()
   const pathname = usePathname()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isEmployee = (data?.user as any)?.role === "EMPLOYEE"
+  const hasStaffMembership = useHasStaffMembership()
 
   // Inside /b/[slug], "Início" goes back to that shop's home
   const { slug } = useParams<{ slug?: string }>()
@@ -41,6 +42,7 @@ const SidebarSheet = () => {
 
   const isHomeActive = pathname === homeHref
   const isBookingsActive = pathname === "/bookings"
+  const isPainelActive = pathname === "/painel"
 
   const handleLogoutClick = () => {
     sessionStorage.setItem("pending-auth-toast", "logout")
@@ -149,19 +151,36 @@ const SidebarSheet = () => {
             />
           )}
         />
-        {!isEmployee && (
+        <SheetClose
+          nativeButton={false}
+          render={(closeProps) => (
+            <Button
+              className="justify-start gap-2 py-4"
+              variant={isBookingsActive ? "default" : "ghost"}
+              nativeButton={false}
+              {...closeProps}
+              render={(buttonProps) => (
+                <Link href="/bookings" {...buttonProps}>
+                  <CalendarIcon size={18} />
+                  Agendamentos
+                </Link>
+              )}
+            />
+          )}
+        />
+        {hasStaffMembership && (
           <SheetClose
             nativeButton={false}
             render={(closeProps) => (
               <Button
                 className="justify-start gap-2 py-4"
-                variant={isBookingsActive ? "default" : "ghost"}
+                variant={isPainelActive ? "default" : "ghost"}
                 nativeButton={false}
                 {...closeProps}
                 render={(buttonProps) => (
-                  <Link href="/bookings" {...buttonProps}>
-                    <CalendarIcon size={18} />
-                    Agendamentos
+                  <Link href="/painel" {...buttonProps}>
+                    <LayoutGridIcon size={18} />
+                    Minhas barbearias
                   </Link>
                 )}
               />

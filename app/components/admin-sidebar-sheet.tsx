@@ -7,6 +7,7 @@ import {
   BriefcaseIcon,
   CalendarIcon,
   LayoutDashboardIcon,
+  LayoutGridIcon,
   LogOutIcon,
   ScissorsIcon,
   UsersIcon,
@@ -33,7 +34,7 @@ const AdminSidebarSheet = ({ adminName, slug }: AdminSidebarSheetProps) => {
 
   const handleLogoutClick = () => {
     sessionStorage.setItem("pending-auth-toast", "logout")
-    signOut({ callbackUrl: "/admin/login" })
+    signOut({ callbackUrl: "/login" })
   }
 
   return (
@@ -83,6 +84,23 @@ const AdminSidebarSheet = ({ adminName, slug }: AdminSidebarSheetProps) => {
       </div>
 
       <div className="flex flex-col gap-3 p-4 pt-1">
+        <SheetClose
+          nativeButton={false}
+          render={(closeProps) => (
+            <Button
+              className="justify-start gap-2 py-4"
+              variant="ghost"
+              nativeButton={false}
+              {...closeProps}
+              render={(buttonProps) => (
+                <Link href="/painel" {...buttonProps}>
+                  <LayoutGridIcon size={18} />
+                  Minhas barbearias
+                </Link>
+              )}
+            />
+          )}
+        />
         <Button
           className="cursor-pointer justify-start gap-2 py-4 text-red-400"
           variant="ghost"

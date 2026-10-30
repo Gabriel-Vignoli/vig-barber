@@ -4,7 +4,12 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { CalendarIcon, HomeIcon, LogOutIcon } from "lucide-react"
+import {
+  CalendarIcon,
+  HomeIcon,
+  LayoutGridIcon,
+  LogOutIcon,
+} from "lucide-react"
 import { Card, CardContent } from "./ui/card"
 import { Button } from "./ui/button"
 
@@ -29,7 +34,7 @@ const AtendenteHeader = ({ atendenteName, slug }: AtendenteHeaderProps) => {
 
   const handleLogoutClick = () => {
     sessionStorage.setItem("pending-auth-toast", "logout")
-    signOut({ callbackUrl: "/admin/login" })
+    signOut({ callbackUrl: "/login" })
   }
 
   return (
@@ -74,6 +79,18 @@ const AtendenteHeader = ({ atendenteName, slug }: AtendenteHeaderProps) => {
           <span className="text-muted-foreground hidden text-sm md:inline">
             {atendenteName}
           </span>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="cursor-pointer"
+            nativeButton={false}
+            render={(buttonProps) => (
+              <Link href="/painel" title="Minhas barbearias" {...buttonProps}>
+                <LayoutGridIcon size={18} />
+              </Link>
+            )}
+          />
 
           <Button
             variant="ghost"

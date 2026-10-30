@@ -3,16 +3,15 @@
 import Image from "next/image"
 import { Card, CardContent } from "./ui/card"
 import Link from "next/link"
-import { useSession } from "next-auth/react"
 import { useParams } from "next/navigation"
 import DesktopProfileMenu from "./desktop-profile-menu"
 import MobileNav from "./mobile-nav"
 import BookingsNavLink from "./bookings-nav-link"
+import PainelNavLink from "./painel-nav-link"
+import { useHasStaffMembership } from "../_hooks/use-has-staff-membership"
 
 const Header = () => {
-  const { data } = useSession()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isEmployee = (data?.user as any)?.role === "EMPLOYEE"
+  const hasStaffMembership = useHasStaffMembership()
   // Inside /b/[slug] the logo goes back to that shop's home
   const { slug } = useParams<{ slug?: string }>()
   const homeHref = slug ? `/b/${slug}` : "/"
@@ -36,7 +35,8 @@ const Header = () => {
         </div>
 
         <div className="hidden items-center gap-6 md:flex">
-          {!isEmployee && <BookingsNavLink></BookingsNavLink>}
+          <BookingsNavLink></BookingsNavLink>
+          {hasStaffMembership && <PainelNavLink />}
           <DesktopProfileMenu></DesktopProfileMenu>
         </div>
       </CardContent>
