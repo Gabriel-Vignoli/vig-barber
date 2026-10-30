@@ -9,7 +9,7 @@ import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
-import { getCurrentUserRole } from "../_actions/get-user-role"
+import { getStaffLandingPath } from "../_actions/get-staff-landing-path"
 import { checkLoginAttempt } from "../_actions/check-login-attempt"
 import ForgotPasswordDialog from "./forgot-password-dialog"
 import { formatCountdown, useLoginLockout } from "../_hooks/use-login-lockout"
@@ -66,12 +66,12 @@ const AdminLoginForm = () => {
         return
       }
 
-      const role = await getCurrentUserRole()
-      const target = role === "ATENDENTE" ? "/admin/atendente" : "/admin"
+      // The admin lands in their shop's admin, the atendente on the front desk
+      const target = (await getStaffLandingPath()) ?? "/"
 
       // Full page navigation, the same thing a manual reload does. It skips the
       // client router cache (which can hold a stale "redirect to login" for
-      // /admin) and the push/refresh race. isSubmitting stays true on purpose,
+      // the admin area) and the push/refresh race. isSubmitting stays true on purpose,
       // so the spinner keeps showing until the browser leaves this page.
       window.location.assign(target)
     } catch {

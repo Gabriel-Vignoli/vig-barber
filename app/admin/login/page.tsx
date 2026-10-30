@@ -1,27 +1,18 @@
-import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
-import { authOptions } from "../../_lib/auth"
-import { prisma } from "../../_lib/prisma"
+import { getSessionUserId } from "../../_lib/tenant"
+import { getStaffLandingPath } from "../../_lib/staff-shop"
 import AdminLoginForm from "../../components/admin-login-form"
 import { ShieldIcon } from "lucide-react"
 
 const AdminLoginPage = async () => {
-  const session = await getServerSession(authOptions)
+  const userId = await getSessionUserId()
 
-  if (session?.user) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userId = (session.user as any).id
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    })
+  if (userId) {
+    // Staff already signed in go straight to their shop's area
+    const landingPath = await getStaffLandingPath(userId)
 
-    if (user?.role === "ADMIN") {
-      redirect("/admin")
-    }
-
-    if (user?.role === "ATENDENTE") {
-      redirect("/admin/atendente")
+    if (landingPath) {
+      redirect(landingPath)
     }
   }
 
