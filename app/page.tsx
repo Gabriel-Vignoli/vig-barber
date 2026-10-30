@@ -1,36 +1,19 @@
-import { getServerSession } from "next-auth"
 import { notFound, redirect } from "next/navigation"
-import Header from "./components/header"
-import EmployeeDashboard from "./components/employee-dashboard"
-import { authOptions } from "./_lib/auth"
 import { prisma } from "./_lib/prisma"
-import {
-  getEmployeeUpcomingBookings,
-  getEmployeeConcludedBookings,
-} from "./_data/get-employee-bookings"
+import { getSessionUserId } from "./_lib/tenant"
+import { getFirstShopWithRole } from "./_lib/staff-shop"
 
 export default async function Home() {
-  const session = await getServerSession(authOptions)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userRole = (session?.user as any)?.role
+  const userId = await getSessionUserId()
 
-  // TODO(Phase 4b): the employee dashboard moves to /b/[slug]/staff
-  if (userRole === "EMPLOYEE") {
-    const [upcomingBookings, concludedBookings] = await Promise.all([
-      getEmployeeUpcomingBookings(),
-      getEmployeeConcludedBookings(),
-    ])
+  // Barbers land on their shop's staff dashboard (307, depends on the user)
+  // TODO(Phase 4c): replaced by /painel
+  if (userId) {
+    const staffShop = await getFirstShopWithRole(userId, ["EMPLOYEE"])
 
-    return (
-      <div>
-        <Header />
-        <EmployeeDashboard
-          employeeName={session?.user?.name ?? "Funcionário"}
-          upcomingBookings={upcomingBookings}
-          concludedBookings={concludedBookings}
-        />
-      </div>
-    )
+    if (staffShop) {
+      redirect(`/b/${staffShop.slug}/staff`)
+    }
   }
 
   // TODO(Phase 7): replace with the landing page + shop finder. Until then,

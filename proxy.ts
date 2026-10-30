@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
+import { isStaffDashboardPath } from "./app/_lib/staff-path"
 
 const ALLOWED_EMPLOYEE_PATHS = ["/", "/profile"]
 
@@ -13,9 +14,11 @@ export async function proxy(request: NextRequest) {
   })
 
   if (token?.role === "EMPLOYEE") {
-    const isAllowed = ALLOWED_EMPLOYEE_PATHS.some(
-      (path) => pathname === path || pathname.startsWith(`${path}/`),
-    )
+    const isAllowed =
+      isStaffDashboardPath(pathname) ||
+      ALLOWED_EMPLOYEE_PATHS.some(
+        (path) => pathname === path || pathname.startsWith(`${path}/`),
+      )
 
     if (!isAllowed) {
       const url = request.nextUrl.clone()
