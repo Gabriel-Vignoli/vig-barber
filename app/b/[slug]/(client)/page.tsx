@@ -59,15 +59,42 @@ const ShopHome = async ({ params }: ShopHomeProps) => {
             </p>
 
             {/* Hero message */}
-            <div className="mt-6 space-y-2 rounded-2xl border p-5 lg:mt-10 lg:p-8">
-              <h1 className="text-lg font-bold lg:text-2xl">
-                Bem-vindo à {shop.name}!
-              </h1>
-              <p className="text-muted-foreground text-sm lg:text-base">
-                Estilo, precisão e cuidado em cada detalhe. Agende seu horário
-                com os melhores profissionais e viva a experiência que você
-                merece.
-              </p>
+            <div className="mt-6 overflow-hidden rounded-2xl border lg:mt-10">
+              {shop.bannerUrl && (
+                <div className="relative h-32 w-full lg:h-44">
+                  <Image
+                    src={shop.bannerUrl}
+                    alt={`Banner da ${shop.name}`}
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex items-start gap-4 p-5 lg:p-8">
+                {shop.logoUrl && (
+                  <div className="bg-muted relative size-14 shrink-0 overflow-hidden rounded-full border lg:size-16">
+                    <Image
+                      src={shop.logoUrl}
+                      alt={`Logo da ${shop.name}`}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <h1 className="text-lg font-bold lg:text-2xl">
+                    Bem-vindo à {shop.name}!
+                  </h1>
+                  <p className="text-muted-foreground text-sm lg:text-base">
+                    Estilo, precisão e cuidado em cada detalhe. Agende seu
+                    horário com os melhores profissionais e viva a experiência
+                    que você merece.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {hasBookings ? (

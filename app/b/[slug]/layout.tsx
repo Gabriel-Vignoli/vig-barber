@@ -7,12 +7,30 @@ export const generateMetadata = async ({
   const { slug } = await params
   const shop = await getTenant(slug)
 
+  // The banner makes the better link preview; the logo is the fallback
+  const previewImage = shop.bannerUrl ?? shop.logoUrl
+
   return {
     title: {
       default: shop.name,
       template: `%s | ${shop.name}`,
     },
     description: shop.description,
+    ...(shop.logoUrl && { icons: { icon: shop.logoUrl } }),
+    openGraph: {
+      title: shop.name,
+      description: shop.description,
+      siteName: "Vig Barber",
+      locale: "pt_BR",
+      type: "website",
+      ...(previewImage && { images: [{ url: previewImage, alt: shop.name }] }),
+    },
+    twitter: {
+      card: previewImage ? "summary_large_image" : "summary",
+      title: shop.name,
+      description: shop.description,
+      ...(previewImage && { images: [previewImage] }),
+    },
   }
 }
 
