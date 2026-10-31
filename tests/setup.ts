@@ -34,6 +34,17 @@ vi.mock("next/navigation", async () => {
   }
 })
 
+// Emails are never sent from tests. Read the sent message (and the invitation
+// link inside it) from resend.emails.send.mock.calls.
+vi.mock("@/app/_lib/resend", () => ({
+  EMAIL_FROM: "Vig Barber <test@test.local>",
+  resend: {
+    emails: {
+      send: vi.fn(async () => ({ data: { id: "test-email" }, error: null })),
+    },
+  },
+}))
+
 beforeEach(async () => {
   vi.clearAllMocks()
   mockSession(null)
