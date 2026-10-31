@@ -6,7 +6,8 @@ interface LegacyServicePageProps {
 }
 
 // Legacy URL from the single-shop era: 308 to the service's shop
-// TODO(Phase 8): remove the legacy redirects
+// TODO(legacy): kept after the migration, remove once the SaaS has been
+// live for a while
 const LegacyServicePage = async ({ params }: LegacyServicePageProps) => {
   const { id } = await params
 

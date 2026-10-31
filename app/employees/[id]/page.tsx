@@ -6,7 +6,8 @@ interface LegacyEmployeePageProps {
 }
 
 // Legacy URL from the single-shop era: 308 to the employee's shop
-// TODO(Phase 8): remove the legacy redirects
+// TODO(legacy): kept after the migration, remove once the SaaS has been
+// live for a while
 const LegacyEmployeePage = async ({ params }: LegacyEmployeePageProps) => {
   const { id } = await params
 

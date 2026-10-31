@@ -18,7 +18,8 @@ interface RedirectToShopAreaOptions {
 // Legacy URLs from the single-shop era (/admin/*, /admin/atendente/*): send
 // the user to the same section of their shop. Temporary (307) because the
 // target depends on who is signed in.
-// TODO(Phase 8): remove with the legacy redirects
+// TODO(legacy): kept after the migration, remove with the legacy redirects
+// once the SaaS has been live for a while
 export const redirectToShopArea = async ({
   area,
   roles,

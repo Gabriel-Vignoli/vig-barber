@@ -3,7 +3,8 @@ import { getSafeCallbackUrl } from "@/app/_lib/safe-callback-url"
 import { getLoginPath } from "@/app/_lib/protected-paths"
 
 // Legacy /admin/login: the global /login replaces it (keeps a safe callbackUrl)
-// TODO(Phase 8): remove the legacy redirects
+// TODO(legacy): kept after the migration, remove once the SaaS has been
+// live for a while
 const LegacyAdminLoginPage = async ({
   searchParams,
 }: PageProps<"/admin/login">) => {

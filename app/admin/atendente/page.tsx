@@ -1,7 +1,8 @@
 import { redirectToShopArea } from "@/app/_lib/redirect-to-shop-area"
 
 // Legacy /admin/atendente: redirects to the front desk of the user's shop
-// TODO(Phase 8): remove the legacy redirects
+// TODO(legacy): kept after the migration, remove once the SaaS has been
+// live for a while
 const LegacyAtendentePage = async ({
   searchParams,
 }: PageProps<"/admin/atendente">) => {

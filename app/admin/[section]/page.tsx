@@ -11,7 +11,8 @@ const LEGACY_SECTIONS = [
 ]
 
 // Legacy /admin/<section>: redirects to the same section of the admin's shop
-// TODO(Phase 8): remove the legacy redirects
+// TODO(legacy): kept after the migration, remove once the SaaS has been
+// live for a while
 const LegacyAdminSectionPage = async ({
   params,
   searchParams,
