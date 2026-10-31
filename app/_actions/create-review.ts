@@ -34,8 +34,16 @@ export const createReview = async ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userId = (session.user as any).id
 
+  // Only the user's own past, non-cancelled booking with this employee (the
+  // same rule the employee page uses to offer the review form)
   const booking = await prisma.booking.findFirst({
-    where: { id: bookingId, userId, employeeId },
+    where: {
+      id: bookingId,
+      userId,
+      employeeId,
+      status: { not: "CANCELLED" },
+      bookingDate: { lt: new Date() },
+    },
     select: {
       barbershopId: true,
       barbershop: { select: { id: true, slug: true } },
