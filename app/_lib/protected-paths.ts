@@ -3,6 +3,7 @@
 // requireShopRole.
 const PROTECTED_PATHS = [
   /^\/painel(?:\/|$)/,
+  /^\/platform(?:\/|$)/,
   /^\/bookings(?:\/|$)/,
   /^\/profile(?:\/|$)/,
   /^\/b\/[^/]+\/(?:admin|atendente|staff)(?:\/|$)/,

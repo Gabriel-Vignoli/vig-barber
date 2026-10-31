@@ -31,6 +31,7 @@ describe("proxy", () => {
 
   it.each([
     "/painel",
+    "/platform",
     "/bookings",
     "/profile",
     "/b/barbearia-a/admin",
