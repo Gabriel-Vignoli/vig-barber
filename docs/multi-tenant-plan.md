@@ -12,7 +12,7 @@
 - [x] Phase 5 — branding (set `UPLOADTHING_TOKEN` locally and on Vercel; optional `EMAIL_FROM`)
 - [x] Phase 6 — platform + invitations (invite emails need `RESEND_API_KEY`; set `APP_URL` on Vercel for a custom domain)
 - [x] Phase 7 — landing + finder (set `CONTACT_EMAIL` and/or `CONTACT_WHATSAPP` on Vercel to show the contact CTA)
-- [ ] Phase 8 — hardening
+- [x] Phase 8 — hardening (Stripe webhook needs `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`; legacy redirects kept for now)
 
 
 ## Context
@@ -137,7 +137,9 @@ Each phase leaves lint, build and tests green and ships as small conventional co
 - **Phase 8 — hardening**
   - Full tenant-guard sweep and isolation tests for every mutation.
   - Remove the legacy redirects later.
+    - Decision: the legacy redirects (`/admin`, `/admin/[section]`, `/admin/login`, `/admin/atendente/*`, `/employees/[id]`, `/services/[id]` and `app/_lib/redirect-to-shop-area.ts`) are **kept** in Phase 8, marked `TODO(legacy)`. They will be removed after the SaaS has been live for a while.
   - Final CLAUDE.md update and a stub Stripe webhook.
+    - `app/api/stripe/webhook/route.ts` verifies the signature (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`; 503 when unset) and only logs the event. Writing the Barbershop subscription fields is left for when billing ships.
 
 ## Claude tooling (Phase 0 contents)
 - **`tenant-guard`** (read-only; tools Read, Grep, Glob, Bash)
