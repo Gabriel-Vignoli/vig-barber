@@ -18,17 +18,38 @@ export const deleteBooking = async (bookingId: string) => {
   // Clients can only cancel their own bookings
   const booking = await prisma.booking.findFirst({
     where: { id: bookingId, userId: sessionUser.id },
-    select: { id: true, barbershop: { select: { id: true, slug: true } } },
+    select: {
+      id: true,
+      status: true,
+      bookingDate: true,
+      barbershop: { select: { id: true, slug: true } },
+    },
   })
 
   if (!booking) {
     throw new Error("Reserva não encontrada.")
   }
 
-  await prisma.booking.update({
-    where: { id: booking.id },
+  // Past, completed or already cancelled bookings stay as they are, so a
+  // client cannot remove revenue from the shop's stats
+  if (booking.status !== "PENDING" || booking.bookingDate <= new Date()) {
+    throw new Error("Esta reserva não pode mais ser cancelada.")
+  }
+
+  // Same filters in the write, so a status change in between is not overwritten
+  const { count } = await prisma.booking.updateMany({
+    where: {
+      id: booking.id,
+      userId: sessionUser.id,
+      status: "PENDING",
+      bookingDate: { gt: new Date() },
+    },
     data: { status: "CANCELLED" },
   })
+
+  if (count === 0) {
+    throw new Error("Esta reserva não pode mais ser cancelada.")
+  }
 
   revalidateShop(booking.barbershop)
   revalidatePath("/bookings")

@@ -102,16 +102,64 @@ beforeEach(async () => {
 })
 
 describe("deleteBooking", () => {
-  it("cancels the client's own booking and revalidates its shop", async () => {
+  it("cancels the client's own future booking and revalidates its shop", async () => {
     mockSession(f.client.id)
+    const future = await f.booking(
+      f.shopB.id,
+      f.serviceB.id,
+      f.employeeB.id,
+      f.client.id,
+      FUTURE,
+    )
 
-    await deleteBooking(f.bookingB.id)
+    await deleteBooking(future.id)
 
     const cancelled = await prisma.booking.findUniqueOrThrow({
-      where: { id: f.bookingB.id },
+      where: { id: future.id },
     })
     expect(cancelled.status).toBe("CANCELLED")
     expect(updateTag).toHaveBeenCalledWith(shopTag(f.shopB.id))
+  })
+
+  it("does not cancel a past, completed or already cancelled booking", async () => {
+    mockSession(f.client.id)
+    const completed = await prisma.booking.create({
+      data: {
+        barbershopId: f.shopB.id,
+        barbershopServiceId: f.serviceB.id,
+        employeeId: f.employeeB.id,
+        userId: f.client.id,
+        bookingDate: FUTURE,
+        status: "COMPLETED",
+      },
+    })
+    const cancelled = await prisma.booking.create({
+      data: {
+        barbershopId: f.shopB.id,
+        barbershopServiceId: f.serviceB.id,
+        employeeId: f.employeeB.id,
+        userId: f.client.id,
+        bookingDate: FUTURE,
+        status: "CANCELLED",
+      },
+    })
+
+    for (const id of [f.bookingB.id, completed.id, cancelled.id]) {
+      await expect(deleteBooking(id)).rejects.toThrow(
+        "Esta reserva não pode mais ser cancelada.",
+      )
+    }
+
+    const statuses = await prisma.booking.findMany({
+      where: { id: { in: [f.bookingB.id, completed.id, cancelled.id] } },
+      select: { id: true, status: true },
+    })
+    expect(Object.fromEntries(statuses.map((b) => [b.id, b.status]))).toEqual({
+      [f.bookingB.id]: "PENDING",
+      [completed.id]: "COMPLETED",
+      [cancelled.id]: "CANCELLED",
+    })
+    expect(updateTag).not.toHaveBeenCalled()
   })
 
   it("does not cancel another client's booking", async () => {
@@ -201,6 +249,36 @@ describe("createReview", () => {
         createReview({ bookingId, employeeId: f.employeeB.id, rating: 5 }),
       ).rejects.toThrow("Reserva inválida para avaliação.")
     }
+    expect(await prisma.review.count()).toBe(1)
+  })
+
+  it("rejects a second review of the same booking with a clear message", async () => {
+    mockSession(f.client.id)
+
+    await expect(
+      createReview({
+        bookingId: f.bookingA.id,
+        employeeId: f.employeeA.id,
+        rating: 5,
+      }),
+    ).rejects.toThrow("Esta reserva já foi avaliada.")
+    expect(await prisma.review.count()).toBe(1)
+  })
+
+  it("rejects a review at a suspended shop", async () => {
+    mockSession(f.client.id)
+    await prisma.barbershop.update({
+      where: { id: f.shopB.id },
+      data: { status: "SUSPENDED" },
+    })
+
+    await expect(
+      createReview({
+        bookingId: f.bookingB.id,
+        employeeId: f.employeeB.id,
+        rating: 5,
+      }),
+    ).rejects.toThrow("Esta barbearia não está aceitando avaliações.")
     expect(await prisma.review.count()).toBe(1)
   })
 
