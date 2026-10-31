@@ -19,7 +19,12 @@ export const resetDatabase = async () => {
 }
 
 export const createShop = (
-  data: { slug?: string; name?: string; status?: ShopStatus } = {},
+  data: {
+    slug?: string
+    name?: string
+    city?: string | null
+    status?: ShopStatus
+  } = {},
 ) => {
   const n = next()
   return prisma.barbershop.create({
@@ -27,7 +32,7 @@ export const createShop = (
       slug: data.slug ?? `shop-${n}`,
       name: data.name ?? `Barbearia ${n}`,
       address: `Rua Teste, ${n}`,
-      city: "São Paulo",
+      city: data.city === undefined ? "São Paulo" : data.city,
       description: "Barbearia de teste",
       phones: ["11999999999"],
       status: data.status ?? "ACTIVE",
