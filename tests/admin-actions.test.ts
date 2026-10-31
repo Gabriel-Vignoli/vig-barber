@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it } from "vitest"
 import { updateTag } from "next/cache"
 import { prisma } from "@/app/_lib/prisma"
 import { shopTag } from "@/app/_lib/tenant"
-import { getBrazilDateKey, getBrazilMonthRange } from "@/app/_lib/timezone"
+import {
+  getBrazilDateKey,
+  getBrazilDayRange,
+  getBrazilMonthRange,
+} from "@/app/_lib/timezone"
 import { createService } from "@/app/_actions/create-service"
 import { updateService } from "@/app/_actions/update-service"
 import { deleteService } from "@/app/_actions/delete-service"
@@ -567,6 +571,33 @@ describe("stats and overview actions", () => {
     )
     expect(bookingDay).toMatchObject({ Barbeiro: 1 })
     expect(overview.reduce((total, point) => total + point.bookings, 0)).toBe(1)
+  })
+
+  it("groups the overview by Brazil day, not UTC day", async () => {
+    // 22:30 in Brazil yesterday is 01:30 UTC today: a UTC bucket would put it
+    // on the wrong day
+    const { rangeStart: todayStart } = getBrazilDayRange(new Date())
+    const lateYesterday = new Date(todayStart.getTime() - 90 * 60 * 1000)
+    await prisma.booking.create({
+      data: {
+        barbershopId: f.shopA.id,
+        barbershopServiceId: f.serviceA.id,
+        employeeId: f.employeeA.id,
+        userId: f.client.id,
+        bookingDate: lateYesterday,
+      },
+    })
+
+    const overview = await getBarbershopOverview("barbearia-a", "7d")
+
+    const yesterdayKey = getBrazilDateKey(lateYesterday)
+    const sameDayAsFixture =
+      getBrazilDateKey(f.pastThisMonth) === yesterdayKey ? 1 : 0
+    expect(overview).toHaveLength(7)
+    expect(overview.at(-1)?.date).toBe(getBrazilDateKey(new Date()))
+    expect(overview.find((p) => p.date === yesterdayKey)?.bookings).toBe(
+      1 + sameDayAsFixture,
+    )
   })
 
   it("counts the bookings of an employee of this shop", async () => {

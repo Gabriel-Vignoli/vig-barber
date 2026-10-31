@@ -1,8 +1,8 @@
 "use server"
 
-import { subDays, startOfDay, endOfDay, format } from "date-fns"
 import { assertShopRole } from "../_lib/tenant"
 import { prisma } from "../_lib/prisma"
+import { getBrazilDateKey, getBrazilDayRange } from "../_lib/timezone"
 
 export type OverviewRange = "7d" | "30d" | "90d"
 
@@ -18,6 +18,8 @@ const RANGE_DAYS: Record<OverviewRange, number> = {
   "90d": 90,
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
 export const getBarbershopOverview = async (
   slug: string,
   range: OverviewRange,
@@ -25,28 +27,32 @@ export const getBarbershopOverview = async (
   const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const days = RANGE_DAYS[range]
-  const rangeStart = startOfDay(subDays(new Date(), days - 1))
-  const rangeEnd = endOfDay(new Date())
+  // Brazil days (fixed UTC-3), not the UTC days of the Vercel runtime
+  const { rangeStart: todayStart, rangeEnd } = getBrazilDayRange(new Date())
+  const rangeStart = new Date(todayStart.getTime() - (days - 1) * DAY_MS)
 
   const bookings = await prisma.booking.findMany({
     where: {
       barbershopId: shop.id,
-      bookingDate: { gte: rangeStart, lte: rangeEnd },
+      bookingDate: { gte: rangeStart, lt: rangeEnd },
       status: { not: "CANCELLED" },
     },
-    include: { barbershopService: { select: { price: true } } },
+    select: {
+      bookingDate: true,
+      barbershopService: { select: { price: true } },
+    },
   })
 
   const byDate = new Map<string, { bookings: number; revenue: number }>()
 
   for (let i = 0; i < days; i++) {
-    const date = format(subDays(new Date(), days - 1 - i), "yyyy-MM-dd")
-    byDate.set(date, { bookings: 0, revenue: 0 })
+    // Noon of each Brazil day, so the key never falls on a day boundary
+    const dayNoon = new Date(rangeStart.getTime() + i * DAY_MS + DAY_MS / 2)
+    byDate.set(getBrazilDateKey(dayNoon), { bookings: 0, revenue: 0 })
   }
 
   for (const booking of bookings) {
-    const dateKey = format(booking.bookingDate, "yyyy-MM-dd")
-    const entry = byDate.get(dateKey)
+    const entry = byDate.get(getBrazilDateKey(booking.bookingDate))
     if (entry) {
       entry.bookings += 1
       entry.revenue += Number(booking.barbershopService.price)
