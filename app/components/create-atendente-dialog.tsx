@@ -51,10 +51,10 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      const { attached } = await createAtendente(slug, values)
+      const { invited } = await createAtendente(slug, values)
       toast.success(
-        attached
-          ? "Usuário existente adicionado como atendente!"
+        invited
+          ? "Este email já tem conta. Enviamos um convite para ele entrar na equipe."
           : "Atendente criado com sucesso!",
       )
       setOpen(false)
@@ -86,8 +86,8 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
           <DialogTitle>Novo atendente</DialogTitle>
           <DialogDescription>
             Cria um usuário com acesso apenas ao agendamento para clientes. Se o
-            email já tiver conta, ela é adicionada à barbearia e mantém o
-            próprio nome e senha.
+            email já tiver conta, enviamos um convite por email e a pessoa entra
+            na equipe ao aceitar.
           </DialogDescription>
         </DialogHeader>
 

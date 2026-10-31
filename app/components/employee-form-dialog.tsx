@@ -59,11 +59,11 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      const { attached } = await createEmployee(slug, values)
+      const { invited } = await createEmployee(slug, values)
       toast.success(
-        attached
-          ? "Usuário existente adicionado como funcionário!"
-          : "Funcionário criado com sucesso!",
+        invited
+          ? "Este email já tem conta. Enviamos um convite para ele entrar na equipe."
+          : "Funcionário adicionado com sucesso!",
       )
       setOpen(false)
       router.refresh()
@@ -94,7 +94,7 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
           <DialogTitle>Novo funcionário</DialogTitle>
           <DialogDescription>
             Cria um usuário com papel de funcionário. Se o email já tiver conta,
-            ela é adicionada à barbearia e mantém o próprio nome e senha.
+            enviamos um convite por email e a pessoa entra na equipe ao aceitar.
           </DialogDescription>
         </DialogHeader>
 

@@ -28,6 +28,7 @@ import {
 } from "./helpers/factories"
 import { NotFoundError, RedirectError } from "./helpers/navigation"
 import { mockSession } from "./helpers/session"
+import { failNextEmail, getSentEmails } from "./helpers/email"
 
 // A Monday, far in the future
 const FUTURE = new Date("2030-01-07T15:00:00.000Z")
@@ -116,7 +117,7 @@ beforeEach(async () => {
 })
 
 describe("createEmployee with an existing user", () => {
-  it("attaches the user without changing their name or password", async () => {
+  it("sends an invitation instead of attaching the account", async () => {
     const result = await createEmployee("barbearia-a", {
       name: "Nome Trocado",
       email: "cliente@test.local",
@@ -124,7 +125,7 @@ describe("createEmployee with an existing user", () => {
       bio: "Especialista em degradê",
     })
 
-    expect(result).toEqual({ attached: true })
+    expect(result).toEqual({ invited: true })
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: f.client.id },
@@ -132,23 +133,65 @@ describe("createEmployee with an existing user", () => {
     })
     expect(user.name).toBe("Cliente Original")
     expect(user.password).toBe(ORIGINAL_HASH)
-    expect(user.employees).toMatchObject([
-      { barbershopId: f.shopA.id, bio: "Especialista em degradê" },
+    expect(user.employees).toEqual([])
+    expect(user.memberships).toEqual([])
+
+    const invitations = await prisma.invitation.findMany()
+    expect(invitations).toMatchObject([
+      {
+        email: "cliente@test.local",
+        barbershopId: f.shopA.id,
+        role: "EMPLOYEE",
+        invitedById: f.adminA.id,
+        acceptedAt: null,
+      },
     ])
-    expect(user.memberships).toMatchObject([
-      { barbershopId: f.shopA.id, role: "EMPLOYEE" },
-    ])
+    expect(getSentEmails()).toMatchObject([{ to: "cliente@test.local" }])
   })
 
-  it("rejects attaching the same barber twice", async () => {
+  it("matches the existing account case-insensitively", async () => {
+    const usersBefore = await prisma.user.count()
+
+    const result = await createEmployee("barbearia-a", {
+      email: "CLIENTE@Test.local",
+    })
+
+    expect(result).toEqual({ invited: true })
+    expect(await prisma.user.count()).toBe(usersBefore)
+    expect(
+      await prisma.invitation.findFirstOrThrow({ select: { email: true } }),
+    ).toEqual({ email: "cliente@test.local" })
+  })
+
+  it("replaces the pending invitation when invited again", async () => {
     await createEmployee("barbearia-a", { email: "cliente@test.local" })
+    const first = await prisma.invitation.findFirstOrThrow()
+
+    await createEmployee("barbearia-a", { email: "cliente@test.local" })
+
+    const invitations = await prisma.invitation.findMany()
+    expect(invitations).toHaveLength(1)
+    expect(invitations[0].tokenHash).not.toBe(first.tokenHash)
+  })
+
+  it("keeps no invitation when the email fails", async () => {
+    failNextEmail()
 
     await expect(
       createEmployee("barbearia-a", { email: "cliente@test.local" }),
+    ).rejects.toThrow("Não foi possível enviar o convite. Tente novamente.")
+    expect(await prisma.invitation.count()).toBe(0)
+  })
+
+  it("rejects an active barber of this shop", async () => {
+    const barber = await prisma.user.findUniqueOrThrow({
+      where: { id: f.barberA.id },
+    })
+
+    await expect(
+      createEmployee("barbearia-a", { email: barber.email! }),
     ).rejects.toThrow("Este usuário já é funcionário desta barbearia.")
-    expect(
-      await prisma.employee.count({ where: { userId: f.client.id } }),
-    ).toBe(1)
+    expect(await prisma.invitation.count()).toBe(0)
   })
 
   it("rejects an atendente of this shop", async () => {
@@ -167,8 +210,9 @@ describe("createEmployee with an existing user", () => {
       where: { id: f.adminA.id },
     })
 
-    await createEmployee("barbearia-a", { email: admin.email! })
+    const result = await createEmployee("barbearia-a", { email: admin.email! })
 
+    expect(result).toEqual({ invited: false })
     const membership = await prisma.membership.findFirstOrThrow({
       where: { userId: f.adminA.id, barbershopId: f.shopA.id },
     })
@@ -178,9 +222,10 @@ describe("createEmployee with an existing user", () => {
         where: { userId: f.adminA.id, barbershopId: f.shopA.id },
       }),
     ).toBe(1)
+    expect(await prisma.invitation.count()).toBe(0)
   })
 
-  it("reactivates a barber removed earlier", async () => {
+  it("invites a barber removed earlier instead of reactivating them", async () => {
     await prisma.employee.update({
       where: { id: f.employeeA.id },
       data: { isActive: false },
@@ -190,17 +235,34 @@ describe("createEmployee with an existing user", () => {
       where: { id: f.barberA.id },
     })
 
-    await createEmployee("barbearia-a", { email: barber.email! })
+    const result = await createEmployee("barbearia-a", {
+      email: barber.email!,
+    })
 
+    expect(result).toEqual({ invited: true })
     const employee = await prisma.employee.findUniqueOrThrow({
       where: { id: f.employeeA.id },
     })
-    expect(employee.isActive).toBe(true)
-    expect(
-      await prisma.membership.count({
-        where: { userId: f.barberA.id, barbershopId: f.shopA.id },
-      }),
-    ).toBe(1)
+    expect(employee.isActive).toBe(false)
+  })
+
+  it("creates a brand-new user directly", async () => {
+    const result = await createEmployee("barbearia-a", {
+      name: "Novo Barbeiro",
+      email: "novo@test.local",
+      password: NEW_PASSWORD,
+    })
+
+    expect(result).toEqual({ invited: false })
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { email: "novo@test.local" },
+      include: { employees: true, memberships: true },
+    })
+    expect(user.employees).toMatchObject([{ barbershopId: f.shopA.id }])
+    expect(user.memberships).toMatchObject([
+      { barbershopId: f.shopA.id, role: "EMPLOYEE" },
+    ])
+    expect(await prisma.invitation.count()).toBe(0)
   })
 
   it("requires name and password for a brand-new user", async () => {
@@ -211,17 +273,24 @@ describe("createEmployee with an existing user", () => {
       await prisma.user.count({ where: { email: "novo@test.local" } }),
     ).toBe(0)
   })
+
+  it("cannot invite into another shop", async () => {
+    await expect(
+      createEmployee("barbearia-b", { email: "cliente@test.local" }),
+    ).rejects.toThrow("Sem permissão.")
+    expect(await prisma.invitation.count()).toBe(0)
+  })
 })
 
 describe("createAtendente with an existing user", () => {
-  it("attaches the user without changing their name or password", async () => {
+  it("sends an invitation instead of attaching the account", async () => {
     const result = await createAtendente("barbearia-a", {
       name: "Nome Trocado",
       email: "cliente@test.local",
       password: NEW_PASSWORD,
     })
 
-    expect(result).toEqual({ attached: true })
+    expect(result).toEqual({ invited: true })
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: f.client.id },
@@ -229,16 +298,23 @@ describe("createAtendente with an existing user", () => {
     })
     expect(user.name).toBe("Cliente Original")
     expect(user.password).toBe(ORIGINAL_HASH)
-    expect(user.memberships).toMatchObject([
-      { barbershopId: f.shopA.id, role: "ATENDENTE" },
+    expect(user.memberships).toEqual([])
+    expect(await prisma.invitation.findMany()).toMatchObject([
+      {
+        email: "cliente@test.local",
+        barbershopId: f.shopA.id,
+        role: "ATENDENTE",
+      },
     ])
   })
 
-  it("rejects attaching the same atendente twice", async () => {
-    await createAtendente("barbearia-a", { email: "cliente@test.local" })
+  it("rejects an atendente of this shop", async () => {
+    const atendente = await prisma.user.findUniqueOrThrow({
+      where: { id: f.atendenteA.id },
+    })
 
     await expect(
-      createAtendente("barbearia-a", { email: "cliente@test.local" }),
+      createAtendente("barbearia-a", { email: atendente.email! }),
     ).rejects.toThrow("Este usuário já é atendente desta barbearia.")
   })
 
@@ -254,14 +330,11 @@ describe("createAtendente with an existing user", () => {
 })
 
 describe("updateEmployee and the global account", () => {
-  it("never changes an attached user's password or name", async () => {
-    // A shop admin attaches someone else's account by email...
-    await createEmployee("barbearia-a", { email: "cliente@test.local" })
-    const employee = await prisma.employee.findFirstOrThrow({
-      where: { userId: f.client.id, barbershopId: f.shopA.id },
-    })
+  it("never changes the barber account password or name", async () => {
+    // The client works as a barber in shop A (e.g. accepted an invitation)...
+    const employee = await createEmployeeRow(f.client.id, f.shopA.id)
 
-    // ...and then tries to set a password (a tampered client can send it)
+    // ...and the shop admin tries to set a password (a tampered client can)
     await updateEmployee("barbearia-a", employee.id, {
       bio: "Bio nova",
       // @ts-expect-error the action no longer accepts a password

@@ -4,11 +4,14 @@ import bcrypt from "bcryptjs"
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
+import { createInvitation, findUserByEmail } from "../_lib/invitation"
 import { createEmployeeSchema } from "../_lib/validations/employee"
 
-// Adds a barber to the shop. An email that already has an account is attached
-// through a Membership (and an Employee row) and keeps its own name, password
-// and every other global field. Only a brand-new user gets name and password.
+// Adds a barber to the shop. An email that already has an account is never
+// attached without consent: it gets an invitation (accepted at /convite).
+// Only a brand-new user is created here, with name and password. The one
+// exception is the shop's own ADMIN, who already belongs to the shop and just
+// gets an Employee row (an owner who cuts hair).
 export const createEmployee = async (
   slug: string,
   input: {
@@ -19,8 +22,8 @@ export const createEmployee = async (
     imageUrl?: string
     phone?: string
   },
-): Promise<{ attached: boolean }> => {
-  const { shop } = await assertShopRole(slug, ["ADMIN"])
+): Promise<{ invited: boolean }> => {
+  const { shop, userId } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = createEmployeeSchema.safeParse(input)
 
@@ -35,10 +38,7 @@ export const createEmployee = async (
     phone: parsed.data.phone || null,
   }
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true },
-  })
+  const existingUser = await findUserByEmail(email)
 
   if (existingUser) {
     const [membership, employee] = await Promise.all([
@@ -66,39 +66,42 @@ export const createEmployee = async (
       throw new Error("Este usuário já é funcionário desta barbearia.")
     }
 
-    // One role per shop: an atendente cannot also be a barber here. An ADMIN
-    // who cuts hair keeps the ADMIN membership and gets an Employee row.
+    // One role per shop: an atendente cannot also be a barber here
     if (membership?.role === "ATENDENTE") {
       throw new Error("Este usuário já é atendente desta barbearia.")
     }
 
-    await prisma.$transaction(async (tx) => {
+    if (membership) {
+      // Already staff here (ADMIN, or a leftover EMPLOYEE membership): no
+      // consent needed to add or reactivate the Employee row
       if (employee) {
-        // A barber removed earlier (kept inactive for their history) is back
-        await tx.employee.updateMany({
+        await prisma.employee.updateMany({
           where: { id: employee.id, barbershopId: shop.id },
           data: { ...profile, isActive: true },
         })
       } else {
-        await tx.employee.create({
+        await prisma.employee.create({
           data: { userId: existingUser.id, barbershopId: shop.id, ...profile },
         })
       }
 
-      if (!membership) {
-        await tx.membership.create({
-          data: {
-            userId: existingUser.id,
-            barbershopId: shop.id,
-            role: "EMPLOYEE",
-          },
-        })
-      }
+      revalidateShop(shop)
+
+      return { invited: false }
+    }
+
+    const sent = await createInvitation({
+      shop,
+      email,
+      role: "EMPLOYEE",
+      invitedById: userId,
     })
 
-    revalidateShop(shop)
+    if (!sent) {
+      throw new Error("Não foi possível enviar o convite. Tente novamente.")
+    }
 
-    return { attached: true }
+    return { invited: true }
   }
 
   if (!name || !password) {
@@ -123,5 +126,5 @@ export const createEmployee = async (
 
   revalidateShop(shop)
 
-  return { attached: false }
+  return { invited: false }
 }

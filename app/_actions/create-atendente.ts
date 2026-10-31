@@ -4,11 +4,12 @@ import bcrypt from "bcryptjs"
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
+import { createInvitation, findUserByEmail } from "../_lib/invitation"
 import { createAtendenteSchema } from "../_lib/validations/atendente"
 
 // Adds an atendente to the shop. An email that already has an account is
-// attached through a Membership and keeps its own name, password and every
-// other global field. Only a brand-new user gets name and password.
+// never attached without consent: it gets an invitation (accepted at
+// /convite). Only a brand-new user is created here, with name and password.
 export const createAtendente = async (
   slug: string,
   input: {
@@ -16,8 +17,8 @@ export const createAtendente = async (
     email: string
     password?: string
   },
-): Promise<{ attached: boolean }> => {
-  const { shop } = await assertShopRole(slug, ["ADMIN"])
+): Promise<{ invited: boolean }> => {
+  const { shop, userId } = await assertShopRole(slug, ["ADMIN"])
 
   const parsed = createAtendenteSchema.safeParse(input)
 
@@ -27,10 +28,7 @@ export const createAtendente = async (
 
   const { name, email, password } = parsed.data
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true },
-  })
+  const existingUser = await findUserByEmail(email)
 
   if (existingUser) {
     const membership = await prisma.membership.findUnique({
@@ -49,17 +47,18 @@ export const createAtendente = async (
       throw new Error("Este usuário já faz parte da equipe desta barbearia.")
     }
 
-    await prisma.membership.create({
-      data: {
-        userId: existingUser.id,
-        barbershopId: shop.id,
-        role: "ATENDENTE",
-      },
+    const sent = await createInvitation({
+      shop,
+      email,
+      role: "ATENDENTE",
+      invitedById: userId,
     })
 
-    revalidateShop(shop)
+    if (!sent) {
+      throw new Error("Não foi possível enviar o convite. Tente novamente.")
+    }
 
-    return { attached: true }
+    return { invited: true }
   }
 
   if (!name || !password) {
@@ -81,5 +80,5 @@ export const createAtendente = async (
 
   revalidateShop(shop)
 
-  return { attached: false }
+  return { invited: false }
 }
