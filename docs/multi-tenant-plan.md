@@ -11,7 +11,7 @@
 - [x] Phase 4c — auth (migration `20261030120000_drop_user_role` must be applied to Supabase with `prisma migrate deploy` only AFTER the 4a–4c code is deployed)
 - [x] Phase 5 — branding (set `UPLOADTHING_TOKEN` locally and on Vercel; optional `EMAIL_FROM`)
 - [x] Phase 6 — platform + invitations (invite emails need `RESEND_API_KEY`; set `APP_URL` on Vercel for a custom domain)
-- [ ] Phase 7 — landing + finder
+- [x] Phase 7 — landing + finder (set `CONTACT_EMAIL` and/or `CONTACT_WHATSAPP` on Vercel to show the contact CTA)
 - [ ] Phase 8 — hardening
 
 
