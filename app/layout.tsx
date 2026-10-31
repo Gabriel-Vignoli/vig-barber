@@ -12,15 +12,22 @@ const nunito = Nunito({
   subsets: ["latin"],
 })
 
+// Platform-wide defaults. Shop pages override them in app/b/[slug]/layout.tsx.
 export const metadata: Metadata = {
   title: {
     default: "Vig Barber",
     template: "%s | Vig Barber",
   },
   description:
-    "Agende seu horário com os melhores barbeiros da região. Cortes, barba e cuidados personalizados.",
+    "Vig Barber é a plataforma de agendamento online para barbearias. Encontre uma barbearia, escolha o serviço e o profissional e reserve seu horário.",
+  applicationName: "Vig Barber",
   icons: {
     icon: "/scissor-icon.svg",
+  },
+  openGraph: {
+    siteName: "Vig Barber",
+    locale: "pt_BR",
+    type: "website",
   },
 }
 

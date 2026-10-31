@@ -1,5 +1,12 @@
+import type { Metadata } from "next"
 import Header from "../components/header"
 import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
+
+export const metadata: Metadata = {
+  title: "Política de Privacidade",
+  description:
+    "Como a plataforma Vig Barber coleta, usa e protege seus dados pessoais.",
+}
 
 const PrivacyPolicyPage = () => {
   return (
@@ -12,8 +19,9 @@ const PrivacyPolicyPage = () => {
 
         <div className="space-y-4 text-sm text-gray-400 lg:text-base">
           <p>
-            Esta política descreve como a Vig Barber coleta, usa e protege suas
-            informações pessoais.
+            Esta política descreve como a plataforma Vig Barber coleta, usa e
+            protege suas informações pessoais, em todas as barbearias que a
+            utilizam.
           </p>
 
           {PRIVACY_POLICY_SECTIONS.map((section) => (

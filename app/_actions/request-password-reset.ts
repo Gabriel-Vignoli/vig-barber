@@ -2,7 +2,7 @@
 
 import { randomInt } from "crypto"
 import { prisma } from "../_lib/prisma"
-import { resend } from "../_lib/resend"
+import { EMAIL_FROM, resend } from "../_lib/resend"
 import { requestResetCodeSchema } from "../_lib/validations/password-reset"
 
 const CODE_EXPIRY_MINUTES = 15
@@ -39,7 +39,7 @@ export const requestPasswordReset = async (input: { email: string }) => {
   ])
 
   await resend.emails.send({
-    from: "Vig Barber <onboarding@resend.dev>",
+    from: EMAIL_FROM,
     to: email,
     subject: "Seu código de redefinição de senha",
     html: `
