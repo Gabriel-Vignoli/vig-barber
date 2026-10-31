@@ -3,6 +3,7 @@
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
+import { employeeServiceIdsSchema } from "../_lib/validations/employee"
 
 export const updateEmployeeServices = async (
   slug: string,
@@ -11,8 +12,15 @@ export const updateEmployeeServices = async (
 ) => {
   const { shop } = await assertShopRole(slug, ["ADMIN"])
 
+  const parsed = employeeServiceIdsSchema.safeParse(serviceIds)
+
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0].message)
+  }
+
+  // A removed barber (kept inactive for their history) is not editable
   const employee = await prisma.employee.findFirst({
-    where: { id: employeeId, barbershopId: shop.id },
+    where: { id: employeeId, barbershopId: shop.id, isActive: true },
     select: { id: true },
   })
 
@@ -21,7 +29,7 @@ export const updateEmployeeServices = async (
   }
 
   // Every service must belong to this shop
-  const uniqueServiceIds = [...new Set(serviceIds)]
+  const uniqueServiceIds = [...new Set(parsed.data)]
   const shopServiceCount = await prisma.barbershopService.count({
     where: { id: { in: uniqueServiceIds }, barbershopId: shop.id },
   })

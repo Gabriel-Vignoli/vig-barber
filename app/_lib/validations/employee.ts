@@ -32,3 +32,9 @@ export const updateEmployeeSchema = z.object({
 })
 
 export type UpdateEmployeeFormValues = z.infer<typeof updateEmployeeSchema>
+
+// The service ids picked in the "Serviços" dialog. Ownership (every id is a
+// service of this shop) is checked in the action.
+export const employeeServiceIdsSchema = z
+  .array(z.string().min(1, "Serviço inválido."), "Serviços inválidos.")
+  .max(100, "Serviços demais.")

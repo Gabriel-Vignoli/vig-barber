@@ -21,8 +21,9 @@ export const updateEmployeeSchedule = async (
     throw new Error(parsed.error.issues[0].message)
   }
 
+  // A removed barber (kept inactive for their history) is not editable
   const employee = await prisma.employee.findFirst({
-    where: { id: employeeId, barbershopId: shop.id },
+    where: { id: employeeId, barbershopId: shop.id, isActive: true },
     select: { id: true },
   })
 
