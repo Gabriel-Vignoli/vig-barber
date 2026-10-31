@@ -54,6 +54,19 @@ const EXPENSE_INPUT = {
   date: new Date("2030-01-07T15:00:00.000Z"),
 }
 
+const BARBERSHOP_INPUT = {
+  name: "Barbearia A Nova",
+  description: "Nova descrição da barbearia A",
+  address: "Rua Nova, 10",
+  city: "Campinas",
+  latitude: "",
+  longitude: "",
+  logoUrl: "",
+  bannerUrl: "https://utfs.io/f/a.png",
+  instagramUrl: "",
+  phones: ["11988888888"],
+}
+
 const SCHEDULE_INPUT = [
   {
     weekday: "MONDAY" as const,
@@ -204,12 +217,8 @@ describe("admin access", () => {
     )
     await expect(
       updateBarbershop("barbearia-b", {
+        ...BARBERSHOP_INPUT,
         name: "Invadida",
-        description: "Descrição alterada pelo admin de outra barbearia",
-        address: "Rua X, 1",
-        bannerUrl: "https://utfs.io/f/x.png",
-        instagramUrl: "",
-        phones: ["11999999999"],
       }),
     ).rejects.toThrow("Sem permissão.")
     await expect(deleteService("barbearia-b", f.serviceB.id)).rejects.toThrow(
@@ -301,21 +310,77 @@ describe("expenses", () => {
 
 describe("barbershop", () => {
   it("updates only the admin's shop", async () => {
-    await updateBarbershop("barbearia-a", {
-      name: "Barbearia A Nova",
-      description: "Nova descrição da barbearia A",
-      address: "Rua Nova, 10",
-      bannerUrl: "https://utfs.io/f/a.png",
-      instagramUrl: "",
-      phones: ["11988888888"],
-    })
+    await updateBarbershop("barbearia-a", BARBERSHOP_INPUT)
 
     const [shopA, shopB] = await Promise.all([
       prisma.barbershop.findUniqueOrThrow({ where: { id: f.shopA.id } }),
       prisma.barbershop.findUniqueOrThrow({ where: { id: f.shopB.id } }),
     ])
     expect(shopA.name).toBe("Barbearia A Nova")
+    expect(shopA.city).toBe("Campinas")
+    expect(shopA.logoUrl).toBeNull()
+    expect(shopA.latitude).toBeNull()
     expect(shopB.name).toBe("Barbearia B")
+    expect(updateTag).toHaveBeenCalledWith(shopTag(f.shopA.id))
+  })
+
+  it("saves the uploaded logo, banner and the coordinates", async () => {
+    await updateBarbershop("barbearia-a", {
+      ...BARBERSHOP_INPUT,
+      logoUrl: "https://abc123.ufs.sh/f/logo.png",
+      bannerUrl: "https://abc123.ufs.sh/f/banner.png",
+      latitude: "-23,5568",
+      longitude: "-46.6608",
+    })
+
+    const shopA = await prisma.barbershop.findUniqueOrThrow({
+      where: { id: f.shopA.id },
+    })
+    expect(shopA.logoUrl).toBe("https://abc123.ufs.sh/f/logo.png")
+    expect(shopA.bannerUrl).toBe("https://abc123.ufs.sh/f/banner.png")
+    expect(shopA.latitude).toBe(-23.5568)
+    expect(shopA.longitude).toBe(-46.6608)
+  })
+
+  it.each([
+    [
+      "an image from a host next/image does not allow",
+      { logoUrl: "https://evil.example.com/logo.png" },
+      "Envie uma imagem ou informe uma URL do UploadThing ou do Unsplash.",
+    ],
+    [
+      "a javascript: banner",
+      { bannerUrl: "javascript:alert(1)" },
+      "Envie uma imagem ou informe uma URL do UploadThing ou do Unsplash.",
+    ],
+    [
+      "a latitude out of range",
+      { latitude: "123", longitude: "-46.6" },
+      "Latitude inválida (entre -90 e 90).",
+    ],
+    [
+      "only one coordinate",
+      { latitude: "-23.5", longitude: "" },
+      "Informe a latitude e a longitude, ou deixe as duas em branco.",
+    ],
+    ["an empty city", { city: " " }, "Informe a cidade."],
+  ])("rejects %s and changes nothing", async (_, override, message) => {
+    await expect(
+      updateBarbershop("barbearia-a", { ...BARBERSHOP_INPUT, ...override }),
+    ).rejects.toThrow(message)
+
+    const shopA = await prisma.barbershop.findUniqueOrThrow({
+      where: { id: f.shopA.id },
+    })
+    expect(shopA.name).toBe("Barbearia A")
+  })
+
+  it("rejects an atendente of the shop", async () => {
+    mockSession(f.atendenteA.id)
+
+    await expect(
+      updateBarbershop("barbearia-a", BARBERSHOP_INPUT),
+    ).rejects.toThrow("Sem permissão.")
   })
 })
 

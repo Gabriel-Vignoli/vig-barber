@@ -10,6 +10,7 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Textarea } from "./ui/textarea"
 import { Card, CardContent } from "./ui/card"
+import ShopImageUpload from "./shop-image-upload"
 import { updateBarbershop } from "../_actions/update-barbershop"
 import {
   updateBarbershopSchema,
@@ -22,6 +23,10 @@ interface BarbershopFormProps {
     name: string
     description: string
     address: string
+    city: string | null
+    latitude: number | null
+    longitude: number | null
+    logoUrl: string | null
     bannerUrl: string | null
     instagramUrl: string | null
     phones: string[]
@@ -37,6 +42,10 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
     name: barbershop.name,
     description: barbershop.description,
     address: barbershop.address,
+    city: barbershop.city ?? "",
+    latitude: barbershop.latitude?.toString() ?? "",
+    longitude: barbershop.longitude?.toString() ?? "",
+    logoUrl: barbershop.logoUrl ?? "",
     bannerUrl: barbershop.bannerUrl ?? "",
     instagramUrl: barbershop.instagramUrl ?? "",
     phones: barbershop.phones.length > 0 ? barbershop.phones : [""],
@@ -50,12 +59,17 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
     reset,
     formState: { errors, isDirty, isSubmitting, isSubmitted },
   } = useForm<UpdateBarbershopFormValues>({
-    resolver: zodResolver(updateBarbershopSchema),
+    resolver: zodResolver(updateBarbershopSchema) as never,
     defaultValues,
   })
 
   const phones = watch("phones")
+  const logoUrl = watch("logoUrl")
   const bannerUrl = watch("bannerUrl")
+
+  const setImage = (field: "logoUrl" | "bannerUrl", url: string) => {
+    setValue(field, url, { shouldDirty: true, shouldValidate: true })
+  }
 
   const handlePhoneChange = (index: number, value: string) => {
     setValue(`phones.${index}`, value, {
@@ -125,25 +139,47 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
 
       <Card className="border-0 shadow-md">
         <CardContent className="space-y-4 p-4 lg:p-6">
-          <h2 className="font-semibold">Imagem</h2>
-
-          {bannerUrl && /^https?:\/\//.test(bannerUrl) && (
-            <div className="bg-muted h-40 overflow-hidden rounded-lg lg:h-56">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={bannerUrl}
-                alt="Pré-visualização da barbearia"
-                referrerPolicy="no-referrer"
-                className="h-full w-full object-cover"
-              />
-            </div>
-          )}
+          <h2 className="font-semibold">Imagens</h2>
 
           <div className="space-y-1.5">
-            <Label htmlFor="barbershop-image">URL da imagem</Label>
+            <Label htmlFor="barbershop-logo">
+              Logo{" "}
+              <span className="text-muted-foreground font-normal">
+                (opcional, de preferência quadrada)
+              </span>
+            </Label>
+            <ShopImageUpload
+              slug={slug}
+              value={logoUrl}
+              onChange={(url) => setImage("logoUrl", url)}
+              alt="Pré-visualização da logo"
+              previewClassName="size-24 rounded-full"
+              removable
+            />
+            <Input
+              id="barbershop-logo"
+              placeholder="ou cole a URL da imagem"
+              {...register("logoUrl")}
+            />
+            {errors.logoUrl && (
+              <p className="text-destructive text-xs">
+                {errors.logoUrl.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="barbershop-image">Banner</Label>
+            <ShopImageUpload
+              slug={slug}
+              value={bannerUrl}
+              onChange={(url) => setImage("bannerUrl", url)}
+              alt="Pré-visualização do banner"
+              previewClassName="h-40 rounded-lg lg:h-56"
+            />
             <Input
               id="barbershop-image"
-              placeholder="https://..."
+              placeholder="ou cole a URL da imagem"
               {...register("bannerUrl")}
             />
             {errors.bannerUrl && (
@@ -167,6 +203,66 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
                 {errors.address.message}
               </p>
             )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="barbershop-city">Cidade</Label>
+            <Input
+              id="barbershop-city"
+              placeholder="São Paulo"
+              {...register("city")}
+            />
+            {errors.city && (
+              <p className="text-destructive text-xs">{errors.city.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">
+              Coordenadas{" "}
+              <span className="text-muted-foreground font-normal">
+                (opcional, deixam o pino do mapa exato)
+              </span>
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="barbershop-latitude"
+                  className="text-muted-foreground text-xs"
+                >
+                  Latitude
+                </Label>
+                <Input
+                  id="barbershop-latitude"
+                  inputMode="decimal"
+                  placeholder="-23.5568"
+                  {...register("latitude")}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label
+                  htmlFor="barbershop-longitude"
+                  className="text-muted-foreground text-xs"
+                >
+                  Longitude
+                </Label>
+                <Input
+                  id="barbershop-longitude"
+                  inputMode="decimal"
+                  placeholder="-46.6608"
+                  {...register("longitude")}
+                />
+              </div>
+            </div>
+            {(errors.latitude || errors.longitude) && (
+              <p className="text-destructive text-xs">
+                {errors.latitude?.message ?? errors.longitude?.message}
+              </p>
+            )}
+            <p className="text-muted-foreground text-xs">
+              No Google Maps, clique com o botão direito no local da barbearia e
+              copie os números que aparecem no topo do menu.
+            </p>
           </div>
 
           <div className="space-y-1.5">
