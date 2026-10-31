@@ -605,3 +605,199 @@ describe("admin fetchers", () => {
     expect(past.bookings.map((b) => b.id)).toEqual([f.bookingA.id])
   })
 })
+
+// Everything that belongs to one shop, to prove an action left it untouched
+const snapshotShop = async (barbershopId: string) => {
+  const byId = { orderBy: { id: "asc" as const } }
+  const [
+    shop,
+    services,
+    expenses,
+    employees,
+    memberships,
+    bookings,
+    invitations,
+  ] = await Promise.all([
+    prisma.barbershop.findUniqueOrThrow({ where: { id: barbershopId } }),
+    prisma.barbershopService.findMany({ where: { barbershopId }, ...byId }),
+    prisma.expense.findMany({ where: { barbershopId }, ...byId }),
+    prisma.employee.findMany({
+      where: { barbershopId },
+      include: { services: byId, schedules: byId },
+      ...byId,
+    }),
+    prisma.membership.findMany({ where: { barbershopId }, ...byId }),
+    prisma.booking.findMany({ where: { barbershopId }, ...byId }),
+    prisma.invitation.findMany({ where: { barbershopId }, ...byId }),
+  ])
+
+  return {
+    shop,
+    services,
+    expenses,
+    employees,
+    memberships,
+    bookings,
+    invitations,
+    userCount: await prisma.user.count(),
+  }
+}
+
+// Every ADMIN-only action, aimed at shop B with shop B's own ids
+const adminMutationsOnShopB = (): [string, () => Promise<unknown>][] => [
+  ["createService", () => createService("barbearia-b", SERVICE_INPUT)],
+  [
+    "updateService",
+    () => updateService("barbearia-b", f.serviceB.id, SERVICE_INPUT),
+  ],
+  ["deleteService", () => deleteService("barbearia-b", f.serviceB.id)],
+  ["createExpense", () => createExpense("barbearia-b", EXPENSE_INPUT)],
+  [
+    "updateExpense",
+    () => updateExpense("barbearia-b", f.expenseB.id, EXPENSE_INPUT),
+  ],
+  ["deleteExpense", () => deleteExpense("barbearia-b", f.expenseB.id)],
+  ["updateBarbershop", () => updateBarbershop("barbearia-b", BARBERSHOP_INPUT)],
+  [
+    "createEmployee",
+    () =>
+      createEmployee("barbearia-b", {
+        name: "Barbeiro Novo",
+        email: "novo-barbeiro@test.local",
+        password: "Senha12345!",
+      }),
+  ],
+  [
+    "updateEmployee",
+    () => updateEmployee("barbearia-b", f.employeeB.id, { bio: "Invadido" }),
+  ],
+  [
+    "updateEmployeeSchedule",
+    () => updateEmployeeSchedule("barbearia-b", f.employeeB.id, SCHEDULE_INPUT),
+  ],
+  [
+    "updateEmployeeServices",
+    () => updateEmployeeServices("barbearia-b", f.employeeB.id, []),
+  ],
+  ["deleteEmployee", () => deleteEmployee("barbearia-b", f.employeeB.id)],
+  [
+    "createAtendente",
+    () =>
+      createAtendente("barbearia-b", {
+        name: "Atendente Nova",
+        email: "nova-atendente@test.local",
+        password: "Senha12345!",
+      }),
+  ],
+  ["deleteAtendente", () => deleteAtendente("barbearia-b", f.atendenteB.id)],
+]
+
+const adminReadsOfShopB = (): [string, () => Promise<unknown>][] => [
+  [
+    "getDashboardStats",
+    () =>
+      getDashboardStats("barbearia-b", { period: "month", date: new Date() }),
+  ],
+  ["getMonthlyOverview", () => getMonthlyOverview("barbearia-b")],
+  ["getNetProfit", () => getNetProfit("barbearia-b")],
+  ["getExpensesOverview", () => getExpensesOverview("barbearia-b")],
+  ["getEmployeesOverview", () => getEmployeesOverview("barbearia-b")],
+  [
+    "getEmployeeStats",
+    () => getEmployeeStats("barbearia-b", f.employeeB.id, "all"),
+  ],
+  ["getBarbershopOverview", () => getBarbershopOverview("barbearia-b", "7d")],
+]
+
+// Who must never act as shop B's admin
+const outsiders = (): [string, string | null, string][] => [
+  ["the admin of shop A (foreign slug)", f.adminA.id, "Sem permissão."],
+  ["an atendente of shop B (wrong role)", f.atendenteB.id, "Sem permissão."],
+  ["a barber of shop B (wrong role)", f.sharedBarber.id, "Sem permissão."],
+  ["a client (non-member)", f.client.id, "Sem permissão."],
+  ["a signed-out visitor", null, "Você precisa estar logado."],
+]
+
+describe("isolation matrix: every admin action", () => {
+  it("rejects each outsider on every mutation and leaves shop B unchanged", async () => {
+    const before = await snapshotShop(f.shopB.id)
+
+    for (const [who, userId, message] of outsiders()) {
+      mockSession(userId)
+
+      for (const [name, run] of adminMutationsOnShopB()) {
+        await expect(run(), `${name} by ${who}`).rejects.toThrow(message)
+      }
+    }
+
+    expect(await snapshotShop(f.shopB.id)).toEqual(before)
+    expect(updateTag).not.toHaveBeenCalledWith(shopTag(f.shopB.id))
+  })
+
+  it("rejects each outsider on every stats read", async () => {
+    for (const [who, userId, message] of outsiders()) {
+      mockSession(userId)
+
+      for (const [name, run] of adminReadsOfShopB()) {
+        await expect(run(), `${name} by ${who}`).rejects.toThrow(message)
+      }
+    }
+  })
+
+  it("lets shop B's own admin run every mutation (the matrix is not vacuous)", async () => {
+    mockSession(f.adminB.id)
+    // deleteService needs a service without bookings
+    await prisma.booking.deleteMany({ where: { barbershopId: f.shopB.id } })
+
+    for (const [name, run] of adminMutationsOnShopB()) {
+      await expect(run(), name).resolves.not.toThrow()
+    }
+  })
+})
+
+describe("updateEmployeeServices input", () => {
+  it("rejects a payload that is not a list of ids", async () => {
+    await expect(
+      updateEmployeeServices(
+        "barbearia-a",
+        f.employeeA.id,
+        "not-a-list" as unknown as string[],
+      ),
+    ).rejects.toThrow("Serviços inválidos.")
+    await expect(
+      updateEmployeeServices("barbearia-a", f.employeeA.id, [
+        { id: f.serviceA.id },
+      ] as unknown as string[]),
+    ).rejects.toThrow()
+
+    const links = await prisma.employeeService.findMany({
+      where: { employeeId: f.employeeA.id },
+    })
+    expect(links.map((link) => link.serviceId)).toEqual([f.serviceA.id])
+  })
+
+  it("does not edit a removed (inactive) barber", async () => {
+    await prisma.employee.update({
+      where: { id: f.employeeA.id },
+      data: { isActive: false },
+    })
+
+    await expect(
+      updateEmployeeServices("barbearia-a", f.employeeA.id, []),
+    ).rejects.toThrow("Funcionário não encontrado.")
+    await expect(
+      updateEmployeeSchedule("barbearia-a", f.employeeA.id, SCHEDULE_INPUT),
+    ).rejects.toThrow("Funcionário não encontrado.")
+
+    expect(
+      await prisma.employeeService.count({
+        where: { employeeId: f.employeeA.id },
+      }),
+    ).toBe(1)
+    expect(
+      await prisma.employeeSchedule.count({
+        where: { employeeId: f.employeeA.id },
+      }),
+    ).toBe(0)
+  })
+})
