@@ -9,7 +9,7 @@
 - [x] Phase 4a — admin + ownership fixes
 - [x] Phase 4b — staff/atendente/memberships
 - [x] Phase 4c — auth (migration `20261030120000_drop_user_role` must be applied to Supabase with `prisma migrate deploy` only AFTER the 4a–4c code is deployed)
-- [ ] Phase 5 — branding
+- [x] Phase 5 — branding (set `UPLOADTHING_TOKEN` locally and on Vercel; optional `EMAIL_FROM`)
 - [ ] Phase 6 — platform + invitations
 - [ ] Phase 7 — landing + finder
 - [ ] Phase 8 — hardening
