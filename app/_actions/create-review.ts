@@ -46,7 +46,8 @@ export const createReview = async ({
     },
     select: {
       barbershopId: true,
-      barbershop: { select: { id: true, slug: true } },
+      barbershop: { select: { id: true, slug: true, status: true } },
+      review: { select: { id: true } },
     },
   })
 
@@ -54,16 +55,32 @@ export const createReview = async ({
     throw new Error("Reserva inválida para avaliação.")
   }
 
-  await prisma.review.create({
-    data: {
-      barbershopId: booking.barbershopId,
-      bookingId,
-      userId,
-      employeeId,
-      rating: parsed.data.rating,
-      comment: parsed.data.comment || null,
-    },
-  })
+  if (booking.barbershop.status !== "ACTIVE") {
+    throw new Error("Esta barbearia não está aceitando avaliações.")
+  }
+
+  if (booking.review) {
+    throw new Error("Esta reserva já foi avaliada.")
+  }
+
+  try {
+    await prisma.review.create({
+      data: {
+        barbershopId: booking.barbershopId,
+        bookingId,
+        userId,
+        employeeId,
+        rating: parsed.data.rating,
+        comment: parsed.data.comment || null,
+      },
+    })
+  } catch (error) {
+    // A double submit can race past the check above; Review.bookingId is unique
+    if ((error as { code?: string } | null)?.code === "P2002") {
+      throw new Error("Esta reserva já foi avaliada.")
+    }
+    throw error
+  }
 
   revalidateShop(booking.barbershop)
 }
