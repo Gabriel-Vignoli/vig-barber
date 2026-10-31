@@ -14,9 +14,10 @@ import {
   SheetHeader,
   SheetTrigger,
 } from "./ui/sheet"
-import Image from "next/image"
 import Link from "next/link"
 import PhoneItem from "./phone-item"
+import ShopMap from "./shop-map"
+import { getMapsSearchUrl } from "../_lib/maps"
 import { Button } from "./ui/button"
 import {
   AlertDialog,
@@ -45,6 +46,9 @@ interface BookingItemsProps {
       name: string
       slug: string
       address: string
+      city: string | null
+      latitude: number | null
+      longitude: number | null
       phones: string[]
     }
     employee: {
@@ -147,35 +151,34 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
             Informações da Reserva
           </SheetTrigger>
         </SheetHeader>
-        <div className="relative flex h-36 w-full items-end md:h-45">
-          <Image
-            src="/map.png"
-            fill
-            sizes="(min-width: 640px) 384px, 100vw"
-            className="rounded-xl"
-            alt="Localização da Barbearia"
-          ></Image>
-
-          <Card className="z-50 mx-5 mb-3 w-full rounded-xl">
-            <CardContent className="flex items-center gap-3">
-              <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                <AvatarImage src={employeeImage}></AvatarImage>
-              </Avatar>
-              <div className="min-w-0">
-                <h3 className="font-bold lg:text-base">{employeeName}</h3>
-                <Link
-                  href={`/b/${barbershop.slug}`}
-                  className="text-primary block truncate text-xs font-semibold hover:underline lg:text-sm"
-                >
-                  {barbershop.name}
-                </Link>
-                <p className="truncate text-xs lg:text-sm">
-                  {barbershop.address}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="bg-muted h-36 w-full overflow-hidden rounded-xl md:h-45">
+          {isSheetOpen && <ShopMap shop={barbershop} />}
         </div>
+
+        <Card className="mt-3 w-full rounded-xl">
+          <CardContent className="flex items-center gap-3">
+            <Avatar className="h-8 w-8 md:h-10 md:w-10">
+              <AvatarImage src={employeeImage}></AvatarImage>
+            </Avatar>
+            <div className="min-w-0">
+              <h3 className="font-bold lg:text-base">{employeeName}</h3>
+              <Link
+                href={`/b/${barbershop.slug}`}
+                className="text-primary block truncate text-xs font-semibold hover:underline lg:text-sm"
+              >
+                {barbershop.name}
+              </Link>
+              <a
+                href={getMapsSearchUrl(barbershop)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block truncate text-xs hover:underline lg:text-sm"
+              >
+                {barbershop.address}
+              </a>
+            </div>
+          </CardContent>
+        </Card>
         <div className="mt-3">
           <Badge
             className="w-fit px-2 py-2 md:px-3 md:py-3 md:text-sm"

@@ -7,6 +7,8 @@ import ServiceItem from "@/app/components/service-item"
 import EmployeeReviews from "@/app/components/employee-reviews"
 import BackButton from "@/app/components/back-button"
 import ViewLocationButton from "@/app/components/view-location-button"
+import ShopMap from "@/app/components/shop-map"
+import { getMapsSearchUrl } from "@/app/_lib/maps"
 import { Card, CardContent } from "@/app/components/ui/card"
 import { StarIcon } from "lucide-react"
 import { Weekday } from "@/app/generated/prisma/enums"
@@ -118,6 +120,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
 
   const employeeName = employee.user.name ?? "Funcionário"
   const employeeImage = employee.imageUrl ?? employee.user.image ?? null
+  const shopImage = barbershop.logoUrl ?? barbershop.bannerUrl
 
   const servicesSerialized = employee.services.map(({ service }) => ({
     ...service,
@@ -326,43 +329,35 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
               <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
                 Nossa localização
               </h3>
-              <div className="relative flex h-44 w-full items-end">
-                <Image
-                  src="/map.png"
-                  fill
-                  sizes="448px"
-                  className="rounded-xl"
-                  alt="Localização da Barbearia"
-                />
-
-                <Card className="z-10 mx-3 mb-3 w-full rounded-xl">
-                  <CardContent className="flex flex-col items-center gap-3 px-3 py-1">
-                    <div className="flex gap-3">
-                      <div className="bg-muted relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full">
-                        {barbershop.bannerUrl ? (
-                          <Image
-                            src={barbershop.bannerUrl}
-                            alt={barbershop.name}
-                            fill
-                            sizes="40px"
-                            className="object-cover"
-                          />
-                        ) : null}
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold">{barbershop.name}</h3>
-                        <p className="truncate text-xs text-gray-400">
-                          {barbershop.address}
-                        </p>
-                      </div>
-                    </div>
-
-                    <ViewLocationButton
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(barbershop.address)}`}
-                    />
-                  </CardContent>
-                </Card>
+              <div className="bg-muted h-44 w-full overflow-hidden rounded-xl">
+                <ShopMap shop={barbershop} />
               </div>
+
+              <Card className="mt-3 w-full rounded-xl">
+                <CardContent className="flex flex-col items-center gap-3 px-3 py-1">
+                  <div className="flex w-full min-w-0 gap-3">
+                    <div className="bg-muted relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                      {shopImage ? (
+                        <Image
+                          src={shopImage}
+                          alt={barbershop.name}
+                          fill
+                          sizes="40px"
+                          className="object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-bold">{barbershop.name}</h3>
+                      <p className="truncate text-xs text-gray-400">
+                        {barbershop.address}
+                      </p>
+                    </div>
+                  </div>
+
+                  <ViewLocationButton href={getMapsSearchUrl(barbershop)} />
+                </CardContent>
+              </Card>
 
               <div className="mt-8 space-y-2">
                 <h3 className="text-sm font-bold text-gray-400 uppercase">
