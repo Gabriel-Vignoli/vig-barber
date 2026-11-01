@@ -22,6 +22,7 @@ import {
   createShopSchema,
   CreateShopFormValues,
 } from "../_lib/validations/platform"
+import { unwrap } from "../_lib/action-result"
 
 const FIELDS: {
   name: keyof CreateShopFormValues
@@ -84,7 +85,7 @@ const PlatformCreateShopDialog = () => {
     setIsSubmitting(true)
 
     try {
-      const { slug, inviteSent } = await createShop(values)
+      const { slug, inviteSent } = await unwrap(createShop(values))
 
       if (inviteSent) {
         toast.success(`Barbearia /b/${slug} criada e convite enviado ao dono!`)

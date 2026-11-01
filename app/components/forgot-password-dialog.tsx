@@ -28,6 +28,7 @@ import {
   ResetPasswordFormValues,
 } from "../_lib/validations/password-reset"
 import CodeInput from "./code-input"
+import { unwrap } from "../_lib/action-result"
 
 type Step = "request" | "verify-code" | "reset"
 
@@ -75,7 +76,7 @@ const ForgotPasswordDialog = () => {
     setIsSubmitting(true)
 
     try {
-      await requestPasswordReset(values)
+      await unwrap(requestPasswordReset(values))
       setEmail(values.email)
       verifyForm.setValue("email", values.email)
       toast.success("Se o email existir, um código foi enviado.")
@@ -93,7 +94,7 @@ const ForgotPasswordDialog = () => {
     setIsSubmitting(true)
 
     try {
-      await verifyResetCode(values)
+      await unwrap(verifyResetCode(values))
       setVerifiedCode(values.code)
       resetForm.setValue("email", values.email)
       resetForm.setValue("code", values.code)
@@ -111,7 +112,7 @@ const ForgotPasswordDialog = () => {
     setIsSubmitting(true)
 
     try {
-      await resetPassword(values)
+      await unwrap(resetPassword(values))
       toast.success("Senha redefinida com sucesso!")
       setOpen(false)
     } catch (error) {

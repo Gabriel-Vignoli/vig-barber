@@ -7,54 +7,57 @@ import {
   employeeScheduleSchema,
   EmployeeScheduleEntry,
 } from "../_lib/validations/schedule"
+import { action, ActionError } from "../_lib/action-result"
 
-export const updateEmployeeSchedule = async (
-  slug: string,
-  employeeId: string,
-  schedules: EmployeeScheduleEntry[],
-) => {
-  const { shop } = await assertShopRole(slug, ["ADMIN"])
+export const updateEmployeeSchedule = action(
+  async (
+    slug: string,
+    employeeId: string,
+    schedules: EmployeeScheduleEntry[],
+  ) => {
+    const { shop } = await assertShopRole(slug, ["ADMIN"])
 
-  const parsed = employeeScheduleSchema.safeParse(schedules)
+    const parsed = employeeScheduleSchema.safeParse(schedules)
 
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues[0].message)
-  }
+    if (!parsed.success) {
+      throw new ActionError(parsed.error.issues[0].message)
+    }
 
-  // A removed barber (kept inactive for their history) is not editable
-  const employee = await prisma.employee.findFirst({
-    where: { id: employeeId, barbershopId: shop.id, isActive: true },
-    select: { id: true },
-  })
+    // A removed barber (kept inactive for their history) is not editable
+    const employee = await prisma.employee.findFirst({
+      where: { id: employeeId, barbershopId: shop.id, isActive: true },
+      select: { id: true },
+    })
 
-  if (!employee) {
-    throw new Error("Funcionário não encontrado.")
-  }
+    if (!employee) {
+      throw new ActionError("Funcionário não encontrado.")
+    }
 
-  await prisma.$transaction(
-    parsed.data.map((schedule) =>
-      prisma.employeeSchedule.upsert({
-        where: {
-          employeeId_weekday: {
+    await prisma.$transaction(
+      parsed.data.map((schedule) =>
+        prisma.employeeSchedule.upsert({
+          where: {
+            employeeId_weekday: {
+              employeeId: employee.id,
+              weekday: schedule.weekday,
+            },
+          },
+          create: {
             employeeId: employee.id,
             weekday: schedule.weekday,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            isDayOff: schedule.isDayOff,
           },
-        },
-        create: {
-          employeeId: employee.id,
-          weekday: schedule.weekday,
-          startTime: schedule.startTime,
-          endTime: schedule.endTime,
-          isDayOff: schedule.isDayOff,
-        },
-        update: {
-          startTime: schedule.startTime,
-          endTime: schedule.endTime,
-          isDayOff: schedule.isDayOff,
-        },
-      }),
-    ),
-  )
+          update: {
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            isDayOff: schedule.isDayOff,
+          },
+        }),
+      ),
+    )
 
-  revalidateShop(shop)
-}
+    revalidateShop(shop)
+  },
+)

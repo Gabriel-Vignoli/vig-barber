@@ -30,6 +30,7 @@ import {
   inviteMemberSchema,
   InviteMemberFormValues,
 } from "../_lib/validations/platform"
+import { unwrap } from "../_lib/action-result"
 
 interface PlatformInviteMemberDialogProps {
   shopId: string
@@ -59,7 +60,7 @@ const PlatformInviteMemberDialog = ({
     setIsSubmitting(true)
 
     try {
-      await inviteShopMember(shopId, values)
+      await unwrap(inviteShopMember(shopId, values))
       toast.success("Convite enviado!")
       setOpen(false)
       reset()

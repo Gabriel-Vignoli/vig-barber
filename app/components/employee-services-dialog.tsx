@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog"
 import { updateEmployeeServices } from "../_actions/update-employee-services"
+import { unwrap } from "../_lib/action-result"
 
 interface EmployeeServicesDialogProps {
   slug: string
@@ -52,7 +53,7 @@ const EmployeeServicesDialog = ({
     setIsSubmitting(true)
 
     try {
-      await updateEmployeeServices(slug, employeeId, selectedIds)
+      await unwrap(updateEmployeeServices(slug, employeeId, selectedIds))
       toast.success("Serviços atualizados com sucesso!")
       setOpen(false)
       router.refresh()

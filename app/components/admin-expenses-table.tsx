@@ -24,6 +24,7 @@ import ExpenseFormDialog from "./expense-form-dialog"
 import { deleteExpense } from "../_actions/delete-expense"
 import { EXPENSE_CATEGORY_LABELS } from "../_lib/validations/expense"
 import { ExpenseCategory } from "@/app/generated/prisma/enums"
+import { unwrap } from "../_lib/action-result"
 
 const currency = (value: number) =>
   Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -54,7 +55,7 @@ const AdminExpensesTable = ({ slug, expenses }: AdminExpensesTableProps) => {
     setIsDeleting(true)
 
     try {
-      await deleteExpense(slug, expenseId)
+      await unwrap(deleteExpense(slug, expenseId))
       toast.success("Despesa removida com sucesso!")
       setDeleteDialogOpenId(null)
       router.refresh()

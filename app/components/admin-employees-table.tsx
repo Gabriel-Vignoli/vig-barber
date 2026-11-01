@@ -26,6 +26,7 @@ import EmployeeServicesDialog from "./employee-services-dialog"
 import EmployeeScheduleDialog from "./employee-schedule-dialog"
 import EmployeeStatsDialog from "./employee-stats-dialog"
 import { deleteEmployee } from "../_actions/delete-employee"
+import { unwrap } from "../_lib/action-result"
 
 const getInitials = (name?: string | null) => {
   if (!name) return "?"
@@ -76,7 +77,7 @@ const AdminEmployeesTable = ({
     setIsDeleting(true)
 
     try {
-      await deleteEmployee(slug, employeeId)
+      await unwrap(deleteEmployee(slug, employeeId))
       toast.success("Funcionário removido com sucesso!")
       setDeleteDialogOpenId(null)
       router.refresh()

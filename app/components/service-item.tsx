@@ -43,6 +43,7 @@ import { showBookingSuccessToast } from "./booking-success-toast"
 import { checkUserPhone } from "../_actions/check-user-phone"
 import PhoneCollectionDialog from "./phone-collection-dialog"
 import { ClockIcon } from "lucide-react"
+import { unwrap } from "../_lib/action-result"
 
 interface ServiceItemProps {
   service: Pick<
@@ -189,11 +190,13 @@ const ServiceItem = ({
   }
 
   const performBooking = async (bookingDate: Date) => {
-    await createBooking(slug, {
-      barbershopServiceId: service.id,
-      employeeId,
-      bookingDate,
-    })
+    await unwrap(
+      createBooking(slug, {
+        barbershopServiceId: service.id,
+        employeeId,
+        bookingDate,
+      }),
+    )
 
     setConfirmDialogIsOpen(false)
     setConflictDialogIsOpen(false)
@@ -306,12 +309,14 @@ const ServiceItem = ({
       const minute = Number(selectedTime.split(":")[1])
       const newDate = set(selectedDay, { hours: hour, minutes: minute })
 
-      await replaceBooking(slug, {
-        oldBookingId: conflictingBooking.id,
-        barbershopServiceId: service.id,
-        employeeId,
-        bookingDate: newDate,
-      })
+      await unwrap(
+        replaceBooking(slug, {
+          oldBookingId: conflictingBooking.id,
+          barbershopServiceId: service.id,
+          employeeId,
+          bookingDate: newDate,
+        }),
+      )
 
       setConflictDialogIsOpen(false)
       setConflictingBooking(null)

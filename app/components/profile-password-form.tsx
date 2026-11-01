@@ -14,6 +14,7 @@ import {
 } from "../_lib/validations/profile"
 import { showProfileUpdateSuccessToast } from "./profile-update-success-toast"
 import { showPasswordErrorToast } from "./password-error-toast"
+import { unwrap } from "../_lib/action-result"
 
 interface ProfilePasswordFormProps {
   hasPassword: boolean
@@ -45,7 +46,7 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
     setIsSubmitting(true)
 
     try {
-      await updatePassword(values)
+      await unwrap(updatePassword(values))
       showProfileUpdateSuccessToast({
         title: hasPassword ? "Senha atualizada!" : "Senha definida!",
         description: hasPassword

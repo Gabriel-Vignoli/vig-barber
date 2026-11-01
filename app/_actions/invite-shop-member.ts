@@ -5,57 +5,64 @@ import { prisma } from "../_lib/prisma"
 import { assertPlatformAdmin } from "../_lib/platform-admin"
 import { createInvitation, findUserByEmail } from "../_lib/invitation"
 import { inviteMemberSchema } from "../_lib/validations/platform"
+import { action, ActionError } from "../_lib/action-result"
 
 // Platform only: invites someone to a shop with a role (e.g. a new owner).
 // Re-inviting the same email replaces the pending invitation.
-export const inviteShopMember = async (
-  shopId: string,
-  input: { email: string; role: string },
-) => {
-  const { userId } = await assertPlatformAdmin()
+export const inviteShopMember = action(
+  async (shopId: string, input: { email: string; role: string }) => {
+    const { userId } = await assertPlatformAdmin()
 
-  const parsed = inviteMemberSchema.safeParse(input)
+    const parsed = inviteMemberSchema.safeParse(input)
 
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues[0].message)
-  }
+    if (!parsed.success) {
+      throw new ActionError(parsed.error.issues[0].message)
+    }
 
-  const { email, role } = parsed.data
+    const { email, role } = parsed.data
 
-  const shop = await prisma.barbershop.findUnique({
-    where: { id: shopId },
-    select: { id: true, name: true },
-  })
-
-  if (!shop) {
-    throw new Error("Barbearia não encontrada.")
-  }
-
-  const existingUser = await findUserByEmail(email)
-
-  if (existingUser) {
-    const membership = await prisma.membership.findUnique({
-      where: {
-        userId_barbershopId: { userId: existingUser.id, barbershopId: shop.id },
-      },
-      select: { id: true },
+    const shop = await prisma.barbershop.findUnique({
+      where: { id: shopId },
+      select: { id: true, name: true },
     })
 
-    if (membership) {
-      throw new Error("Este usuário já faz parte da equipe desta barbearia.")
+    if (!shop) {
+      throw new ActionError("Barbearia não encontrada.")
     }
-  }
 
-  const sent = await createInvitation({
-    shop,
-    email,
-    role,
-    invitedById: userId,
-  })
+    const existingUser = await findUserByEmail(email)
 
-  if (!sent) {
-    throw new Error("Não foi possível enviar o convite. Tente novamente.")
-  }
+    if (existingUser) {
+      const membership = await prisma.membership.findUnique({
+        where: {
+          userId_barbershopId: {
+            userId: existingUser.id,
+            barbershopId: shop.id,
+          },
+        },
+        select: { id: true },
+      })
 
-  revalidatePath("/platform")
-}
+      if (membership) {
+        throw new ActionError(
+          "Este usuário já faz parte da equipe desta barbearia.",
+        )
+      }
+    }
+
+    const sent = await createInvitation({
+      shop,
+      email,
+      role,
+      invitedById: userId,
+    })
+
+    if (!sent) {
+      throw new ActionError(
+        "Não foi possível enviar o convite. Tente novamente.",
+      )
+    }
+
+    revalidatePath("/platform")
+  },
+)

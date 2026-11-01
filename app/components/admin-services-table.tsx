@@ -21,6 +21,7 @@ import {
 } from "./ui/alert-dialog"
 import ServiceFormDialog from "./service-form-dialog"
 import { deleteService } from "../_actions/delete-service"
+import { unwrap } from "../_lib/action-result"
 
 interface AdminService {
   id: string
@@ -47,7 +48,7 @@ const AdminServicesTable = ({ slug, services }: AdminServicesTableProps) => {
     setIsDeleting(true)
 
     try {
-      await deleteService(slug, serviceId)
+      await unwrap(deleteService(slug, serviceId))
       toast.success("Serviço removido com sucesso!")
       setDeleteDialogOpenId(null)
       router.refresh()

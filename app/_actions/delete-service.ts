@@ -3,8 +3,9 @@
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
+import { action, ActionError } from "../_lib/action-result"
 
-export const deleteService = async (slug: string, serviceId: string) => {
+export const deleteService = action(async (slug: string, serviceId: string) => {
   const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   const service = await prisma.barbershopService.findFirst({
@@ -13,7 +14,7 @@ export const deleteService = async (slug: string, serviceId: string) => {
   })
 
   if (!service) {
-    throw new Error("Serviço não encontrado.")
+    throw new ActionError("Serviço não encontrado.")
   }
 
   const bookingCount = await prisma.booking.count({
@@ -21,7 +22,7 @@ export const deleteService = async (slug: string, serviceId: string) => {
   })
 
   if (bookingCount > 0) {
-    throw new Error(
+    throw new ActionError(
       "Não é possível excluir um serviço com agendamentos associados.",
     )
   }
@@ -31,8 +32,8 @@ export const deleteService = async (slug: string, serviceId: string) => {
   })
 
   if (count === 0) {
-    throw new Error("Serviço não encontrado.")
+    throw new ActionError("Serviço não encontrado.")
   }
 
   revalidateShop(shop)
-}
+})

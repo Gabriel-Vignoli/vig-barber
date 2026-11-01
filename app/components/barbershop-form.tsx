@@ -16,6 +16,7 @@ import {
   updateBarbershopSchema,
   UpdateBarbershopFormValues,
 } from "../_lib/validations/barbershop"
+import { unwrap } from "../_lib/action-result"
 
 interface BarbershopFormProps {
   slug: string
@@ -94,7 +95,7 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
 
   const onSubmit = async (values: UpdateBarbershopFormValues) => {
     try {
-      await updateBarbershop(slug, values)
+      await unwrap(updateBarbershop(slug, values))
       toast.success("Informações da barbearia atualizadas!")
       reset(values) // new baseline, so the save button disables again
       router.refresh()

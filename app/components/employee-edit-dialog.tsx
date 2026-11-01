@@ -23,6 +23,7 @@ import {
   updateEmployeeSchema,
   UpdateEmployeeFormValues,
 } from "../_lib/validations/employee"
+import { unwrap } from "../_lib/action-result"
 
 interface EmployeeEditDialogProps {
   slug: string
@@ -70,7 +71,7 @@ const EmployeeEditDialog = ({
     setIsSubmitting(true)
 
     try {
-      await updateEmployee(slug, employeeId, values)
+      await unwrap(updateEmployee(slug, employeeId, values))
       toast.success("Funcionário atualizado com sucesso!")
       setOpen(false)
       router.refresh()

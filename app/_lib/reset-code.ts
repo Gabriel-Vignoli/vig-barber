@@ -1,4 +1,5 @@
 import { prisma } from "./prisma"
+import { ActionError } from "./action-result"
 
 const MAX_CODE_ATTEMPTS = 5
 
@@ -12,11 +13,11 @@ export const validateResetCode = async (email: string, code: string) => {
   })
 
   if (!resetCode) {
-    throw new Error("Código inválido.")
+    throw new ActionError("Código inválido.")
   }
 
   if (resetCode.expiresAt < new Date()) {
-    throw new Error("Código expirado. Solicite um novo.")
+    throw new ActionError("Código expirado. Solicite um novo.")
   }
 
   if (resetCode.code !== code) {
@@ -31,10 +32,10 @@ export const validateResetCode = async (email: string, code: string) => {
     })
 
     if (attempts >= MAX_CODE_ATTEMPTS) {
-      throw new Error("Muitas tentativas. Solicite um novo código.")
+      throw new ActionError("Muitas tentativas. Solicite um novo código.")
     }
 
-    throw new Error("Código inválido.")
+    throw new ActionError("Código inválido.")
   }
 
   return resetCode

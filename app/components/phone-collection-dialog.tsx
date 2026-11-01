@@ -17,6 +17,7 @@ import {
 } from "./ui/dialog"
 import { updatePhone } from "../_actions/update-phone"
 import { phoneFormSchema, PhoneFormValues } from "../_lib/validations/phone"
+import { unwrap } from "../_lib/action-result"
 
 interface PhoneCollectionDialogProps {
   open: boolean
@@ -40,7 +41,7 @@ const PhoneCollectionDialog = ({
     setIsSubmitting(true)
 
     try {
-      await updatePhone(values)
+      await unwrap(updatePhone(values))
       toast.success("Telefone salvo com sucesso!")
       onSuccess()
     } catch (error) {

@@ -4,12 +4,13 @@ import { revalidateShop } from "../_lib/revalidate"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../_lib/auth"
 import { prisma } from "../_lib/prisma"
+import { action, ActionError } from "../_lib/action-result"
 
-export const deleteReview = async (reviewId: string) => {
+export const deleteReview = action(async (reviewId: string) => {
   const session = await getServerSession(authOptions)
 
   if (!session?.user) {
-    throw new Error("Usuário não autenticado")
+    throw new ActionError("Usuário não autenticado")
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,10 +22,10 @@ export const deleteReview = async (reviewId: string) => {
   })
 
   if (!review) {
-    throw new Error("Avaliação não encontrada.")
+    throw new ActionError("Avaliação não encontrada.")
   }
 
   await prisma.review.delete({ where: { id: review.id } })
 
   revalidateShop(review.barbershop)
-}
+})

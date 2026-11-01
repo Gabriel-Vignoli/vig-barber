@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 import { prisma } from "./prisma"
 import { getLoginPath } from "./protected-paths"
 import { getSessionUserId } from "./tenant"
+import { ActionError } from "./action-result"
 
 // Read from the database on every request (never from the JWT), so revoking
 // the flag takes effect immediately
@@ -36,11 +37,11 @@ export const assertPlatformAdmin = async (): Promise<{ userId: string }> => {
   const userId = await getSessionUserId()
 
   if (!userId) {
-    throw new Error("Você precisa estar logado.")
+    throw new ActionError("Você precisa estar logado.")
   }
 
   if (!(await isPlatformAdmin(userId))) {
-    throw new Error("Sem permissão.")
+    throw new ActionError("Sem permissão.")
   }
 
   return { userId }

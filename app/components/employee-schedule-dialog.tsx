@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog"
 import { updateEmployeeSchedule } from "../_actions/update-employee-schedule"
+import { unwrap } from "../_lib/action-result"
 
 const WEEKDAY_ORDER: Weekday[] = [
   "MONDAY",
@@ -97,7 +98,7 @@ const EmployeeScheduleDialog = ({
     setIsSubmitting(true)
 
     try {
-      await updateEmployeeSchedule(slug, employeeId, schedules)
+      await unwrap(updateEmployeeSchedule(slug, employeeId, schedules))
       toast.success("Horários atualizados com sucesso!")
       setOpen(false)
       router.refresh()

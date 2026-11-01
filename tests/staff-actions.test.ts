@@ -29,6 +29,7 @@ import {
 import { NotFoundError, RedirectError } from "./helpers/navigation"
 import { mockSession } from "./helpers/session"
 import { failNextEmail, getSentEmails } from "./helpers/email"
+import { unwrap } from "@/app/_lib/action-result"
 
 // A Monday, far in the future
 const FUTURE = new Date("2030-01-07T15:00:00.000Z")
@@ -118,12 +119,14 @@ beforeEach(async () => {
 
 describe("createEmployee with an existing user", () => {
   it("sends an invitation instead of attaching the account", async () => {
-    const result = await createEmployee("barbearia-a", {
-      name: "Nome Trocado",
-      email: "cliente@test.local",
-      password: NEW_PASSWORD,
-      bio: "Especialista em degradê",
-    })
+    const result = await unwrap(
+      createEmployee("barbearia-a", {
+        name: "Nome Trocado",
+        email: "cliente@test.local",
+        password: NEW_PASSWORD,
+        bio: "Especialista em degradê",
+      }),
+    )
 
     expect(result).toEqual({ invited: true })
 
@@ -152,9 +155,11 @@ describe("createEmployee with an existing user", () => {
   it("matches the existing account case-insensitively", async () => {
     const usersBefore = await prisma.user.count()
 
-    const result = await createEmployee("barbearia-a", {
-      email: "CLIENTE@Test.local",
-    })
+    const result = await unwrap(
+      createEmployee("barbearia-a", {
+        email: "CLIENTE@Test.local",
+      }),
+    )
 
     expect(result).toEqual({ invited: true })
     expect(await prisma.user.count()).toBe(usersBefore)
@@ -164,10 +169,10 @@ describe("createEmployee with an existing user", () => {
   })
 
   it("replaces the pending invitation when invited again", async () => {
-    await createEmployee("barbearia-a", { email: "cliente@test.local" })
+    await unwrap(createEmployee("barbearia-a", { email: "cliente@test.local" }))
     const first = await prisma.invitation.findFirstOrThrow()
 
-    await createEmployee("barbearia-a", { email: "cliente@test.local" })
+    await unwrap(createEmployee("barbearia-a", { email: "cliente@test.local" }))
 
     const invitations = await prisma.invitation.findMany()
     expect(invitations).toHaveLength(1)
@@ -178,7 +183,7 @@ describe("createEmployee with an existing user", () => {
     failNextEmail()
 
     await expect(
-      createEmployee("barbearia-a", { email: "cliente@test.local" }),
+      unwrap(createEmployee("barbearia-a", { email: "cliente@test.local" })),
     ).rejects.toThrow("Não foi possível enviar o convite. Tente novamente.")
     expect(await prisma.invitation.count()).toBe(0)
   })
@@ -189,7 +194,7 @@ describe("createEmployee with an existing user", () => {
     })
 
     await expect(
-      createEmployee("barbearia-a", { email: barber.email! }),
+      unwrap(createEmployee("barbearia-a", { email: barber.email! })),
     ).rejects.toThrow("Este usuário já é funcionário desta barbearia.")
     expect(await prisma.invitation.count()).toBe(0)
   })
@@ -201,7 +206,9 @@ describe("createEmployee with an existing user", () => {
     })
 
     await expect(
-      createEmployee("barbearia-a", { email: "atendente-a@test.local" }),
+      unwrap(
+        createEmployee("barbearia-a", { email: "atendente-a@test.local" }),
+      ),
     ).rejects.toThrow("Este usuário já é atendente desta barbearia.")
   })
 
@@ -210,7 +217,9 @@ describe("createEmployee with an existing user", () => {
       where: { id: f.adminA.id },
     })
 
-    const result = await createEmployee("barbearia-a", { email: admin.email! })
+    const result = await unwrap(
+      createEmployee("barbearia-a", { email: admin.email! }),
+    )
 
     expect(result).toEqual({ invited: false })
     const membership = await prisma.membership.findFirstOrThrow({
@@ -235,9 +244,11 @@ describe("createEmployee with an existing user", () => {
       where: { id: f.barberA.id },
     })
 
-    const result = await createEmployee("barbearia-a", {
-      email: barber.email!,
-    })
+    const result = await unwrap(
+      createEmployee("barbearia-a", {
+        email: barber.email!,
+      }),
+    )
 
     expect(result).toEqual({ invited: true })
     const employee = await prisma.employee.findUniqueOrThrow({
@@ -247,11 +258,13 @@ describe("createEmployee with an existing user", () => {
   })
 
   it("creates a brand-new user directly", async () => {
-    const result = await createEmployee("barbearia-a", {
-      name: "Novo Barbeiro",
-      email: "novo@test.local",
-      password: NEW_PASSWORD,
-    })
+    const result = await unwrap(
+      createEmployee("barbearia-a", {
+        name: "Novo Barbeiro",
+        email: "novo@test.local",
+        password: NEW_PASSWORD,
+      }),
+    )
 
     expect(result).toEqual({ invited: false })
     const user = await prisma.user.findUniqueOrThrow({
@@ -267,7 +280,7 @@ describe("createEmployee with an existing user", () => {
 
   it("requires name and password for a brand-new user", async () => {
     await expect(
-      createEmployee("barbearia-a", { email: "novo@test.local" }),
+      unwrap(createEmployee("barbearia-a", { email: "novo@test.local" })),
     ).rejects.toThrow("Informe nome e senha para criar um novo usuário.")
     expect(
       await prisma.user.count({ where: { email: "novo@test.local" } }),
@@ -276,7 +289,7 @@ describe("createEmployee with an existing user", () => {
 
   it("cannot invite into another shop", async () => {
     await expect(
-      createEmployee("barbearia-b", { email: "cliente@test.local" }),
+      unwrap(createEmployee("barbearia-b", { email: "cliente@test.local" })),
     ).rejects.toThrow("Sem permissão.")
     expect(await prisma.invitation.count()).toBe(0)
   })
@@ -284,11 +297,13 @@ describe("createEmployee with an existing user", () => {
 
 describe("createAtendente with an existing user", () => {
   it("sends an invitation instead of attaching the account", async () => {
-    const result = await createAtendente("barbearia-a", {
-      name: "Nome Trocado",
-      email: "cliente@test.local",
-      password: NEW_PASSWORD,
-    })
+    const result = await unwrap(
+      createAtendente("barbearia-a", {
+        name: "Nome Trocado",
+        email: "cliente@test.local",
+        password: NEW_PASSWORD,
+      }),
+    )
 
     expect(result).toEqual({ invited: true })
 
@@ -314,7 +329,7 @@ describe("createAtendente with an existing user", () => {
     })
 
     await expect(
-      createAtendente("barbearia-a", { email: atendente.email! }),
+      unwrap(createAtendente("barbearia-a", { email: atendente.email! })),
     ).rejects.toThrow("Este usuário já é atendente desta barbearia.")
   })
 
@@ -324,7 +339,7 @@ describe("createAtendente with an existing user", () => {
     })
 
     await expect(
-      createAtendente("barbearia-a", { email: barber.email! }),
+      unwrap(createAtendente("barbearia-a", { email: barber.email! })),
     ).rejects.toThrow("Este usuário já faz parte da equipe desta barbearia.")
   })
 })
@@ -335,12 +350,14 @@ describe("updateEmployee and the global account", () => {
     const employee = await createEmployeeRow(f.client.id, f.shopA.id)
 
     // ...and the shop admin tries to set a password (a tampered client can)
-    await updateEmployee("barbearia-a", employee.id, {
-      bio: "Bio nova",
-      // @ts-expect-error the action no longer accepts a password
-      password: NEW_PASSWORD,
-      name: "Nome Trocado",
-    })
+    await unwrap(
+      updateEmployee("barbearia-a", employee.id, {
+        bio: "Bio nova",
+        // @ts-expect-error the action no longer accepts a password
+        password: NEW_PASSWORD,
+        name: "Nome Trocado",
+      }),
+    )
 
     const [user, employeeAfter] = await Promise.all([
       prisma.user.findUniqueOrThrow({ where: { id: f.client.id } }),
@@ -353,7 +370,9 @@ describe("updateEmployee and the global account", () => {
 
   it("does not update an employee of another shop", async () => {
     await expect(
-      updateEmployee("barbearia-a", f.sharedInB.id, { bio: "Bio nova" }),
+      unwrap(
+        updateEmployee("barbearia-a", f.sharedInB.id, { bio: "Bio nova" }),
+      ),
     ).rejects.toThrow("Funcionário não encontrado.")
 
     const employee = await prisma.employee.findUniqueOrThrow({
@@ -375,7 +394,7 @@ describe("deleteEmployee", () => {
       },
     })
 
-    await deleteEmployee("barbearia-a", f.employeeA.id)
+    await unwrap(deleteEmployee("barbearia-a", f.employeeA.id))
 
     const [employee, membershipCount, userCount, bookingAfter] =
       await Promise.all([
@@ -391,7 +410,7 @@ describe("deleteEmployee", () => {
   })
 
   it("deletes a barber without history", async () => {
-    await deleteEmployee("barbearia-a", f.employeeA.id)
+    await unwrap(deleteEmployee("barbearia-a", f.employeeA.id))
 
     expect(await prisma.employee.count({ where: { id: f.employeeA.id } })).toBe(
       0,
@@ -405,9 +424,9 @@ describe("deleteEmployee", () => {
       data: { isActive: false },
     })
 
-    await expect(deleteEmployee("barbearia-a", f.employeeA.id)).rejects.toThrow(
-      "Funcionário não encontrado.",
-    )
+    await expect(
+      unwrap(deleteEmployee("barbearia-a", f.employeeA.id)),
+    ).rejects.toThrow("Funcionário não encontrado.")
   })
 })
 
@@ -417,7 +436,7 @@ describe("deleteAtendente", () => {
       data: { userId: f.atendenteA.id, barbershopId: f.shopA.id },
     })
 
-    await deleteAtendente("barbearia-a", f.atendenteA.id)
+    await unwrap(deleteAtendente("barbearia-a", f.atendenteA.id))
 
     expect(await prisma.employee.count({ where: { id: employee.id } })).toBe(0)
     expect(
@@ -448,7 +467,7 @@ describe("updateEmployeeSchedule validation", () => {
     ],
   ])("rejects %o", async (entry, message) => {
     await expect(
-      updateEmployeeSchedule("barbearia-a", f.employeeA.id, [entry]),
+      unwrap(updateEmployeeSchedule("barbearia-a", f.employeeA.id, [entry])),
     ).rejects.toThrow(message)
     expect(
       await prisma.employeeSchedule.count({
@@ -459,29 +478,35 @@ describe("updateEmployeeSchedule validation", () => {
 
   it("rejects the same weekday twice", async () => {
     await expect(
-      updateEmployeeSchedule("barbearia-a", f.employeeA.id, [valid, valid]),
+      unwrap(
+        updateEmployeeSchedule("barbearia-a", f.employeeA.id, [valid, valid]),
+      ),
     ).rejects.toThrow("Cada dia da semana só pode aparecer uma vez.")
   })
 
   it("rejects an unknown weekday", async () => {
     await expect(
-      updateEmployeeSchedule("barbearia-a", f.employeeA.id, [
-        // @ts-expect-error invalid on purpose
-        { ...valid, weekday: "FUNDAY" },
-      ]),
+      unwrap(
+        updateEmployeeSchedule("barbearia-a", f.employeeA.id, [
+          // @ts-expect-error invalid on purpose
+          { ...valid, weekday: "FUNDAY" },
+        ]),
+      ),
     ).rejects.toThrow("Dia da semana inválido.")
   })
 
   it("accepts a day off with any times and a valid week", async () => {
-    await updateEmployeeSchedule("barbearia-a", f.employeeA.id, [
-      valid,
-      {
-        weekday: "SUNDAY",
-        startTime: "00:00",
-        endTime: "00:00",
-        isDayOff: true,
-      },
-    ])
+    await unwrap(
+      updateEmployeeSchedule("barbearia-a", f.employeeA.id, [
+        valid,
+        {
+          weekday: "SUNDAY",
+          startTime: "00:00",
+          endTime: "00:00",
+          isDayOff: true,
+        },
+      ]),
+    )
 
     expect(
       await prisma.employeeSchedule.count({
@@ -497,7 +522,7 @@ describe("createWalkInBooking", () => {
   })
 
   it("creates the booking in the atendente's shop", async () => {
-    await createWalkInBooking("barbearia-a", walkIn({}))
+    await unwrap(createWalkInBooking("barbearia-a", walkIn({})))
 
     const booking = await prisma.booking.findFirstOrThrow({
       where: { employeeId: f.employeeA.id },
@@ -509,7 +534,7 @@ describe("createWalkInBooking", () => {
   it("lets the shop ADMIN use the front desk too", async () => {
     mockSession(f.adminA.id)
 
-    await createWalkInBooking("barbearia-a", walkIn({}))
+    await unwrap(createWalkInBooking("barbearia-a", walkIn({})))
 
     expect(await prisma.booking.count()).toBe(1)
   })
@@ -528,9 +553,9 @@ describe("createWalkInBooking", () => {
       () => walkIn({ barbershopServiceId: f.serviceA2.id }),
     ],
   ])("rejects %s", async (_, input) => {
-    await expect(createWalkInBooking("barbearia-a", input())).rejects.toThrow(
-      "Serviço ou profissional indisponível nesta barbearia.",
-    )
+    await expect(
+      unwrap(createWalkInBooking("barbearia-a", input())),
+    ).rejects.toThrow("Serviço ou profissional indisponível nesta barbearia.")
     expect(await prisma.booking.count()).toBe(0)
     expect(await prisma.user.count({ where: { name: "Cliente Balcão" } })).toBe(
       0,
@@ -544,18 +569,20 @@ describe("createWalkInBooking", () => {
     })
 
     await expect(
-      createWalkInBooking("barbearia-a", walkIn({})),
+      unwrap(createWalkInBooking("barbearia-a", walkIn({}))),
     ).rejects.toThrow("Serviço ou profissional indisponível nesta barbearia.")
   })
 
   it("rejects a foreign slug", async () => {
     await expect(
-      createWalkInBooking(
-        "barbearia-b",
-        walkIn({
-          employeeId: f.sharedInB.id,
-          barbershopServiceId: f.serviceB.id,
-        }),
+      unwrap(
+        createWalkInBooking(
+          "barbearia-b",
+          walkIn({
+            employeeId: f.sharedInB.id,
+            barbershopServiceId: f.serviceB.id,
+          }),
+        ),
       ),
     ).rejects.toThrow("Sem permissão.")
     expect(await prisma.booking.count()).toBe(0)
@@ -564,12 +591,12 @@ describe("createWalkInBooking", () => {
   it("rejects a non-member and a barber", async () => {
     mockSession(f.client.id)
     await expect(
-      createWalkInBooking("barbearia-a", walkIn({})),
+      unwrap(createWalkInBooking("barbearia-a", walkIn({}))),
     ).rejects.toThrow("Sem permissão.")
 
     mockSession(f.barberA.id)
     await expect(
-      createWalkInBooking("barbearia-a", walkIn({})),
+      unwrap(createWalkInBooking("barbearia-a", walkIn({}))),
     ).rejects.toThrow("Sem permissão.")
     expect(await prisma.booking.count()).toBe(0)
   })
@@ -581,7 +608,7 @@ describe("createWalkInBooking", () => {
     })
 
     await expect(
-      createWalkInBooking("barbearia-a", walkIn({})),
+      unwrap(createWalkInBooking("barbearia-a", walkIn({}))),
     ).rejects.toThrow("Barbearia não encontrada.")
   })
 })

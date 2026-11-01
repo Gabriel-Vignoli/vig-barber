@@ -4,12 +4,13 @@ import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
 import { removeEmployeeFromShop } from "../_lib/staff-removal"
+import { action, ActionError } from "../_lib/action-result"
 
 // Removes the ATENDENTE membership in THIS shop. An Employee row the user
 // still has here (legacy data) is removed the same way as a barber, since
 // without a membership they are no longer staff of this shop. The global
 // User is kept.
-export const deleteAtendente = async (slug: string, userId: string) => {
+export const deleteAtendente = action(async (slug: string, userId: string) => {
   const { shop } = await assertShopRole(slug, ["ADMIN"])
 
   await prisma.$transaction(async (tx) => {
@@ -19,7 +20,7 @@ export const deleteAtendente = async (slug: string, userId: string) => {
     })
 
     if (count === 0) {
-      throw new Error("Atendente não encontrado.")
+      throw new ActionError("Atendente não encontrado.")
     }
 
     const employee = await tx.employee.findFirst({
@@ -33,4 +34,4 @@ export const deleteAtendente = async (slug: string, userId: string) => {
   })
 
   revalidateShop(shop)
-}
+})

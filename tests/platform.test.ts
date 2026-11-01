@@ -17,6 +17,7 @@ import {
 import { failNextEmail, getSentEmails } from "./helpers/email"
 import { NotFoundError, RedirectError } from "./helpers/navigation"
 import { mockSession } from "./helpers/session"
+import { unwrap } from "@/app/_lib/action-result"
 
 const shopInput = (
   overrides: Partial<Parameters<typeof createShop>[0]> = {},
@@ -83,12 +84,16 @@ describe("platform admin gating", () => {
   it("rejects every platform action for a shop admin", async () => {
     mockSession(shopAdmin.id)
 
-    await expect(createShop(shopInput())).rejects.toThrow("Sem permissão.")
-    await expect(updateShopStatus(shop.id, "SUSPENDED")).rejects.toThrow(
+    await expect(unwrap(createShop(shopInput()))).rejects.toThrow(
       "Sem permissão.",
     )
     await expect(
-      inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" }),
+      unwrap(updateShopStatus(shop.id, "SUSPENDED")),
+    ).rejects.toThrow("Sem permissão.")
+    await expect(
+      unwrap(
+        inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" }),
+      ),
     ).rejects.toThrow("Sem permissão.")
 
     expect(await prisma.barbershop.count()).toBe(1)
@@ -104,7 +109,7 @@ describe("createShop", () => {
   beforeEach(() => mockSession(platformAdmin.id))
 
   it("creates the shop and invites its owner as ADMIN", async () => {
-    const result = await createShop(shopInput({ phone: "11988887777" }))
+    const result = await unwrap(createShop(shopInput({ phone: "11988887777" })))
 
     expect(result).toEqual({ slug: "barbearia-nova", inviteSent: true })
     const created = await prisma.barbershop.findUniqueOrThrow({
@@ -133,21 +138,21 @@ describe("createShop", () => {
 
   it("rejects a slug in use, reserved or invalid", async () => {
     await expect(
-      createShop(shopInput({ slug: "barbearia-a" })),
+      unwrap(createShop(shopInput({ slug: "barbearia-a" }))),
     ).rejects.toThrow("Este endereço já está em uso. Escolha outro.")
-    await expect(createShop(shopInput({ slug: "platform" }))).rejects.toThrow(
-      "Este endereço é reservado. Escolha outro.",
-    )
-    await expect(createShop(shopInput({ slug: "Com Espaço" }))).rejects.toThrow(
-      "Use apenas letras minúsculas",
-    )
+    await expect(
+      unwrap(createShop(shopInput({ slug: "platform" }))),
+    ).rejects.toThrow("Este endereço é reservado. Escolha outro.")
+    await expect(
+      unwrap(createShop(shopInput({ slug: "Com Espaço" }))),
+    ).rejects.toThrow("Use apenas letras minúsculas")
     expect(await prisma.barbershop.count()).toBe(1)
   })
 
   it("keeps the shop when the owner email fails", async () => {
     failNextEmail()
 
-    const result = await createShop(shopInput())
+    const result = await unwrap(createShop(shopInput()))
 
     expect(result).toEqual({ slug: "barbearia-nova", inviteSent: false })
     expect(await prisma.barbershop.count()).toBe(2)
@@ -159,14 +164,14 @@ describe("updateShopStatus", () => {
   beforeEach(() => mockSession(platformAdmin.id))
 
   it("suspends a shop (it 404s) and reactivates it", async () => {
-    await updateShopStatus(shop.id, "SUSPENDED")
+    await unwrap(updateShopStatus(shop.id, "SUSPENDED"))
 
     await expect(getTenant("barbearia-a")).rejects.toThrow(NotFoundError)
     await expect(getActiveShopOrThrow("barbearia-a")).rejects.toThrow(
       "Barbearia não encontrada.",
     )
 
-    await updateShopStatus(shop.id, "ACTIVE")
+    await unwrap(updateShopStatus(shop.id, "ACTIVE"))
 
     await expect(getActiveShopOrThrow("barbearia-a")).resolves.toMatchObject({
       id: shop.id,
@@ -174,12 +179,12 @@ describe("updateShopStatus", () => {
   })
 
   it("rejects an unknown shop or status", async () => {
-    await expect(updateShopStatus("nao-existe", "SUSPENDED")).rejects.toThrow(
-      "Barbearia não encontrada.",
-    )
+    await expect(
+      unwrap(updateShopStatus("nao-existe", "SUSPENDED")),
+    ).rejects.toThrow("Barbearia não encontrada.")
     await expect(
       // @ts-expect-error a tampered client can send anything
-      updateShopStatus(shop.id, "DELETED"),
+      unwrap(updateShopStatus(shop.id, "DELETED")),
     ).rejects.toThrow("Status inválido.")
   })
 })
@@ -188,10 +193,12 @@ describe("inviteShopMember", () => {
   beforeEach(() => mockSession(platformAdmin.id))
 
   it("invites an email with a role", async () => {
-    await inviteShopMember(shop.id, {
-      email: "Atendente@Test.local",
-      role: "ATENDENTE",
-    })
+    await unwrap(
+      inviteShopMember(shop.id, {
+        email: "Atendente@Test.local",
+        role: "ATENDENTE",
+      }),
+    )
 
     expect(await prisma.invitation.findMany()).toMatchObject([
       {
@@ -208,13 +215,22 @@ describe("inviteShopMember", () => {
     })
 
     await expect(
-      inviteShopMember(shop.id, { email: admin.email!, role: "EMPLOYEE" }),
+      unwrap(
+        inviteShopMember(shop.id, { email: admin.email!, role: "EMPLOYEE" }),
+      ),
     ).rejects.toThrow("Este usuário já faz parte da equipe desta barbearia.")
     await expect(
-      inviteShopMember(shop.id, { email: "x@test.local", role: "OWNER" }),
+      unwrap(
+        inviteShopMember(shop.id, { email: "x@test.local", role: "OWNER" }),
+      ),
     ).rejects.toThrow("Selecione um papel.")
     await expect(
-      inviteShopMember("nao-existe", { email: "x@test.local", role: "ADMIN" }),
+      unwrap(
+        inviteShopMember("nao-existe", {
+          email: "x@test.local",
+          role: "ADMIN",
+        }),
+      ),
     ).rejects.toThrow("Barbearia não encontrada.")
     expect(await prisma.invitation.count()).toBe(0)
   })
@@ -223,7 +239,9 @@ describe("inviteShopMember", () => {
     failNextEmail()
 
     await expect(
-      inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" }),
+      unwrap(
+        inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" }),
+      ),
     ).rejects.toThrow("Não foi possível enviar o convite. Tente novamente.")
     expect(await prisma.invitation.count()).toBe(0)
   })
@@ -232,7 +250,9 @@ describe("inviteShopMember", () => {
 describe("getPlatformShops", () => {
   it("counts members and pending invitations per shop", async () => {
     mockSession(platformAdmin.id)
-    await inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" })
+    await unwrap(
+      inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" }),
+    )
     await createShopRow({ slug: "suspensa", status: "SUSPENDED" })
 
     const shops = await getPlatformShops()

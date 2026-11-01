@@ -8,6 +8,7 @@ import { resetPassword } from "@/app/_actions/reset-password"
 import { checkLoginAttempt } from "@/app/_actions/check-login-attempt"
 import { createUser } from "./helpers/factories"
 import { getSentEmails, sendEmailMock } from "./helpers/email"
+import { unwrap } from "@/app/_lib/action-result"
 
 // Account actions that touch no shop data: sign-up, password reset and the
 // login lockout.
@@ -31,12 +32,14 @@ const lastResetCode = (email: string) =>
 
 describe("signUp", () => {
   it("creates a client account with a hashed password and no membership", async () => {
-    await signUp({
-      name: "Novo Cliente",
-      email: "novo@test.local",
-      password: STRONG,
-      acceptTerms: true,
-    })
+    await unwrap(
+      signUp({
+        name: "Novo Cliente",
+        email: "novo@test.local",
+        password: STRONG,
+        acceptTerms: true,
+      }),
+    )
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { email: "novo@test.local" },
@@ -53,12 +56,14 @@ describe("signUp", () => {
     const existing = await createUserWithPassword("dono@test.local")
 
     await expect(
-      signUp({
-        name: "Invasor",
-        email: "dono@test.local",
-        password: NEW_STRONG,
-        acceptTerms: true,
-      }),
+      unwrap(
+        signUp({
+          name: "Invasor",
+          email: "dono@test.local",
+          password: NEW_STRONG,
+          acceptTerms: true,
+        }),
+      ),
     ).rejects.toThrow("Já existe uma conta com esse email.")
 
     const after = await prisma.user.findUniqueOrThrow({
@@ -70,20 +75,24 @@ describe("signUp", () => {
 
   it("rejects a weak password and unaccepted terms", async () => {
     await expect(
-      signUp({
-        name: "Fraco",
-        email: "fraco@test.local",
-        password: "123456",
-        acceptTerms: true,
-      }),
+      unwrap(
+        signUp({
+          name: "Fraco",
+          email: "fraco@test.local",
+          password: "123456",
+          acceptTerms: true,
+        }),
+      ),
     ).rejects.toThrow()
     await expect(
-      signUp({
-        name: "Sem Termos",
-        email: "termos@test.local",
-        password: STRONG,
-        acceptTerms: false,
-      }),
+      unwrap(
+        signUp({
+          name: "Sem Termos",
+          email: "termos@test.local",
+          password: STRONG,
+          acceptTerms: false,
+        }),
+      ),
     ).rejects.toThrow("Você precisa aceitar a política de privacidade.")
 
     expect(await prisma.user.count()).toBe(0)
@@ -101,20 +110,22 @@ describe("password reset", () => {
       },
     })
 
-    await requestPasswordReset({ email: "reset@test.local" })
+    await unwrap(requestPasswordReset({ email: "reset@test.local" }))
 
     const { code } = await lastResetCode("reset@test.local")
     const [email] = getSentEmails()
     expect(email.to).toBe("reset@test.local")
     expect(email.html).toContain(code)
 
-    await verifyResetCode({ email: "reset@test.local", code })
-    await resetPassword({
-      email: "reset@test.local",
-      code,
-      newPassword: NEW_STRONG,
-      confirmNewPassword: NEW_STRONG,
-    })
+    await unwrap(verifyResetCode({ email: "reset@test.local", code }))
+    await unwrap(
+      resetPassword({
+        email: "reset@test.local",
+        code,
+        newPassword: NEW_STRONG,
+        confirmNewPassword: NEW_STRONG,
+      }),
+    )
 
     const after = await prisma.user.findUniqueOrThrow({
       where: { id: user.id },
@@ -125,17 +136,19 @@ describe("password reset", () => {
 
     // The code is single-use
     await expect(
-      resetPassword({
-        email: "reset@test.local",
-        code,
-        newPassword: STRONG,
-        confirmNewPassword: STRONG,
-      }),
+      unwrap(
+        resetPassword({
+          email: "reset@test.local",
+          code,
+          newPassword: STRONG,
+          confirmNewPassword: STRONG,
+        }),
+      ),
     ).rejects.toThrow("Código inválido.")
   })
 
   it("stays silent for an unknown email", async () => {
-    await requestPasswordReset({ email: "ninguem@test.local" })
+    await unwrap(requestPasswordReset({ email: "ninguem@test.local" }))
 
     expect(sendEmailMock()).not.toHaveBeenCalled()
     expect(await prisma.passwordResetCode.count()).toBe(0)
@@ -144,9 +157,9 @@ describe("password reset", () => {
   it("keeps only the newest code valid", async () => {
     await createUserWithPassword("dois@test.local")
 
-    await requestPasswordReset({ email: "dois@test.local" })
+    await unwrap(requestPasswordReset({ email: "dois@test.local" }))
     const first = await lastResetCode("dois@test.local")
-    await requestPasswordReset({ email: "dois@test.local" })
+    await unwrap(requestPasswordReset({ email: "dois@test.local" }))
     const second = await lastResetCode("dois@test.local")
 
     expect(second.id).not.toBe(first.id)
@@ -156,35 +169,35 @@ describe("password reset", () => {
     expect(firstAfter.usedAt).not.toBeNull()
     if (first.code !== second.code) {
       await expect(
-        verifyResetCode({ email: "dois@test.local", code: first.code }),
+        unwrap(verifyResetCode({ email: "dois@test.local", code: first.code })),
       ).rejects.toThrow("Código inválido.")
     }
   })
 
   it("burns the code after 5 wrong guesses", async () => {
     await createUserWithPassword("chute@test.local")
-    await requestPasswordReset({ email: "chute@test.local" })
+    await unwrap(requestPasswordReset({ email: "chute@test.local" }))
     const { code } = await lastResetCode("chute@test.local")
     const wrong = code === "000000" ? "111111" : "000000"
 
     for (let i = 0; i < 4; i++) {
       await expect(
-        verifyResetCode({ email: "chute@test.local", code: wrong }),
+        unwrap(verifyResetCode({ email: "chute@test.local", code: wrong })),
       ).rejects.toThrow("Código inválido.")
     }
     await expect(
-      verifyResetCode({ email: "chute@test.local", code: wrong }),
+      unwrap(verifyResetCode({ email: "chute@test.local", code: wrong })),
     ).rejects.toThrow("Muitas tentativas. Solicite um novo código.")
 
     // Even the right code no longer works
     await expect(
-      verifyResetCode({ email: "chute@test.local", code }),
+      unwrap(verifyResetCode({ email: "chute@test.local", code })),
     ).rejects.toThrow("Código inválido.")
   })
 
   it("rejects an expired code", async () => {
     await createUserWithPassword("velho@test.local")
-    await requestPasswordReset({ email: "velho@test.local" })
+    await unwrap(requestPasswordReset({ email: "velho@test.local" }))
     const resetCode = await lastResetCode("velho@test.local")
     await prisma.passwordResetCode.update({
       where: { id: resetCode.id },
@@ -192,7 +205,9 @@ describe("password reset", () => {
     })
 
     await expect(
-      verifyResetCode({ email: "velho@test.local", code: resetCode.code }),
+      unwrap(
+        verifyResetCode({ email: "velho@test.local", code: resetCode.code }),
+      ),
     ).rejects.toThrow("Código expirado. Solicite um novo.")
   })
 })

@@ -31,6 +31,11 @@ vi.mock("next/navigation", async () => {
     notFound: vi.fn(() => {
       throw new NotFoundError()
     }),
+    unstable_rethrow: (error: unknown) => {
+      if (error instanceof RedirectError || error instanceof NotFoundError) {
+        throw error
+      }
+    },
   }
 })
 

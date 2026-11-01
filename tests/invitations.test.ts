@@ -24,6 +24,7 @@ import {
   getSentEmails,
 } from "./helpers/email"
 import { mockSession } from "./helpers/session"
+import { unwrap } from "@/app/_lib/action-result"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -154,7 +155,7 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "EMPLOYEE")
     mockSession(user.id)
 
-    const result = await acceptInvitation(token)
+    const result = await unwrap(acceptInvitation(token))
 
     expect(result).toEqual({
       path: "/b/barbearia-a/staff",
@@ -175,7 +176,7 @@ describe("acceptInvitation", () => {
     const token = await invite("dono@test.local", "ADMIN")
     mockSession(user.id)
 
-    const result = await acceptInvitation(token)
+    const result = await unwrap(acceptInvitation(token))
 
     expect(result.path).toBe("/b/barbearia-a/admin")
     expect(await prisma.employee.count({ where: { userId: user.id } })).toBe(0)
@@ -186,7 +187,7 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "ATENDENTE")
     mockSession(user.id)
 
-    const result = await acceptInvitation(token)
+    const result = await unwrap(acceptInvitation(token))
 
     expect(result.path).toBe("/b/barbearia-a/atendente")
   })
@@ -197,7 +198,7 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "ADMIN")
     mockSession(other.id)
 
-    await expect(acceptInvitation(token)).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
       "Este convite foi enviado para novo@test.local.",
     )
     expect(await prisma.membership.count()).toBe(0)
@@ -207,7 +208,7 @@ describe("acceptInvitation", () => {
   it("rejects a signed-out user", async () => {
     const token = await invite("novo@test.local", "ADMIN")
 
-    await expect(acceptInvitation(token)).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
       "Você precisa estar logado.",
     )
   })
@@ -220,7 +221,7 @@ describe("acceptInvitation", () => {
     })
     mockSession(user.id)
 
-    await expect(acceptInvitation(token)).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
       "Este convite expirou. Peça um novo convite.",
     )
     expect(await prisma.membership.count()).toBe(0)
@@ -232,11 +233,11 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "EMPLOYEE")
     mockSession(user.id)
 
-    await acceptInvitation(token)
+    await unwrap(acceptInvitation(token))
     // Removed from the team afterwards: the old link must not bring them back
     await prisma.membership.deleteMany({ where: { userId: user.id } })
 
-    await expect(acceptInvitation(token)).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
       "Este convite já foi usado.",
     )
     expect(await prisma.membership.count({ where: { userId: user.id } })).toBe(
@@ -249,9 +250,11 @@ describe("acceptInvitation", () => {
     mockSession(user.id)
 
     await expect(
-      acceptInvitation(generateInvitationToken().token),
+      unwrap(acceptInvitation(generateInvitationToken().token)),
     ).rejects.toThrow("Convite inválido.")
-    await expect(acceptInvitation("")).rejects.toThrow("Convite inválido.")
+    await expect(unwrap(acceptInvitation(""))).rejects.toThrow(
+      "Convite inválido.",
+    )
   })
 
   it("rejects an invitation of a suspended shop", async () => {
@@ -263,7 +266,7 @@ describe("acceptInvitation", () => {
     })
     mockSession(user.id)
 
-    await expect(acceptInvitation(token)).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
       "Barbearia não encontrada.",
     )
     expect(await prisma.membership.count()).toBe(0)
@@ -274,7 +277,7 @@ describe("acceptInvitation", () => {
     const tokenB = await invite("novo@test.local", "ADMIN", shopB)
     mockSession(user.id)
 
-    const result = await acceptInvitation(tokenB)
+    const result = await unwrap(acceptInvitation(tokenB))
 
     expect(result.path).toBe("/b/barbearia-b/admin")
     expect(
@@ -289,7 +292,7 @@ describe("acceptInvitation", () => {
     mockSession(adminA.id)
 
     await expect(
-      createAtendente("barbearia-b", { email: "novo@test.local" }),
+      unwrap(createAtendente("barbearia-b", { email: "novo@test.local" })),
     ).rejects.toThrow("Sem permissão.")
     expect(await prisma.invitation.count()).toBe(0)
   })
@@ -300,7 +303,7 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "ADMIN")
     mockSession(user.id)
 
-    const result = await acceptInvitation(token)
+    const result = await unwrap(acceptInvitation(token))
 
     expect(result).toEqual({
       path: "/b/barbearia-a/atendente",
@@ -321,7 +324,7 @@ describe("acceptInvitation", () => {
     const token = await invite("dono@test.local", "EMPLOYEE")
     mockSession(user.id)
 
-    const result = await acceptInvitation(token)
+    const result = await unwrap(acceptInvitation(token))
 
     expect(result).toEqual({
       path: "/b/barbearia-a/admin",
@@ -345,7 +348,7 @@ describe("acceptInvitation", () => {
     const token = await invite("barbeiro@test.local", "EMPLOYEE")
     mockSession(user.id)
 
-    await acceptInvitation(token)
+    await unwrap(acceptInvitation(token))
 
     expect(
       (await prisma.employee.findUniqueOrThrow({ where: { id: employee.id } }))

@@ -21,6 +21,7 @@ import {
 } from "./ui/alert-dialog"
 import CreateAtendenteDialog from "./create-atendente-dialog"
 import { deleteAtendente } from "../_actions/delete-atendente"
+import { unwrap } from "../_lib/action-result"
 
 const getInitials = (name?: string | null) => {
   if (!name) return "?"
@@ -61,7 +62,7 @@ const AdminAtendentesTable = ({
     setIsDeleting(true)
 
     try {
-      await deleteAtendente(slug, userId)
+      await unwrap(deleteAtendente(slug, userId))
       toast.success("Atendente removido com sucesso!")
       setDeleteDialogOpenId(null)
       router.refresh()

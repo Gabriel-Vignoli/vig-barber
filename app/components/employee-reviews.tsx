@@ -20,6 +20,7 @@ import {
 } from "./ui/alert-dialog"
 import ReviewFormDialog from "./review-form-dialog"
 import { deleteReview } from "../_actions/delete-review"
+import { unwrap } from "../_lib/action-result"
 
 interface ReviewData {
   id: string
@@ -90,7 +91,7 @@ const EmployeeReviews = ({
     setIsDeleting(true)
 
     try {
-      await deleteReview(reviewId)
+      await unwrap(deleteReview(reviewId))
       toast.success("Avaliação removida.")
       setDeleteDialogOpenId(null)
       router.refresh()

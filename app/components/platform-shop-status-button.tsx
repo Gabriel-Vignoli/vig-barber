@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from "./ui/alert-dialog"
 import { updateShopStatus } from "../_actions/update-shop-status"
+import { unwrap } from "../_lib/action-result"
 
 interface PlatformShopStatusButtonProps {
   shopId: string
@@ -38,7 +39,7 @@ const PlatformShopStatusButton = ({
     setIsSubmitting(true)
 
     try {
-      await updateShopStatus(shopId, suspend ? "SUSPENDED" : "ACTIVE")
+      await unwrap(updateShopStatus(shopId, suspend ? "SUSPENDED" : "ACTIVE"))
       toast.success(suspend ? "Barbearia suspensa." : "Barbearia reativada.")
       setOpen(false)
       router.refresh()

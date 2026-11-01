@@ -36,6 +36,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import BookingSummary from "./booking-summary"
 import { showBookingCancelToast } from "./booking-cancel-toast"
+import { unwrap } from "../_lib/action-result"
 
 interface BookingItemsProps {
   booking: {
@@ -79,7 +80,7 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
   const handleCancelBooking = async () => {
     try {
       setIsDeleting(true)
-      await deleteBooking(booking.id)
+      await unwrap(deleteBooking(booking.id))
 
       // Only close both once the delete actually succeeds
       setIsAlertDialogOpen(false)

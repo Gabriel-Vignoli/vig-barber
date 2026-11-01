@@ -15,6 +15,7 @@ import {
   createUser,
 } from "./helpers/factories"
 import { mockSession } from "./helpers/session"
+import { unwrap } from "@/app/_lib/action-result"
 
 // A Monday, far in the future, at midday (safe from timezone day shifts)
 const DAY = new Date("2030-01-07T15:00:00.000Z")
@@ -214,11 +215,13 @@ describe("createBooking", () => {
     const user = await createUser()
     mockSession(user.id)
 
-    await createBooking("barbearia-a", {
-      barbershopServiceId: f.serviceA.id,
-      employeeId: f.employeeA.id,
-      bookingDate: SLOT,
-    })
+    await unwrap(
+      createBooking("barbearia-a", {
+        barbershopServiceId: f.serviceA.id,
+        employeeId: f.employeeA.id,
+        bookingDate: SLOT,
+      }),
+    )
 
     const booking = await prisma.booking.findFirstOrThrow({
       where: { userId: user.id },
@@ -232,11 +235,13 @@ describe("createBooking", () => {
     const before = await countBookings()
 
     await expect(
-      createBooking("barbearia-a", {
-        barbershopServiceId: f.serviceA.id,
-        employeeId: f.employeeA.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        createBooking("barbearia-a", {
+          barbershopServiceId: f.serviceA.id,
+          employeeId: f.employeeA.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Usuário não autenticado")
     expect(await countBookings()).toBe(before)
   })
@@ -245,11 +250,13 @@ describe("createBooking", () => {
     mockSession((await createUser()).id)
 
     await expect(
-      createBooking("nao-existe", {
-        barbershopServiceId: f.serviceA.id,
-        employeeId: f.employeeA.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        createBooking("nao-existe", {
+          barbershopServiceId: f.serviceA.id,
+          employeeId: f.employeeA.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Barbearia não encontrada.")
   })
 
@@ -258,11 +265,13 @@ describe("createBooking", () => {
     const before = await countBookings()
 
     await expect(
-      createBooking("barbearia-a", {
-        barbershopServiceId: f.serviceB.id,
-        employeeId: f.employeeA.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        createBooking("barbearia-a", {
+          barbershopServiceId: f.serviceB.id,
+          employeeId: f.employeeA.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Serviço ou profissional indisponível nesta barbearia.")
     expect(await countBookings()).toBe(before)
   })
@@ -272,11 +281,13 @@ describe("createBooking", () => {
     const before = await countBookings()
 
     await expect(
-      createBooking("barbearia-a", {
-        barbershopServiceId: f.serviceA.id,
-        employeeId: f.employeeB.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        createBooking("barbearia-a", {
+          barbershopServiceId: f.serviceA.id,
+          employeeId: f.employeeB.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Serviço ou profissional indisponível nesta barbearia.")
     expect(await countBookings()).toBe(before)
   })
@@ -286,11 +297,13 @@ describe("createBooking", () => {
     const before = await countBookings()
 
     await expect(
-      createBooking("barbearia-a", {
-        barbershopServiceId: f.serviceB.id,
-        employeeId: f.employeeB.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        createBooking("barbearia-a", {
+          barbershopServiceId: f.serviceB.id,
+          employeeId: f.employeeB.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Serviço ou profissional indisponível nesta barbearia.")
     expect(await countBookings()).toBe(before)
   })
@@ -303,11 +316,13 @@ describe("createBooking", () => {
     })
 
     await expect(
-      createBooking("barbearia-a", {
-        barbershopServiceId: f.serviceA.id,
-        employeeId: f.employeeA.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        createBooking("barbearia-a", {
+          barbershopServiceId: f.serviceA.id,
+          employeeId: f.employeeA.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Serviço ou profissional indisponível nesta barbearia.")
   })
 
@@ -317,11 +332,13 @@ describe("createBooking", () => {
     const unlinked = await createEmployee(otherBarber.id, f.shopA.id, [])
 
     await expect(
-      createBooking("barbearia-a", {
-        barbershopServiceId: f.serviceA.id,
-        employeeId: unlinked.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        createBooking("barbearia-a", {
+          barbershopServiceId: f.serviceA.id,
+          employeeId: unlinked.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Serviço ou profissional indisponível nesta barbearia.")
   })
 
@@ -334,11 +351,13 @@ describe("createBooking", () => {
       const before = await countBookings()
 
       await expect(
-        createBooking("barbearia-a", {
-          barbershopServiceId: f.serviceA.id,
-          employeeId: f.employeeA.id,
-          bookingDate: SLOT,
-        }),
+        unwrap(
+          createBooking("barbearia-a", {
+            barbershopServiceId: f.serviceA.id,
+            employeeId: f.employeeA.id,
+            bookingDate: SLOT,
+          }),
+        ),
       ).rejects.toThrow(
         "Administradores e atendentes não podem realizar agendamentos.",
       )
@@ -351,11 +370,13 @@ describe("createBooking", () => {
     await createMembership(atendente.id, f.shopA.id, "ATENDENTE")
     mockSession(atendente.id)
 
-    await createBooking("barbearia-b", {
-      barbershopServiceId: f.serviceB.id,
-      employeeId: f.employeeB.id,
-      bookingDate: SLOT,
-    })
+    await unwrap(
+      createBooking("barbearia-b", {
+        barbershopServiceId: f.serviceB.id,
+        employeeId: f.employeeB.id,
+        bookingDate: SLOT,
+      }),
+    )
 
     const booking = await prisma.booking.findFirstOrThrow({
       where: { userId: atendente.id },
@@ -371,12 +392,14 @@ describe("replaceBooking", () => {
       where: { userId: f.client.id, barbershopId: f.shopB.id },
     })
 
-    await replaceBooking("barbearia-a", {
-      oldBookingId: old.id,
-      barbershopServiceId: f.serviceA.id,
-      employeeId: f.employeeA.id,
-      bookingDate: SLOT,
-    })
+    await unwrap(
+      replaceBooking("barbearia-a", {
+        oldBookingId: old.id,
+        barbershopServiceId: f.serviceA.id,
+        employeeId: f.employeeA.id,
+        bookingDate: SLOT,
+      }),
+    )
 
     const cancelled = await prisma.booking.findUniqueOrThrow({
       where: { id: old.id },
@@ -396,12 +419,14 @@ describe("replaceBooking", () => {
     })
 
     await expect(
-      replaceBooking("barbearia-a", {
-        oldBookingId: old.id,
-        barbershopServiceId: f.serviceB.id,
-        employeeId: f.employeeA.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        replaceBooking("barbearia-a", {
+          oldBookingId: old.id,
+          barbershopServiceId: f.serviceB.id,
+          employeeId: f.employeeA.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Serviço ou profissional indisponível nesta barbearia.")
 
     const unchanged = await prisma.booking.findUniqueOrThrow({
@@ -418,12 +443,14 @@ describe("replaceBooking", () => {
     })
 
     await expect(
-      replaceBooking("barbearia-a", {
-        oldBookingId: old.id,
-        barbershopServiceId: f.serviceA.id,
-        employeeId: f.employeeA.id,
-        bookingDate: SLOT,
-      }),
+      unwrap(
+        replaceBooking("barbearia-a", {
+          oldBookingId: old.id,
+          barbershopServiceId: f.serviceA.id,
+          employeeId: f.employeeA.id,
+          bookingDate: SLOT,
+        }),
+      ),
     ).rejects.toThrow("Reserva original não encontrada.")
   })
 })

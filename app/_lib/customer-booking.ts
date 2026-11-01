@@ -6,6 +6,7 @@ import {
   getSessionUserId,
   type Tenant,
 } from "./tenant"
+import { ActionError } from "./action-result"
 
 interface CustomerBookingInput {
   barbershopServiceId: string
@@ -23,7 +24,7 @@ export const prepareCustomerBooking = async (
   const userId = await getSessionUserId()
 
   if (!userId) {
-    throw new Error("Usuário não autenticado")
+    throw new ActionError("Usuário não autenticado")
   }
 
   const shop = await getActiveShopOrThrow(slug)
@@ -31,13 +32,13 @@ export const prepareCustomerBooking = async (
   const membership = await getMembership(shop.id, userId)
 
   if (isBookingBlockedRole(membership?.role)) {
-    throw new Error(
+    throw new ActionError(
       "Administradores e atendentes não podem realizar agendamentos.",
     )
   }
 
   if (!(bookingDate instanceof Date) || Number.isNaN(bookingDate.getTime())) {
-    throw new Error("Data inválida.")
+    throw new ActionError("Data inválida.")
   }
 
   const link = await prisma.employeeService.findFirst({
@@ -51,7 +52,9 @@ export const prepareCustomerBooking = async (
   })
 
   if (!link) {
-    throw new Error("Serviço ou profissional indisponível nesta barbearia.")
+    throw new ActionError(
+      "Serviço ou profissional indisponível nesta barbearia.",
+    )
   }
 
   return { shop, userId }

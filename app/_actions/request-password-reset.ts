@@ -4,16 +4,17 @@ import { randomInt } from "crypto"
 import { prisma } from "../_lib/prisma"
 import { EMAIL_FROM, resend } from "../_lib/resend"
 import { requestResetCodeSchema } from "../_lib/validations/password-reset"
+import { action, ActionError } from "../_lib/action-result"
 
 const CODE_EXPIRY_MINUTES = 15
 
 const generateCode = () => randomInt(100000, 1000000).toString()
 
-export const requestPasswordReset = async (input: { email: string }) => {
+export const requestPasswordReset = action(async (input: { email: string }) => {
   const parsed = requestResetCodeSchema.safeParse(input)
 
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0].message)
+    throw new ActionError(parsed.error.issues[0].message)
   }
 
   const { email } = parsed.data
@@ -51,4 +52,4 @@ export const requestPasswordReset = async (input: { email: string }) => {
       </div>
     `,
   })
-}
+})

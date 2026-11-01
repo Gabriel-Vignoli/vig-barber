@@ -23,6 +23,7 @@ import {
   createEmployeeSchema,
   CreateEmployeeFormValues,
 } from "../_lib/validations/employee"
+import { unwrap } from "../_lib/action-result"
 
 interface EmployeeFormDialogProps {
   slug: string
@@ -59,7 +60,7 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      const { invited } = await createEmployee(slug, values)
+      const { invited } = await unwrap(createEmployee(slug, values))
       toast.success(
         invited
           ? "Este email já tem conta. Enviamos um convite para ele entrar na equipe."

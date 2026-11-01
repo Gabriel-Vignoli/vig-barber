@@ -22,6 +22,7 @@ import StarRatingInput from "./star-rating-input"
 import { createReview } from "../_actions/create-review"
 import { updateReview } from "../_actions/update-review"
 import { reviewFormSchema, ReviewFormValues } from "../_lib/validations/review"
+import { unwrap } from "../_lib/action-result"
 
 interface ReviewFormDialogProps {
   mode: "create" | "edit"
@@ -69,20 +70,24 @@ const ReviewFormDialog = ({
     try {
       if (mode === "create") {
         if (!bookingId) return
-        await createReview({
-          bookingId,
-          employeeId,
-          rating: values.rating,
-          comment: values.comment,
-        })
+        await unwrap(
+          createReview({
+            bookingId,
+            employeeId,
+            rating: values.rating,
+            comment: values.comment,
+          }),
+        )
         toast.success("Avaliação enviada com sucesso!")
       } else {
         if (!reviewId) return
-        await updateReview({
-          reviewId,
-          rating: values.rating,
-          comment: values.comment,
-        })
+        await unwrap(
+          updateReview({
+            reviewId,
+            rating: values.rating,
+            comment: values.comment,
+          }),
+        )
         toast.success("Avaliação atualizada com sucesso!")
       }
 

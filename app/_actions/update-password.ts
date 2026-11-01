@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "../_lib/auth"
 import { prisma } from "../_lib/prisma"
 import { updatePasswordFormSchema } from "../_lib/validations/profile"
+import { action, ActionError } from "../_lib/action-result"
 
 interface UpdatePasswordInput {
   currentPassword?: string
@@ -12,17 +13,17 @@ interface UpdatePasswordInput {
   confirmNewPassword: string
 }
 
-export const updatePassword = async (input: UpdatePasswordInput) => {
+export const updatePassword = action(async (input: UpdatePasswordInput) => {
   const session = await getServerSession(authOptions)
 
   if (!session?.user) {
-    throw new Error("Usuário não autenticado")
+    throw new ActionError("Usuário não autenticado")
   }
 
   const parsed = updatePasswordFormSchema.safeParse(input)
 
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0].message)
+    throw new ActionError(parsed.error.issues[0].message)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,14 +32,14 @@ export const updatePassword = async (input: UpdatePasswordInput) => {
   const user = await prisma.user.findUnique({ where: { id: userId } })
 
   if (!user) {
-    throw new Error("Usuário não encontrado.")
+    throw new ActionError("Usuário não encontrado.")
   }
 
   // If the user already has a password, they must confirm the current one.
   // Users who signed up via Google (no password set) can set one directly.
   if (user.password) {
     if (!parsed.data.currentPassword) {
-      throw new Error("Informe sua senha atual.")
+      throw new ActionError("Informe sua senha atual.")
     }
 
     const isValidPassword = await bcrypt.compare(
@@ -47,7 +48,7 @@ export const updatePassword = async (input: UpdatePasswordInput) => {
     )
 
     if (!isValidPassword) {
-      throw new Error("Senha atual incorreta.")
+      throw new ActionError("Senha atual incorreta.")
     }
   }
 
@@ -57,4 +58,4 @@ export const updatePassword = async (input: UpdatePasswordInput) => {
     where: { id: userId },
     data: { password: hashedPassword },
   })
-}
+})

@@ -27,6 +27,7 @@ import {
 } from "../_actions/get-employee-schedule"
 import { createWalkInBooking } from "../_actions/create-walkin-booking"
 import { getTimeList } from "../_lib/time-list"
+import { unwrap } from "../_lib/action-result"
 
 interface Service {
   id: string
@@ -309,13 +310,15 @@ const WalkInBookingForm = ({ services, slug }: WalkInBookingFormProps) => {
         milliseconds: 0,
       })
 
-      await createWalkInBooking(slug, {
-        employeeId: selectedEmployeeId!,
-        barbershopServiceId: selectedServiceId!,
-        bookingDate,
-        clientName: clientName.trim(),
-        clientPhone: clientPhone || undefined,
-      })
+      await unwrap(
+        createWalkInBooking(slug, {
+          employeeId: selectedEmployeeId!,
+          barbershopServiceId: selectedServiceId!,
+          bookingDate,
+          clientName: clientName.trim(),
+          clientPhone: clientPhone || undefined,
+        }),
+      )
 
       toast.success("Agendamento criado com sucesso!")
       resetForm()

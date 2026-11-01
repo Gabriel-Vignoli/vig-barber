@@ -16,6 +16,7 @@ import {
   createUser,
 } from "./helpers/factories"
 import { mockSession } from "./helpers/session"
+import { unwrap } from "@/app/_lib/action-result"
 
 // Actions a client runs on their own records. None of them takes a slug: the
 // shop always comes from the booking or review row, never from the client.
@@ -112,7 +113,7 @@ describe("deleteBooking", () => {
       FUTURE,
     )
 
-    await deleteBooking(future.id)
+    await unwrap(deleteBooking(future.id))
 
     const cancelled = await prisma.booking.findUniqueOrThrow({
       where: { id: future.id },
@@ -145,7 +146,7 @@ describe("deleteBooking", () => {
     })
 
     for (const id of [f.bookingB.id, completed.id, cancelled.id]) {
-      await expect(deleteBooking(id)).rejects.toThrow(
+      await expect(unwrap(deleteBooking(id))).rejects.toThrow(
         "Esta reserva não pode mais ser cancelada.",
       )
     }
@@ -165,7 +166,7 @@ describe("deleteBooking", () => {
   it("does not cancel another client's booking", async () => {
     mockSession(f.client.id)
 
-    await expect(deleteBooking(f.otherBookingB.id)).rejects.toThrow(
+    await expect(unwrap(deleteBooking(f.otherBookingB.id))).rejects.toThrow(
       "Reserva não encontrada.",
     )
 
@@ -177,7 +178,7 @@ describe("deleteBooking", () => {
   })
 
   it("rejects a signed-out visitor", async () => {
-    await expect(deleteBooking(f.bookingA.id)).rejects.toThrow(
+    await expect(unwrap(deleteBooking(f.bookingA.id))).rejects.toThrow(
       "Usuário não autenticado",
     )
   })
@@ -187,11 +188,13 @@ describe("createReview", () => {
   it("puts the review in the booking's shop", async () => {
     mockSession(f.client.id)
 
-    await createReview({
-      bookingId: f.bookingB.id,
-      employeeId: f.employeeB.id,
-      rating: 5,
-    })
+    await unwrap(
+      createReview({
+        bookingId: f.bookingB.id,
+        employeeId: f.employeeB.id,
+        rating: 5,
+      }),
+    )
 
     const review = await prisma.review.findUniqueOrThrow({
       where: { bookingId: f.bookingB.id },
@@ -208,11 +211,13 @@ describe("createReview", () => {
     mockSession(f.client.id)
 
     await expect(
-      createReview({
-        bookingId: f.otherBookingB.id,
-        employeeId: f.employeeB.id,
-        rating: 1,
-      }),
+      unwrap(
+        createReview({
+          bookingId: f.otherBookingB.id,
+          employeeId: f.employeeB.id,
+          rating: 1,
+        }),
+      ),
     ).rejects.toThrow("Reserva inválida para avaliação.")
     expect(await prisma.review.count()).toBe(1)
   })
@@ -221,11 +226,13 @@ describe("createReview", () => {
     mockSession(f.client.id)
 
     await expect(
-      createReview({
-        bookingId: f.bookingB.id,
-        employeeId: f.employeeA.id,
-        rating: 1,
-      }),
+      unwrap(
+        createReview({
+          bookingId: f.bookingB.id,
+          employeeId: f.employeeA.id,
+          rating: 1,
+        }),
+      ),
     ).rejects.toThrow("Reserva inválida para avaliação.")
     expect(await prisma.review.count()).toBe(1)
   })
@@ -246,7 +253,9 @@ describe("createReview", () => {
 
     for (const bookingId of [f.bookingB.id, future.id]) {
       await expect(
-        createReview({ bookingId, employeeId: f.employeeB.id, rating: 5 }),
+        unwrap(
+          createReview({ bookingId, employeeId: f.employeeB.id, rating: 5 }),
+        ),
       ).rejects.toThrow("Reserva inválida para avaliação.")
     }
     expect(await prisma.review.count()).toBe(1)
@@ -256,11 +265,13 @@ describe("createReview", () => {
     mockSession(f.client.id)
 
     await expect(
-      createReview({
-        bookingId: f.bookingA.id,
-        employeeId: f.employeeA.id,
-        rating: 5,
-      }),
+      unwrap(
+        createReview({
+          bookingId: f.bookingA.id,
+          employeeId: f.employeeA.id,
+          rating: 5,
+        }),
+      ),
     ).rejects.toThrow("Esta reserva já foi avaliada.")
     expect(await prisma.review.count()).toBe(1)
   })
@@ -273,22 +284,26 @@ describe("createReview", () => {
     })
 
     await expect(
-      createReview({
-        bookingId: f.bookingB.id,
-        employeeId: f.employeeB.id,
-        rating: 5,
-      }),
+      unwrap(
+        createReview({
+          bookingId: f.bookingB.id,
+          employeeId: f.employeeB.id,
+          rating: 5,
+        }),
+      ),
     ).rejects.toThrow("Esta barbearia não está aceitando avaliações.")
     expect(await prisma.review.count()).toBe(1)
   })
 
   it("rejects a signed-out visitor", async () => {
     await expect(
-      createReview({
-        bookingId: f.bookingB.id,
-        employeeId: f.employeeB.id,
-        rating: 5,
-      }),
+      unwrap(
+        createReview({
+          bookingId: f.bookingB.id,
+          employeeId: f.employeeB.id,
+          rating: 5,
+        }),
+      ),
     ).rejects.toThrow("Usuário não autenticado")
   })
 })
@@ -297,12 +312,14 @@ describe("updateReview and deleteReview", () => {
   it("let the author edit and remove their review", async () => {
     mockSession(f.client.id)
 
-    await updateReview({ reviewId: f.reviewA.id, rating: 2, comment: "Mudei" })
+    await unwrap(
+      updateReview({ reviewId: f.reviewA.id, rating: 2, comment: "Mudei" }),
+    )
     expect(
       await prisma.review.findUniqueOrThrow({ where: { id: f.reviewA.id } }),
     ).toMatchObject({ rating: 2, comment: "Mudei" })
 
-    await deleteReview(f.reviewA.id)
+    await unwrap(deleteReview(f.reviewA.id))
     expect(await prisma.review.count({ where: { id: f.reviewA.id } })).toBe(0)
     expect(updateTag).toHaveBeenCalledWith(shopTag(f.shopA.id))
   })
@@ -311,9 +328,15 @@ describe("updateReview and deleteReview", () => {
     mockSession(f.otherClient.id)
 
     await expect(
-      updateReview({ reviewId: f.reviewA.id, rating: 1, comment: "Invadido" }),
+      unwrap(
+        updateReview({
+          reviewId: f.reviewA.id,
+          rating: 1,
+          comment: "Invadido",
+        }),
+      ),
     ).rejects.toThrow("Avaliação não encontrada.")
-    await expect(deleteReview(f.reviewA.id)).rejects.toThrow(
+    await expect(unwrap(deleteReview(f.reviewA.id))).rejects.toThrow(
       "Avaliação não encontrada.",
     )
 
@@ -324,9 +347,9 @@ describe("updateReview and deleteReview", () => {
 
   it("reject a signed-out visitor", async () => {
     await expect(
-      updateReview({ reviewId: f.reviewA.id, rating: 1 }),
+      unwrap(updateReview({ reviewId: f.reviewA.id, rating: 1 })),
     ).rejects.toThrow("Usuário não autenticado")
-    await expect(deleteReview(f.reviewA.id)).rejects.toThrow(
+    await expect(unwrap(deleteReview(f.reviewA.id))).rejects.toThrow(
       "Usuário não autenticado",
     )
   })
@@ -339,12 +362,14 @@ describe("profile actions", () => {
       where: { id: f.otherClient.id },
     })
 
-    await updateProfile({ name: "Cliente Renomeado" })
-    await updatePhone({ phone: "11999990000" })
-    await updatePassword({
-      newPassword: "NovaSenha123!",
-      confirmNewPassword: "NovaSenha123!",
-    })
+    await unwrap(updateProfile({ name: "Cliente Renomeado" }))
+    await unwrap(updatePhone({ phone: "11999990000" }))
+    await unwrap(
+      updatePassword({
+        newPassword: "NovaSenha123!",
+        confirmNewPassword: "NovaSenha123!",
+      }),
+    )
 
     const client = await prisma.user.findUniqueOrThrow({
       where: { id: f.client.id },
@@ -360,17 +385,19 @@ describe("profile actions", () => {
   })
 
   it("reject a signed-out visitor", async () => {
-    await expect(updateProfile({ name: "Ninguém" })).rejects.toThrow(
+    await expect(unwrap(updateProfile({ name: "Ninguém" }))).rejects.toThrow(
       "Usuário não autenticado",
     )
-    await expect(updatePhone({ phone: "11999990000" })).rejects.toThrow(
+    await expect(unwrap(updatePhone({ phone: "11999990000" }))).rejects.toThrow(
       "Usuário não autenticado",
     )
     await expect(
-      updatePassword({
-        newPassword: "NovaSenha123!",
-        confirmNewPassword: "NovaSenha123!",
-      }),
+      unwrap(
+        updatePassword({
+          newPassword: "NovaSenha123!",
+          confirmNewPassword: "NovaSenha123!",
+        }),
+      ),
     ).rejects.toThrow("Usuário não autenticado")
   })
 })

@@ -22,6 +22,7 @@ import {
   createAtendenteSchema,
   CreateAtendenteFormValues,
 } from "../_lib/validations/atendente"
+import { unwrap } from "../_lib/action-result"
 
 interface CreateAtendenteDialogProps {
   slug: string
@@ -51,7 +52,7 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      const { invited } = await createAtendente(slug, values)
+      const { invited } = await unwrap(createAtendente(slug, values))
       toast.success(
         invited
           ? "Este email já tem conta. Enviamos um convite para ele entrar na equipe."

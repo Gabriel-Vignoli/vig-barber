@@ -32,6 +32,7 @@ import {
   ExpenseFormValues,
   EXPENSE_CATEGORY_LABELS,
 } from "../_lib/validations/expense"
+import { unwrap } from "../_lib/action-result"
 
 interface ExpenseFormDialogProps {
   slug: string
@@ -75,11 +76,11 @@ const ExpenseFormDialog = ({
 
     try {
       if (mode === "create") {
-        await createExpense(slug, values)
+        await unwrap(createExpense(slug, values))
         toast.success("Despesa criada com sucesso!")
       } else {
         if (!expenseId) return
-        await updateExpense(slug, expenseId, values)
+        await unwrap(updateExpense(slug, expenseId, values))
         toast.success("Despesa atualizada com sucesso!")
       }
 

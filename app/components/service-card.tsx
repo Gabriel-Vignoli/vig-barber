@@ -44,6 +44,7 @@ import { showBookingSuccessToast } from "./booking-success-toast"
 import SignInDialog from "./sign-in-dialog"
 import BookingSummary from "./booking-summary"
 import PhoneCollectionDialog from "./phone-collection-dialog"
+import { unwrap } from "../_lib/action-result"
 
 interface ServiceCardProps {
   service: {
@@ -257,11 +258,13 @@ const ServiceCard = ({ service, slug, bookingBlocked }: ServiceCardProps) => {
     const minute = Number(selectedTime.split(":")[1])
     const bookingDate = set(selectedDay, { hours: hour, minutes: minute })
 
-    await createBooking(slug, {
-      barbershopServiceId: service.id,
-      employeeId: selectedEmployeeId,
-      bookingDate,
-    })
+    await unwrap(
+      createBooking(slug, {
+        barbershopServiceId: service.id,
+        employeeId: selectedEmployeeId,
+        bookingDate,
+      }),
+    )
 
     setConfirmDialogIsOpen(false)
     setConflictDialogIsOpen(false)
@@ -338,12 +341,14 @@ const ServiceCard = ({ service, slug, bookingBlocked }: ServiceCardProps) => {
       const minute = Number(selectedTime.split(":")[1])
       const bookingDate = set(selectedDay, { hours: hour, minutes: minute })
 
-      await replaceBooking(slug, {
-        oldBookingId: conflictingBooking.id,
-        barbershopServiceId: service.id,
-        employeeId: selectedEmployeeId,
-        bookingDate,
-      })
+      await unwrap(
+        replaceBooking(slug, {
+          oldBookingId: conflictingBooking.id,
+          barbershopServiceId: service.id,
+          employeeId: selectedEmployeeId,
+          bookingDate,
+        }),
+      )
 
       setConflictDialogIsOpen(false)
       setConflictingBooking(null)

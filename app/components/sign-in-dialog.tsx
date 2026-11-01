@@ -29,6 +29,7 @@ import {
 import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
 import ForgotPasswordDialog from "./forgot-password-dialog"
 import { formatCountdown, useLoginLockout } from "../_hooks/use-login-lockout"
+import { unwrap } from "../_lib/action-result"
 
 type Mode = "login" | "signup"
 
@@ -143,12 +144,14 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      await signUp({
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        acceptTerms: values.acceptTerms,
-      })
+      await unwrap(
+        signUp({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          acceptTerms: values.acceptTerms,
+        }),
+      )
 
       const result = await signIn("credentials", {
         email: values.email,

@@ -6,6 +6,7 @@ import type { MemberRole } from "@/app/generated/prisma/enums"
 import { authOptions } from "./auth"
 import { prisma } from "./prisma"
 import { getLoginPath } from "./protected-paths"
+import { ActionError } from "./action-result"
 
 // Cache tag for everything that belongs to one shop (services, employees, stats...)
 export const shopTag = (barbershopId: string) => `shop:${barbershopId}`
@@ -81,7 +82,7 @@ export const getActiveShopOrThrow = async (slug: string): Promise<Tenant> => {
   const shop = await findActiveShop(slug)
 
   if (!shop) {
-    throw new Error("Barbearia não encontrada.")
+    throw new ActionError("Barbearia não encontrada.")
   }
 
   return shop
@@ -136,19 +137,19 @@ export const assertShopRole = async (
   const userId = await getSessionUserId()
 
   if (!userId) {
-    throw new Error("Você precisa estar logado.")
+    throw new ActionError("Você precisa estar logado.")
   }
 
   const shop = await findActiveShop(slug)
 
   if (!shop) {
-    throw new Error("Barbearia não encontrada.")
+    throw new ActionError("Barbearia não encontrada.")
   }
 
   const membership = await getMembership(shop.id, userId)
 
   if (!membership || !roles.includes(membership.role)) {
-    throw new Error("Sem permissão.")
+    throw new ActionError("Sem permissão.")
   }
 
   return { shop, userId, membership }

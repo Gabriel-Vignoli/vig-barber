@@ -5,11 +5,12 @@ import { prisma } from "../_lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../_lib/auth"
 import { revalidateShop } from "../_lib/revalidate"
+import { action, ActionError } from "../_lib/action-result"
 
-export const deleteBooking = async (bookingId: string) => {
+export const deleteBooking = action(async (bookingId: string) => {
   const session = await getServerSession(authOptions)
   if (!session) {
-    throw new Error("Usuário não autenticado")
+    throw new ActionError("Usuário não autenticado")
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,13 +28,13 @@ export const deleteBooking = async (bookingId: string) => {
   })
 
   if (!booking) {
-    throw new Error("Reserva não encontrada.")
+    throw new ActionError("Reserva não encontrada.")
   }
 
   // Past, completed or already cancelled bookings stay as they are, so a
   // client cannot remove revenue from the shop's stats
   if (booking.status !== "PENDING" || booking.bookingDate <= new Date()) {
-    throw new Error("Esta reserva não pode mais ser cancelada.")
+    throw new ActionError("Esta reserva não pode mais ser cancelada.")
   }
 
   // Same filters in the write, so a status change in between is not overwritten
@@ -48,10 +49,10 @@ export const deleteBooking = async (bookingId: string) => {
   })
 
   if (count === 0) {
-    throw new Error("Esta reserva não pode mais ser cancelada.")
+    throw new ActionError("Esta reserva não pode mais ser cancelada.")
   }
 
   revalidateShop(booking.barbershop)
   revalidatePath("/bookings")
   revalidatePath("/")
-}
+})

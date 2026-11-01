@@ -10,6 +10,7 @@ import { Button } from "./ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
 import SignInDialog from "./sign-in-dialog"
 import { acceptInvitation } from "../_actions/accept-invitation"
+import { unwrap } from "../_lib/action-result"
 
 type InvitationActionsProps =
   | { mode: "signed-out"; loginHref: string }
@@ -73,7 +74,9 @@ const InvitationActions = (props: InvitationActionsProps) => {
     setIsSubmitting(true)
 
     try {
-      const { path, alreadyMember } = await acceptInvitation(props.token)
+      const { path, alreadyMember } = await unwrap(
+        acceptInvitation(props.token),
+      )
       toast.success(
         alreadyMember
           ? "Você já faz parte desta equipe."

@@ -25,6 +25,7 @@ import {
   serviceFormSchema,
   ServiceFormValues,
 } from "../_lib/validations/service"
+import { unwrap } from "../_lib/action-result"
 
 interface ServiceFormDialogProps {
   slug: string
@@ -71,11 +72,11 @@ const ServiceFormDialog = ({
 
     try {
       if (mode === "create") {
-        await createService(slug, values)
+        await unwrap(createService(slug, values))
         toast.success("Serviço criado com sucesso!")
       } else {
         if (!serviceId) return
-        await updateService(slug, serviceId, values)
+        await unwrap(updateService(slug, serviceId, values))
         toast.success("Serviço atualizado com sucesso!")
       }
 

@@ -42,6 +42,7 @@ import {
   createUser,
 } from "./helpers/factories"
 import { mockSession } from "./helpers/session"
+import { unwrap } from "@/app/_lib/action-result"
 
 const SERVICE_INPUT = {
   name: "Corte novo",
@@ -185,17 +186,17 @@ describe("admin access", () => {
   it("rejects a signed-out user", async () => {
     mockSession(null)
 
-    await expect(createService("barbearia-a", SERVICE_INPUT)).rejects.toThrow(
-      "Você precisa estar logado.",
-    )
+    await expect(
+      unwrap(createService("barbearia-a", SERVICE_INPUT)),
+    ).rejects.toThrow("Você precisa estar logado.")
   })
 
   it("rejects a user without a membership in the shop", async () => {
     mockSession(f.client.id)
 
-    await expect(createService("barbearia-a", SERVICE_INPUT)).rejects.toThrow(
-      "Sem permissão.",
-    )
+    await expect(
+      unwrap(createService("barbearia-a", SERVICE_INPUT)),
+    ).rejects.toThrow("Sem permissão.")
     await expect(getNetProfit("barbearia-a")).rejects.toThrow("Sem permissão.")
     expect(
       await prisma.barbershopService.count({ where: { name: "Corte novo" } }),
@@ -209,25 +210,27 @@ describe("admin access", () => {
     ).rejects.toThrow("Sem permissão.")
 
     mockSession(f.sharedBarber.id)
-    await expect(deleteExpense("barbearia-a", f.expenseA.id)).rejects.toThrow(
-      "Sem permissão.",
-    )
+    await expect(
+      unwrap(deleteExpense("barbearia-a", f.expenseA.id)),
+    ).rejects.toThrow("Sem permissão.")
     expect(await prisma.expense.count({ where: { id: f.expenseA.id } })).toBe(1)
   })
 
   it("rejects the admin of shop A acting on shop B (foreign slug)", async () => {
-    await expect(createService("barbearia-b", SERVICE_INPUT)).rejects.toThrow(
-      "Sem permissão.",
-    )
     await expect(
-      updateBarbershop("barbearia-b", {
-        ...BARBERSHOP_INPUT,
-        name: "Invadida",
-      }),
+      unwrap(createService("barbearia-b", SERVICE_INPUT)),
     ).rejects.toThrow("Sem permissão.")
-    await expect(deleteService("barbearia-b", f.serviceB.id)).rejects.toThrow(
-      "Sem permissão.",
-    )
+    await expect(
+      unwrap(
+        updateBarbershop("barbearia-b", {
+          ...BARBERSHOP_INPUT,
+          name: "Invadida",
+        }),
+      ),
+    ).rejects.toThrow("Sem permissão.")
+    await expect(
+      unwrap(deleteService("barbearia-b", f.serviceB.id)),
+    ).rejects.toThrow("Sem permissão.")
     await expect(getNetProfit("barbearia-b")).rejects.toThrow("Sem permissão.")
 
     const shopB = await prisma.barbershop.findUniqueOrThrow({
@@ -242,7 +245,7 @@ describe("admin access", () => {
 
 describe("services", () => {
   it("creates the service in the admin's shop and revalidates it", async () => {
-    await createService("barbearia-a", SERVICE_INPUT)
+    await unwrap(createService("barbearia-a", SERVICE_INPUT))
 
     const created = await prisma.barbershopService.findFirstOrThrow({
       where: { name: "Corte novo" },
@@ -253,7 +256,7 @@ describe("services", () => {
 
   it("does not update a service of another shop", async () => {
     await expect(
-      updateService("barbearia-a", f.serviceB.id, SERVICE_INPUT),
+      unwrap(updateService("barbearia-a", f.serviceB.id, SERVICE_INPUT)),
     ).rejects.toThrow("Serviço não encontrado.")
 
     const serviceB = await prisma.barbershopService.findUniqueOrThrow({
@@ -263,16 +266,16 @@ describe("services", () => {
   })
 
   it("does not delete a service of another shop", async () => {
-    await expect(deleteService("barbearia-a", f.serviceB.id)).rejects.toThrow(
-      "Serviço não encontrado.",
-    )
+    await expect(
+      unwrap(deleteService("barbearia-a", f.serviceB.id)),
+    ).rejects.toThrow("Serviço não encontrado.")
     expect(
       await prisma.barbershopService.count({ where: { id: f.serviceB.id } }),
     ).toBe(1)
   })
 
   it("updates its own service", async () => {
-    await updateService("barbearia-a", f.serviceA.id, SERVICE_INPUT)
+    await unwrap(updateService("barbearia-a", f.serviceA.id, SERVICE_INPUT))
 
     const serviceA = await prisma.barbershopService.findUniqueOrThrow({
       where: { id: f.serviceA.id },
@@ -283,7 +286,7 @@ describe("services", () => {
 
 describe("expenses", () => {
   it("creates the expense in the admin's shop", async () => {
-    await createExpense("barbearia-a", EXPENSE_INPUT)
+    await unwrap(createExpense("barbearia-a", EXPENSE_INPUT))
 
     const created = await prisma.expense.findFirstOrThrow({
       where: { description: "Conta de luz" },
@@ -293,11 +296,11 @@ describe("expenses", () => {
 
   it("does not update or delete an expense of another shop", async () => {
     await expect(
-      updateExpense("barbearia-a", f.expenseB.id, EXPENSE_INPUT),
+      unwrap(updateExpense("barbearia-a", f.expenseB.id, EXPENSE_INPUT)),
     ).rejects.toThrow("Despesa não encontrada.")
-    await expect(deleteExpense("barbearia-a", f.expenseB.id)).rejects.toThrow(
-      "Despesa não encontrada.",
-    )
+    await expect(
+      unwrap(deleteExpense("barbearia-a", f.expenseB.id)),
+    ).rejects.toThrow("Despesa não encontrada.")
 
     const expenseB = await prisma.expense.findUniqueOrThrow({
       where: { id: f.expenseB.id },
@@ -306,7 +309,7 @@ describe("expenses", () => {
   })
 
   it("deletes its own expense", async () => {
-    await deleteExpense("barbearia-a", f.expenseA.id)
+    await unwrap(deleteExpense("barbearia-a", f.expenseA.id))
 
     expect(await prisma.expense.count({ where: { id: f.expenseA.id } })).toBe(0)
   })
@@ -314,7 +317,7 @@ describe("expenses", () => {
 
 describe("barbershop", () => {
   it("updates only the admin's shop", async () => {
-    await updateBarbershop("barbearia-a", BARBERSHOP_INPUT)
+    await unwrap(updateBarbershop("barbearia-a", BARBERSHOP_INPUT))
 
     const [shopA, shopB] = await Promise.all([
       prisma.barbershop.findUniqueOrThrow({ where: { id: f.shopA.id } }),
@@ -329,13 +332,15 @@ describe("barbershop", () => {
   })
 
   it("saves the uploaded logo, banner and the coordinates", async () => {
-    await updateBarbershop("barbearia-a", {
-      ...BARBERSHOP_INPUT,
-      logoUrl: "https://abc123.ufs.sh/f/logo.png",
-      bannerUrl: "https://abc123.ufs.sh/f/banner.png",
-      latitude: "-23,5568",
-      longitude: "-46.6608",
-    })
+    await unwrap(
+      updateBarbershop("barbearia-a", {
+        ...BARBERSHOP_INPUT,
+        logoUrl: "https://abc123.ufs.sh/f/logo.png",
+        bannerUrl: "https://abc123.ufs.sh/f/banner.png",
+        latitude: "-23,5568",
+        longitude: "-46.6608",
+      }),
+    )
 
     const shopA = await prisma.barbershop.findUniqueOrThrow({
       where: { id: f.shopA.id },
@@ -370,7 +375,9 @@ describe("barbershop", () => {
     ["an empty city", { city: " " }, "Informe a cidade."],
   ])("rejects %s and changes nothing", async (_, override, message) => {
     await expect(
-      updateBarbershop("barbearia-a", { ...BARBERSHOP_INPUT, ...override }),
+      unwrap(
+        updateBarbershop("barbearia-a", { ...BARBERSHOP_INPUT, ...override }),
+      ),
     ).rejects.toThrow(message)
 
     const shopA = await prisma.barbershop.findUniqueOrThrow({
@@ -383,18 +390,20 @@ describe("barbershop", () => {
     mockSession(f.atendenteA.id)
 
     await expect(
-      updateBarbershop("barbearia-a", BARBERSHOP_INPUT),
+      unwrap(updateBarbershop("barbearia-a", BARBERSHOP_INPUT)),
     ).rejects.toThrow("Sem permissão.")
   })
 })
 
 describe("employees", () => {
   it("creates the employee with a membership in the admin's shop", async () => {
-    await createEmployee("barbearia-a", {
-      name: "Novo Barbeiro",
-      email: "novo@test.local",
-      password: "Senha12345!",
-    })
+    await unwrap(
+      createEmployee("barbearia-a", {
+        name: "Novo Barbeiro",
+        email: "novo@test.local",
+        password: "Senha12345!",
+      }),
+    )
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { email: "novo@test.local" },
@@ -408,7 +417,9 @@ describe("employees", () => {
 
   it("does not update an employee of another shop", async () => {
     await expect(
-      updateEmployee("barbearia-a", f.employeeB.id, { bio: "Hackeado" }),
+      unwrap(
+        updateEmployee("barbearia-a", f.employeeB.id, { bio: "Hackeado" }),
+      ),
     ).rejects.toThrow("Funcionário não encontrado.")
 
     const employeeB = await prisma.employee.findUniqueOrThrow({
@@ -419,7 +430,9 @@ describe("employees", () => {
 
   it("does not change the schedule of an employee of another shop", async () => {
     await expect(
-      updateEmployeeSchedule("barbearia-a", f.employeeB.id, SCHEDULE_INPUT),
+      unwrap(
+        updateEmployeeSchedule("barbearia-a", f.employeeB.id, SCHEDULE_INPUT),
+      ),
     ).rejects.toThrow("Funcionário não encontrado.")
 
     expect(
@@ -431,7 +444,9 @@ describe("employees", () => {
 
   it("does not change the services of an employee of another shop", async () => {
     await expect(
-      updateEmployeeServices("barbearia-a", f.employeeB.id, [f.serviceA.id]),
+      unwrap(
+        updateEmployeeServices("barbearia-a", f.employeeB.id, [f.serviceA.id]),
+      ),
     ).rejects.toThrow("Funcionário não encontrado.")
 
     const links = await prisma.employeeService.findMany({
@@ -442,10 +457,12 @@ describe("employees", () => {
 
   it("does not link a service of another shop", async () => {
     await expect(
-      updateEmployeeServices("barbearia-a", f.employeeA.id, [
-        f.serviceA.id,
-        f.serviceB.id,
-      ]),
+      unwrap(
+        updateEmployeeServices("barbearia-a", f.employeeA.id, [
+          f.serviceA.id,
+          f.serviceB.id,
+        ]),
+      ),
     ).rejects.toThrow("Serviço não encontrado.")
 
     const links = await prisma.employeeService.findMany({
@@ -457,9 +474,9 @@ describe("employees", () => {
   it("does not delete an employee of another shop", async () => {
     await prisma.booking.deleteMany({ where: { employeeId: f.employeeB.id } })
 
-    await expect(deleteEmployee("barbearia-a", f.employeeB.id)).rejects.toThrow(
-      "Funcionário não encontrado.",
-    )
+    await expect(
+      unwrap(deleteEmployee("barbearia-a", f.employeeB.id)),
+    ).rejects.toThrow("Funcionário não encontrado.")
     expect(await prisma.employee.count({ where: { id: f.employeeB.id } })).toBe(
       1,
     )
@@ -468,7 +485,7 @@ describe("employees", () => {
   it("removes the employee from this shop only and keeps the user", async () => {
     await prisma.booking.deleteMany({ where: { employeeId: f.employeeA.id } })
 
-    await deleteEmployee("barbearia-a", f.employeeA.id)
+    await unwrap(deleteEmployee("barbearia-a", f.employeeA.id))
 
     expect(await prisma.employee.count({ where: { id: f.employeeA.id } })).toBe(
       0,
@@ -489,11 +506,13 @@ describe("employees", () => {
 
 describe("atendentes", () => {
   it("creates the atendente with a membership in the admin's shop", async () => {
-    await createAtendente("barbearia-a", {
-      name: "Nova Atendente",
-      email: "atendente@test.local",
-      password: "Senha12345!",
-    })
+    await unwrap(
+      createAtendente("barbearia-a", {
+        name: "Nova Atendente",
+        email: "atendente@test.local",
+        password: "Senha12345!",
+      }),
+    )
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { email: "atendente@test.local" },
@@ -506,7 +525,7 @@ describe("atendentes", () => {
 
   it("does not remove an atendente of another shop", async () => {
     await expect(
-      deleteAtendente("barbearia-a", f.atendenteB.id),
+      unwrap(deleteAtendente("barbearia-a", f.atendenteB.id)),
     ).rejects.toThrow("Atendente não encontrado.")
 
     expect(
@@ -517,16 +536,16 @@ describe("atendentes", () => {
   })
 
   it("does not remove a non-atendente member (e.g. the admin)", async () => {
-    await expect(deleteAtendente("barbearia-a", f.adminA.id)).rejects.toThrow(
-      "Atendente não encontrado.",
-    )
+    await expect(
+      unwrap(deleteAtendente("barbearia-a", f.adminA.id)),
+    ).rejects.toThrow("Atendente não encontrado.")
     expect(
       await prisma.membership.count({ where: { userId: f.adminA.id } }),
     ).toBe(1)
   })
 
   it("removes the membership and keeps the user", async () => {
-    await deleteAtendente("barbearia-a", f.atendenteA.id)
+    await unwrap(deleteAtendente("barbearia-a", f.atendenteA.id))
 
     expect(
       await prisma.membership.count({ where: { userId: f.atendenteA.id } }),
@@ -676,51 +695,70 @@ const snapshotShop = async (barbershopId: string) => {
 
 // Every ADMIN-only action, aimed at shop B with shop B's own ids
 const adminMutationsOnShopB = (): [string, () => Promise<unknown>][] => [
-  ["createService", () => createService("barbearia-b", SERVICE_INPUT)],
+  ["createService", () => unwrap(createService("barbearia-b", SERVICE_INPUT))],
   [
     "updateService",
-    () => updateService("barbearia-b", f.serviceB.id, SERVICE_INPUT),
+    () => unwrap(updateService("barbearia-b", f.serviceB.id, SERVICE_INPUT)),
   ],
-  ["deleteService", () => deleteService("barbearia-b", f.serviceB.id)],
-  ["createExpense", () => createExpense("barbearia-b", EXPENSE_INPUT)],
+  ["deleteService", () => unwrap(deleteService("barbearia-b", f.serviceB.id))],
+  ["createExpense", () => unwrap(createExpense("barbearia-b", EXPENSE_INPUT))],
   [
     "updateExpense",
-    () => updateExpense("barbearia-b", f.expenseB.id, EXPENSE_INPUT),
+    () => unwrap(updateExpense("barbearia-b", f.expenseB.id, EXPENSE_INPUT)),
   ],
-  ["deleteExpense", () => deleteExpense("barbearia-b", f.expenseB.id)],
-  ["updateBarbershop", () => updateBarbershop("barbearia-b", BARBERSHOP_INPUT)],
+  ["deleteExpense", () => unwrap(deleteExpense("barbearia-b", f.expenseB.id))],
+  [
+    "updateBarbershop",
+    () => unwrap(updateBarbershop("barbearia-b", BARBERSHOP_INPUT)),
+  ],
   [
     "createEmployee",
     () =>
-      createEmployee("barbearia-b", {
-        name: "Barbeiro Novo",
-        email: "novo-barbeiro@test.local",
-        password: "Senha12345!",
-      }),
+      unwrap(
+        createEmployee("barbearia-b", {
+          name: "Barbeiro Novo",
+          email: "novo-barbeiro@test.local",
+          password: "Senha12345!",
+        }),
+      ),
   ],
   [
     "updateEmployee",
-    () => updateEmployee("barbearia-b", f.employeeB.id, { bio: "Invadido" }),
+    () =>
+      unwrap(
+        updateEmployee("barbearia-b", f.employeeB.id, { bio: "Invadido" }),
+      ),
   ],
   [
     "updateEmployeeSchedule",
-    () => updateEmployeeSchedule("barbearia-b", f.employeeB.id, SCHEDULE_INPUT),
+    () =>
+      unwrap(
+        updateEmployeeSchedule("barbearia-b", f.employeeB.id, SCHEDULE_INPUT),
+      ),
   ],
   [
     "updateEmployeeServices",
-    () => updateEmployeeServices("barbearia-b", f.employeeB.id, []),
+    () => unwrap(updateEmployeeServices("barbearia-b", f.employeeB.id, [])),
   ],
-  ["deleteEmployee", () => deleteEmployee("barbearia-b", f.employeeB.id)],
+  [
+    "deleteEmployee",
+    () => unwrap(deleteEmployee("barbearia-b", f.employeeB.id)),
+  ],
   [
     "createAtendente",
     () =>
-      createAtendente("barbearia-b", {
-        name: "Atendente Nova",
-        email: "nova-atendente@test.local",
-        password: "Senha12345!",
-      }),
+      unwrap(
+        createAtendente("barbearia-b", {
+          name: "Atendente Nova",
+          email: "nova-atendente@test.local",
+          password: "Senha12345!",
+        }),
+      ),
   ],
-  ["deleteAtendente", () => deleteAtendente("barbearia-b", f.atendenteB.id)],
+  [
+    "deleteAtendente",
+    () => unwrap(deleteAtendente("barbearia-b", f.atendenteB.id)),
+  ],
 ]
 
 const adminReadsOfShopB = (): [string, () => Promise<unknown>][] => [
@@ -789,16 +827,20 @@ describe("isolation matrix: every admin action", () => {
 describe("updateEmployeeServices input", () => {
   it("rejects a payload that is not a list of ids", async () => {
     await expect(
-      updateEmployeeServices(
-        "barbearia-a",
-        f.employeeA.id,
-        "not-a-list" as unknown as string[],
+      unwrap(
+        updateEmployeeServices(
+          "barbearia-a",
+          f.employeeA.id,
+          "not-a-list" as unknown as string[],
+        ),
       ),
     ).rejects.toThrow("Serviços inválidos.")
     await expect(
-      updateEmployeeServices("barbearia-a", f.employeeA.id, [
-        { id: f.serviceA.id },
-      ] as unknown as string[]),
+      unwrap(
+        updateEmployeeServices("barbearia-a", f.employeeA.id, [
+          { id: f.serviceA.id },
+        ] as unknown as string[]),
+      ),
     ).rejects.toThrow()
 
     const links = await prisma.employeeService.findMany({
@@ -814,10 +856,12 @@ describe("updateEmployeeServices input", () => {
     })
 
     await expect(
-      updateEmployeeServices("barbearia-a", f.employeeA.id, []),
+      unwrap(updateEmployeeServices("barbearia-a", f.employeeA.id, [])),
     ).rejects.toThrow("Funcionário não encontrado.")
     await expect(
-      updateEmployeeSchedule("barbearia-a", f.employeeA.id, SCHEDULE_INPUT),
+      unwrap(
+        updateEmployeeSchedule("barbearia-a", f.employeeA.id, SCHEDULE_INPUT),
+      ),
     ).rejects.toThrow("Funcionário não encontrado.")
 
     expect(
