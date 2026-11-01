@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -17,10 +17,9 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "./ui/chart"
-import {
-  getMonthlyOverview,
-  MonthlyOverviewDataPoint,
-} from "../_actions/get-monthly-overview"
+import { getMonthlyOverview } from "../_actions/get-monthly-overview"
+import { useLoad } from "../_hooks/use-load"
+import { LoadError } from "./load-error"
 import { parseDateKey } from "../_lib/timezone"
 
 const bookingsChartConfig = {
@@ -58,23 +57,17 @@ const AdminOverviewChart = ({ slug }: AdminOverviewChartProps) => {
   const [activeMetric, setActiveMetric] = useState<"bookings" | "revenue">(
     "bookings",
   )
-  const [data, setData] = useState<MonthlyOverviewDataPoint[]>([])
-  const [totals, setTotals] = useState({
-    totalConcludedBookings: 0,
-    totalConcludedRevenue: 0,
-  })
-
-  useEffect(() => {
-    const fetch = async () => {
-      const result = await getMonthlyOverview(slug)
-      setData(result.data)
-      setTotals({
-        totalConcludedBookings: result.totalConcludedBookings,
-        totalConcludedRevenue: result.totalConcludedRevenue,
-      })
-    }
-    fetch()
-  }, [slug])
+  const load = useCallback(() => getMonthlyOverview(slug), [slug])
+  const {
+    data: result,
+    hasError,
+    retry,
+  } = useLoad(load, "Erro ao carregar a visão geral.")
+  const data = result?.data ?? []
+  const totals = {
+    totalConcludedBookings: result?.totalConcludedBookings ?? 0,
+    totalConcludedRevenue: result?.totalConcludedRevenue ?? 0,
+  }
 
   const chartConfig =
     activeMetric === "bookings" ? bookingsChartConfig : revenueChartConfig
@@ -162,101 +155,105 @@ const AdminOverviewChart = ({ slug }: AdminOverviewChartProps) => {
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:p-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          <BarChart
-            accessibilityLayer
-            data={data}
-            margin={{ left: 12, right: 12 }}
+        {hasError ? (
+          <LoadError onRetry={retry} className="h-[250px]" />
+        ) : (
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[250px] w-full"
           >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={20}
-              tickFormatter={(value) =>
-                format(parseDateKey(value), "dd/MM", { locale: ptBR })
-              }
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[180px]"
-                  labelFormatter={(value) =>
-                    format(parseDateKey(value), "dd 'de' MMMM", {
-                      locale: ptBR,
-                    })
-                  }
-                  formatter={(value, name) => {
-                    const label =
-                      name === "concludedBookings"
-                        ? "Concluídos"
-                        : name === "upcomingBookings"
-                          ? "A concluir"
-                          : name === "concludedRevenue"
-                            ? "Concluído"
-                            : name === "upcomingRevenue"
-                              ? "A receber"
-                              : String(name)
+            <BarChart
+              accessibilityLayer
+              data={data}
+              margin={{ left: 12, right: 12 }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={20}
+                tickFormatter={(value) =>
+                  format(parseDateKey(value), "dd/MM", { locale: ptBR })
+                }
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    className="w-[180px]"
+                    labelFormatter={(value) =>
+                      format(parseDateKey(value), "dd 'de' MMMM", {
+                        locale: ptBR,
+                      })
+                    }
+                    formatter={(value, name) => {
+                      const label =
+                        name === "concludedBookings"
+                          ? "Concluídos"
+                          : name === "upcomingBookings"
+                            ? "A concluir"
+                            : name === "concludedRevenue"
+                              ? "Concluído"
+                              : name === "upcomingRevenue"
+                                ? "A receber"
+                                : String(name)
 
-                    const displayValue =
-                      activeMetric === "revenue"
-                        ? currency(Number(value))
-                        : String(value)
+                      const displayValue =
+                        activeMetric === "revenue"
+                          ? currency(Number(value))
+                          : String(value)
 
-                    const isConcluded =
-                      name === "concludedBookings" ||
-                      name === "concludedRevenue"
+                      const isConcluded =
+                        name === "concludedBookings" ||
+                        name === "concludedRevenue"
 
-                    return (
-                      <span
-                        className={isConcluded ? "text-primary" : ""}
-                        style={isConcluded ? undefined : { color: "#96befe" }}
-                      >
-                        {displayValue} {label}
-                      </span>
-                    )
-                  }}
-                />
-              }
-            />
-            {activeMetric === "bookings" ? (
-              <>
-                <Bar
-                  dataKey="concludedBookings"
-                  stackId="a"
-                  fill="var(--color-concludedBookings)"
-                  radius={[0, 0, 4, 4]}
-                />
-                <Bar
-                  dataKey="upcomingBookings"
-                  stackId="a"
-                  fill="var(--color-upcomingBookings)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </>
-            ) : (
-              <>
-                <Bar
-                  dataKey="concludedRevenue"
-                  stackId="a"
-                  fill="var(--color-concludedRevenue)"
-                  radius={[0, 0, 4, 4]}
-                />
-                <Bar
-                  dataKey="upcomingRevenue"
-                  stackId="a"
-                  fill="var(--color-upcomingRevenue)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </>
-            )}
-          </BarChart>
-        </ChartContainer>
+                      return (
+                        <span
+                          className={isConcluded ? "text-primary" : ""}
+                          style={isConcluded ? undefined : { color: "#96befe" }}
+                        >
+                          {displayValue} {label}
+                        </span>
+                      )
+                    }}
+                  />
+                }
+              />
+              {activeMetric === "bookings" ? (
+                <>
+                  <Bar
+                    dataKey="concludedBookings"
+                    stackId="a"
+                    fill="var(--color-concludedBookings)"
+                    radius={[0, 0, 4, 4]}
+                  />
+                  <Bar
+                    dataKey="upcomingBookings"
+                    stackId="a"
+                    fill="var(--color-upcomingBookings)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </>
+              ) : (
+                <>
+                  <Bar
+                    dataKey="concludedRevenue"
+                    stackId="a"
+                    fill="var(--color-concludedRevenue)"
+                    radius={[0, 0, 4, 4]}
+                  />
+                  <Bar
+                    dataKey="upcomingRevenue"
+                    stackId="a"
+                    fill="var(--color-upcomingRevenue)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </>
+              )}
+            </BarChart>
+          </ChartContainer>
+        )}
 
         <div className="mt-4 flex flex-wrap justify-center gap-4 pb-2">
           {legendItems.map((item) => {

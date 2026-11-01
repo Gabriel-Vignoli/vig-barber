@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useCallback, useState } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
@@ -17,9 +17,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { Calendar } from "./ui/calendar"
 import {
   getDashboardStats,
-  DashboardPeriod,
-  DashboardStats,
+  type DashboardPeriod,
 } from "../_actions/get-dashboard-stats"
+import { useLoad } from "../_hooks/use-load"
+import { LoadError } from "./load-error"
 import AdminEmployeesComparisonChart from "./admin-employees-comparison-chart"
 import AdminBookingsPieChart from "./admin-bookings-pie-chart"
 import AdminOverviewChart from "./admin-overview-chart"
@@ -45,18 +46,16 @@ interface AdminDashboardProps {
 const AdminDashboard = ({ slug }: AdminDashboardProps) => {
   const [period, setPeriod] = useState<DashboardPeriod>("day")
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [isPending, startTransition] = useTransition()
-
-  useEffect(() => {
-    startTransition(async () => {
-      const result = await getDashboardStats(slug, {
-        period,
-        date: selectedDate,
-      })
-      setStats(result)
-    })
-  }, [slug, period, selectedDate])
+  const load = useCallback(
+    () => getDashboardStats(slug, { period, date: selectedDate }),
+    [slug, period, selectedDate],
+  )
+  const {
+    data: stats,
+    isLoading,
+    hasError,
+    retry,
+  } = useLoad(load, "Erro ao carregar os números do período.")
 
   const rangeLabel = stats
     ? period === "day"
@@ -122,7 +121,9 @@ const AdminDashboard = ({ slug }: AdminDashboardProps) => {
               </p>
             </div>
 
-            {isPending ? (
+            {hasError ? (
+              <LoadError onRetry={retry} className="py-2" />
+            ) : isLoading ? (
               <div className="flex justify-center py-4">
                 <Loader2Icon className="size-5 animate-spin" />
               </div>
@@ -167,7 +168,9 @@ const AdminDashboard = ({ slug }: AdminDashboardProps) => {
               </p>
             </div>
 
-            {isPending ? (
+            {hasError ? (
+              <LoadError onRetry={retry} className="py-2" />
+            ) : isLoading ? (
               <div className="flex justify-center py-4">
                 <Loader2Icon className="size-5 animate-spin" />
               </div>

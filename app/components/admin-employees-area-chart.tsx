@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback } from "react"
+import { Loader2Icon } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -19,6 +20,8 @@ import {
   type ChartConfig,
 } from "./ui/chart"
 import { getEmployeesOverview } from "../_actions/get-employees-overview"
+import { useLoad } from "../_hooks/use-load"
+import { LoadError } from "./load-error"
 import { parseDateKey } from "../_lib/timezone"
 
 const CHART_COLORS = [
@@ -34,17 +37,15 @@ interface AdminEmployeesAreaChartProps {
 }
 
 const AdminEmployeesAreaChart = ({ slug }: AdminEmployeesAreaChartProps) => {
-  const [data, setData] = useState<Record<string, string | number>[]>([])
-  const [employeeNames, setEmployeeNames] = useState<string[]>([])
-
-  useEffect(() => {
-    const fetch = async () => {
-      const result = await getEmployeesOverview(slug)
-      setData(result.data)
-      setEmployeeNames(result.employeeNames)
-    }
-    fetch()
-  }, [slug])
+  const load = useCallback(() => getEmployeesOverview(slug), [slug])
+  const {
+    data: result,
+    isLoading,
+    hasError,
+    retry,
+  } = useLoad(load, "Erro ao carregar o desempenho dos funcionários.")
+  const data = result?.data ?? []
+  const employeeNames = result?.employeeNames ?? []
 
   const employeeTotals = employeeNames
     .map((name, index) => ({
@@ -73,7 +74,13 @@ const AdminEmployeesAreaChart = ({ slug }: AdminEmployeesAreaChartProps) => {
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        {employeeNames.length === 0 ? (
+        {hasError ? (
+          <LoadError onRetry={retry} />
+        ) : isLoading && !result ? (
+          <div className="flex justify-center py-12">
+            <Loader2Icon className="size-5 animate-spin" />
+          </div>
+        ) : employeeNames.length === 0 ? (
           <p className="text-muted-foreground py-12 text-center text-sm">
             Nenhum funcionário cadastrado.
           </p>

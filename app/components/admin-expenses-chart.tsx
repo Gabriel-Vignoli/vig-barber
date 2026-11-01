@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback } from "react"
 import { Pie, PieChart } from "recharts"
 import {
   Card,
@@ -15,10 +15,10 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "./ui/chart"
-import {
-  getExpensesOverview,
-  CategoryExpense,
-} from "../_actions/get-expenses-overview"
+import { Loader2Icon } from "lucide-react"
+import { getExpensesOverview } from "../_actions/get-expenses-overview"
+import { useLoad } from "../_hooks/use-load"
+import { LoadError } from "./load-error"
 
 const COLORS = [
   "#1e3a8a", // dark blue
@@ -41,19 +41,13 @@ interface AdminExpensesChartProps {
 }
 
 const AdminExpensesChart = ({ slug }: AdminExpensesChartProps) => {
-  const [totalExpenses, setTotalExpenses] = useState(0)
-  const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryExpense[]>(
-    [],
+  const load = useCallback(() => getExpensesOverview(slug), [slug])
+  const { data, isLoading, hasError, retry } = useLoad(
+    load,
+    "Erro ao carregar as despesas.",
   )
-
-  useEffect(() => {
-    const fetch = async () => {
-      const result = await getExpensesOverview(slug)
-      setTotalExpenses(result.totalExpenses)
-      setCategoryBreakdown(result.categoryBreakdown)
-    }
-    fetch()
-  }, [slug])
+  const totalExpenses = data?.totalExpenses ?? 0
+  const categoryBreakdown = data?.categoryBreakdown ?? []
 
   const chartData = categoryBreakdown.map((item, index) => ({
     name: item.label,
@@ -78,7 +72,13 @@ const AdminExpensesChart = ({ slug }: AdminExpensesChartProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        {chartData.length === 0 ? (
+        {hasError ? (
+          <LoadError onRetry={retry} />
+        ) : isLoading && !data ? (
+          <div className="flex justify-center py-12">
+            <Loader2Icon className="size-5 animate-spin" />
+          </div>
+        ) : chartData.length === 0 ? (
           <p className="text-muted-foreground py-12 text-center text-sm">
             Nenhuma despesa nesse período.
           </p>

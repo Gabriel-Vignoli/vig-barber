@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback } from "react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -12,7 +12,9 @@ import {
 } from "lucide-react"
 import { Card, CardContent } from "./ui/card"
 import { Button } from "./ui/button"
-import { getNetProfit, NetProfitResult } from "../_actions/get-net-profit"
+import { getNetProfit } from "../_actions/get-net-profit"
+import { useLoad } from "../_hooks/use-load"
+import { LoadError } from "./load-error"
 
 const currency = (value: number) =>
   Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -24,17 +26,11 @@ interface AdminNetProfitCardProps {
 }
 
 const AdminNetProfitCard = ({ slug }: AdminNetProfitCardProps) => {
-  const [data, setData] = useState<NetProfitResult | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const fetch = async () => {
-      const result = await getNetProfit(slug)
-      setData(result)
-      setIsLoading(false)
-    }
-    fetch()
-  }, [slug])
+  const load = useCallback(() => getNetProfit(slug), [slug])
+  const { data, isLoading, hasError, retry } = useLoad(
+    load,
+    "Erro ao carregar o lucro líquido.",
+  )
 
   const monthLabel = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })
   const isPositive = (data?.netProfit ?? 0) >= 0
@@ -59,7 +55,9 @@ const AdminNetProfitCard = ({ slug }: AdminNetProfitCardProps) => {
           </p>
         </div>
 
-        {isLoading ? (
+        {hasError ? (
+          <LoadError onRetry={retry} />
+        ) : isLoading ? (
           <div className="flex flex-1 items-center justify-center py-4">
             <Loader2Icon className="size-5 animate-spin" />
           </div>
