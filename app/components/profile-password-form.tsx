@@ -12,8 +12,7 @@ import {
   updatePasswordFormSchema,
   UpdatePasswordFormValues,
 } from "../_lib/validations/profile"
-import { showProfileUpdateSuccessToast } from "./profile-update-success-toast"
-import { showPasswordErrorToast } from "./password-error-toast"
+import { showFeedbackToast } from "./feedback-toast"
 import { unwrap } from "../_lib/action-result"
 
 interface ProfilePasswordFormProps {
@@ -47,7 +46,8 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
 
     try {
       await unwrap(updatePassword(values))
-      showProfileUpdateSuccessToast({
+      showFeedbackToast({
+        variant: "success",
         title: hasPassword ? "Senha atualizada!" : "Senha definida!",
         description: hasPassword
           ? "Sua senha foi atualizada com sucesso."
@@ -55,9 +55,12 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
       })
       reset()
     } catch (error) {
-      showPasswordErrorToast(
-        error instanceof Error ? error.message : "Erro ao atualizar senha.",
-      )
+      showFeedbackToast({
+        variant: "error",
+        title: "Erro ao atualizar senha",
+        description:
+          error instanceof Error ? error.message : "Erro ao atualizar senha.",
+      })
     } finally {
       setIsSubmitting(false)
     }

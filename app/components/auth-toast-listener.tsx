@@ -1,25 +1,42 @@
 "use client"
 
 import { useEffect } from "react"
-import { showLoginSuccessToast } from "./login-success-toast"
-import { showSignUpSuccessToast } from "./signup-success-toast"
-import { showGoogleLoginSuccessToast } from "./google-login-success-toast"
-import { showLogoutSuccessToast } from "./logout-success-toast"
+import { LogOutIcon } from "lucide-react"
+import { showFeedbackToast } from "./feedback-toast"
 
 const AUTH_TOAST_KEY = "pending-auth-toast"
+
+// Shown after the full page load that follows sign-in, sign-up and sign-out
+const AUTH_TOASTS = {
+  login: {
+    variant: "success",
+    title: "Login realizado!",
+    description: "Bem-vindo de volta.",
+  },
+  signup: {
+    variant: "success",
+    title: "Conta criada!",
+    description: "Sua conta foi criada e você já está logado.",
+  },
+  google: {
+    variant: "success",
+    title: "Login realizado!",
+    description: "Você entrou com sua conta do Google.",
+  },
+  logout: {
+    variant: "neutral",
+    title: "Você saiu da conta",
+    description: "Até a próxima!",
+    icon: LogOutIcon,
+  },
+} as const
 
 export function AuthToastListener() {
   useEffect(() => {
     const pending = sessionStorage.getItem(AUTH_TOAST_KEY)
 
-    if (pending === "login") {
-      showLoginSuccessToast()
-    } else if (pending === "signup") {
-      showSignUpSuccessToast()
-    } else if (pending === "google") {
-      showGoogleLoginSuccessToast()
-    } else if (pending === "logout") {
-      showLogoutSuccessToast()
+    if (pending && pending in AUTH_TOASTS) {
+      showFeedbackToast(AUTH_TOASTS[pending as keyof typeof AUTH_TOASTS])
     }
 
     if (pending) {

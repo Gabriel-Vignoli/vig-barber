@@ -14,7 +14,7 @@ import {
   updateNameSchema,
   UpdateNameFormValues,
 } from "../_lib/validations/profile"
-import { showProfileUpdateSuccessToast } from "./profile-update-success-toast"
+import { showFeedbackToast } from "./feedback-toast"
 import { unwrap } from "../_lib/action-result"
 
 interface ProfileNameFormProps {
@@ -35,7 +35,8 @@ const ProfileNameForm = ({ currentName }: ProfileNameFormProps) => {
 
     try {
       await unwrap(updateProfile(values))
-      showProfileUpdateSuccessToast({
+      showFeedbackToast({
+        variant: "success",
         title: "Nome atualizado!",
         description: "Seu nome foi atualizado com sucesso.",
       })

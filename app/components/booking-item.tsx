@@ -35,7 +35,7 @@ import { toast } from "sonner"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import BookingSummary from "./booking-summary"
-import { showBookingCancelToast } from "./booking-cancel-toast"
+import { showFeedbackToast } from "./feedback-toast"
 import { unwrap } from "../_lib/action-result"
 
 interface BookingItemsProps {
@@ -86,12 +86,21 @@ const BookingItem = ({ booking }: BookingItemsProps) => {
       setIsAlertDialogOpen(false)
       setIsSheetOpen(false)
 
-      showBookingCancelToast()
+      showFeedbackToast({
+        variant: "error",
+        title: "Reserva Cancelada",
+        description: "Sua reserva foi cancelada com sucesso.",
+        duration: Infinity,
+      })
 
       // Re-fetch the Server Component data so the list reflects the deletion
       router.refresh()
     } catch (error) {
-      toast.error("Erro ao cancelar reserva. Tente novamente.")
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Erro ao cancelar reserva. Tente novamente.",
+      )
     } finally {
       setIsDeleting(false)
     }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Nunito } from "next/font/google"
 import "./globals.css"
-import { Toaster } from "sonner"
+import { Toaster } from "./components/ui/sonner"
 import Footer from "./components/footer"
 import AuthProvider from "./_providers/auth"
 import { AuthToastListener } from "./components/auth-toast-listener"
@@ -45,7 +45,7 @@ export default function RootLayout({
             <Footer></Footer>
           </div>
         </AuthProvider>
-        <Toaster></Toaster>
+        <Toaster theme="dark"></Toaster>
         <AuthToastListener></AuthToastListener>
         <CookieConsentBanner></CookieConsentBanner>
       </body>

@@ -40,7 +40,7 @@ import {
   EmployeeScheduleResult,
 } from "../_actions/get-employee-schedule"
 import { getTimeList } from "../_lib/time-list"
-import { showBookingSuccessToast } from "./booking-success-toast"
+import { showBookingSuccessToast } from "./feedback-toast"
 import SignInDialog from "./sign-in-dialog"
 import BookingSummary from "./booking-summary"
 import PhoneCollectionDialog from "./phone-collection-dialog"
