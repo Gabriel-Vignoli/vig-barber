@@ -50,19 +50,15 @@ export const inviteShopMember = action(
       }
     }
 
-    const sent = await createInvitation({
+    const invitation = await createInvitation({
       shop,
       email,
       role,
       invitedById: userId,
     })
 
-    if (!sent) {
-      throw new ActionError(
-        "Não foi possível enviar o convite. Tente novamente.",
-      )
-    }
-
     revalidatePath("/platform")
+
+    return invitation
   },
 )

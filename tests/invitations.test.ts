@@ -56,15 +56,18 @@ describe("createInvitation", () => {
   it("stores only the hash and emails the link", async () => {
     const shop = await createShop({ name: "Barbearia <Teste>" })
 
-    const sent = await createInvitation({
+    const result = await createInvitation({
       shop,
       email: " Novo@Test.Local ",
       role: "EMPLOYEE",
       invitedById: null,
     })
 
-    expect(sent).toBe(true)
     const token = getLastInvitationToken()
+    expect(result).toEqual({
+      emailSent: true,
+      inviteUrl: expect.stringMatching(new RegExp(`/convite/${token}$`)),
+    })
     const invitation = await prisma.invitation.findFirstOrThrow()
 
     expect(invitation.email).toBe("novo@test.local")
@@ -116,19 +119,22 @@ describe("createInvitation", () => {
     expect(await prisma.invitation.count()).toBe(2)
   })
 
-  it("removes the invitation when the email fails", async () => {
+  it("keeps the invitation and returns its link when the email fails", async () => {
     const shop = await createShop()
     failNextEmail()
 
-    const sent = await createInvitation({
+    const result = await createInvitation({
       shop,
       email: "novo@test.local",
       role: "EMPLOYEE",
       invitedById: null,
     })
 
-    expect(sent).toBe(false)
-    expect(await prisma.invitation.count()).toBe(0)
+    expect(result.emailSent).toBe(false)
+    const invitation = await prisma.invitation.findFirstOrThrow()
+    const token = result.inviteUrl.split("/convite/")[1]
+    // The returned link is the stored invitation, so it can be shared by hand
+    expect(invitation.tokenHash).toBe(hashInvitationToken(token))
   })
 })
 

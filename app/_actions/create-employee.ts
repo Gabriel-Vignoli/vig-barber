@@ -4,7 +4,12 @@ import bcrypt from "bcryptjs"
 import { prisma } from "../_lib/prisma"
 import { assertShopRole } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
-import { createInvitation, findUserByEmail } from "../_lib/invitation"
+import {
+  assertNoPendingAdminInvitation,
+  createInvitation,
+  findUserByEmail,
+  type StaffCreateResult,
+} from "../_lib/invitation"
 import { createEmployeeSchema } from "../_lib/validations/employee"
 import { action, ActionError } from "../_lib/action-result"
 
@@ -24,7 +29,7 @@ export const createEmployee = action(
       imageUrl?: string
       phone?: string
     },
-  ): Promise<{ invited: boolean }> => {
+  ): Promise<StaffCreateResult> => {
     const { shop, userId } = await assertShopRole(slug, ["ADMIN"])
 
     const parsed = createEmployeeSchema.safeParse(input)
@@ -96,20 +101,16 @@ export const createEmployee = action(
         return { invited: false }
       }
 
-      const sent = await createInvitation({
+      await assertNoPendingAdminInvitation(shop.id, email)
+
+      const invitation = await createInvitation({
         shop,
         email,
         role: "EMPLOYEE",
         invitedById: userId,
       })
 
-      if (!sent) {
-        throw new ActionError(
-          "Não foi possível enviar o convite. Tente novamente.",
-        )
-      }
-
-      return { invited: true }
+      return { invited: true, ...invitation }
     }
 
     if (!name || !password) {

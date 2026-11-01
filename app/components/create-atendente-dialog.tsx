@@ -23,6 +23,7 @@ import {
   CreateAtendenteFormValues,
 } from "../_lib/validations/atendente"
 import { unwrap } from "../_lib/action-result"
+import { showInviteLinkToast } from "./invite-link-toast"
 
 interface CreateAtendenteDialogProps {
   slug: string
@@ -52,12 +53,17 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      const { invited } = await unwrap(createAtendente(slug, values))
-      toast.success(
-        invited
-          ? "Este email já tem conta. Enviamos um convite para ele entrar na equipe."
-          : "Atendente criado com sucesso!",
-      )
+      const result = await unwrap(createAtendente(slug, values))
+      if (result.invited) {
+        showInviteLinkToast({
+          title:
+            "Este email já tem conta. Convite criado para entrar na equipe.",
+          emailSent: result.emailSent,
+          inviteUrl: result.inviteUrl,
+        })
+      } else {
+        toast.success("Atendente criado com sucesso!")
+      }
       setOpen(false)
       router.refresh()
     } catch (error) {

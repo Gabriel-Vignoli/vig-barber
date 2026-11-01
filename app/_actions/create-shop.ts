@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "../_lib/prisma"
 import { assertPlatformAdmin } from "../_lib/platform-admin"
-import { createInvitation } from "../_lib/invitation"
+import { createInvitation, type InvitationResult } from "../_lib/invitation"
 import { revalidateShop } from "../_lib/revalidate"
 import { createShopSchema } from "../_lib/validations/platform"
 import { action, ActionError } from "../_lib/action-result"
@@ -21,7 +21,7 @@ export const createShop = action(
     city: string
     phone: string
     ownerEmail: string
-  }): Promise<{ slug: string; inviteSent: boolean }> => {
+  }): Promise<{ slug: string } & InvitationResult> => {
     const { userId } = await assertPlatformAdmin()
 
     const parsed = createShopSchema.safeParse(input)
@@ -62,7 +62,7 @@ export const createShop = action(
       throw error
     }
 
-    const inviteSent = await createInvitation({
+    const invitation = await createInvitation({
       shop,
       email: ownerEmail,
       role: "ADMIN",
@@ -72,6 +72,6 @@ export const createShop = action(
     revalidateShop(shop)
     revalidatePath("/platform")
 
-    return { slug: shop.slug, inviteSent }
+    return { slug: shop.slug, ...invitation }
   },
 )

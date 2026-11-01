@@ -24,6 +24,7 @@ import {
   CreateEmployeeFormValues,
 } from "../_lib/validations/employee"
 import { unwrap } from "../_lib/action-result"
+import { showInviteLinkToast } from "./invite-link-toast"
 
 interface EmployeeFormDialogProps {
   slug: string
@@ -60,12 +61,17 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
     setIsSubmitting(true)
 
     try {
-      const { invited } = await unwrap(createEmployee(slug, values))
-      toast.success(
-        invited
-          ? "Este email já tem conta. Enviamos um convite para ele entrar na equipe."
-          : "Funcionário adicionado com sucesso!",
-      )
+      const result = await unwrap(createEmployee(slug, values))
+      if (result.invited) {
+        showInviteLinkToast({
+          title:
+            "Este email já tem conta. Convite criado para entrar na equipe.",
+          emailSent: result.emailSent,
+          inviteUrl: result.inviteUrl,
+        })
+      } else {
+        toast.success("Funcionário adicionado com sucesso!")
+      }
       setOpen(false)
       router.refresh()
     } catch (error) {

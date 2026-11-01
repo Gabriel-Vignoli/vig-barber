@@ -128,7 +128,11 @@ describe("createEmployee with an existing user", () => {
       }),
     )
 
-    expect(result).toEqual({ invited: true })
+    expect(result).toEqual({
+      invited: true,
+      emailSent: true,
+      inviteUrl: expect.stringContaining("/convite/"),
+    })
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: f.client.id },
@@ -161,7 +165,11 @@ describe("createEmployee with an existing user", () => {
       }),
     )
 
-    expect(result).toEqual({ invited: true })
+    expect(result).toEqual({
+      invited: true,
+      emailSent: true,
+      inviteUrl: expect.stringContaining("/convite/"),
+    })
     expect(await prisma.user.count()).toBe(usersBefore)
     expect(
       await prisma.invitation.findFirstOrThrow({ select: { email: true } }),
@@ -179,13 +187,43 @@ describe("createEmployee with an existing user", () => {
     expect(invitations[0].tokenHash).not.toBe(first.tokenHash)
   })
 
-  it("keeps no invitation when the email fails", async () => {
+  it("does not let a shop admin replace a pending owner (ADMIN) invitation", async () => {
+    await prisma.invitation.create({
+      data: {
+        email: "cliente@test.local",
+        barbershopId: f.shopA.id,
+        role: "ADMIN",
+        tokenHash: "platform-owner-invite",
+        expiresAt: new Date(Date.now() + 86_400_000),
+      },
+    })
+
+    for (const invite of [
+      () => createEmployee("barbearia-a", { email: "Cliente@Test.Local" }),
+      () => createAtendente("barbearia-a", { email: "cliente@test.local" }),
+    ]) {
+      await expect(unwrap(invite())).rejects.toThrow(
+        "Este email já tem um convite de administrador pendente nesta barbearia.",
+      )
+    }
+
+    const invitations = await prisma.invitation.findMany()
+    expect(invitations).toHaveLength(1)
+    expect(invitations[0]).toMatchObject({
+      role: "ADMIN",
+      tokenHash: "platform-owner-invite",
+    })
+  })
+
+  it("keeps the invitation and returns its link when the email fails", async () => {
     failNextEmail()
 
-    await expect(
-      unwrap(createEmployee("barbearia-a", { email: "cliente@test.local" })),
-    ).rejects.toThrow("Não foi possível enviar o convite. Tente novamente.")
-    expect(await prisma.invitation.count()).toBe(0)
+    const result = await unwrap(
+      createEmployee("barbearia-a", { email: "cliente@test.local" }),
+    )
+
+    expect(result).toMatchObject({ invited: true, emailSent: false })
+    expect(await prisma.invitation.count()).toBe(1)
   })
 
   it("rejects an active barber of this shop", async () => {
@@ -250,7 +288,11 @@ describe("createEmployee with an existing user", () => {
       }),
     )
 
-    expect(result).toEqual({ invited: true })
+    expect(result).toEqual({
+      invited: true,
+      emailSent: true,
+      inviteUrl: expect.stringContaining("/convite/"),
+    })
     const employee = await prisma.employee.findUniqueOrThrow({
       where: { id: f.employeeA.id },
     })
@@ -305,7 +347,11 @@ describe("createAtendente with an existing user", () => {
       }),
     )
 
-    expect(result).toEqual({ invited: true })
+    expect(result).toEqual({
+      invited: true,
+      emailSent: true,
+      inviteUrl: expect.stringContaining("/convite/"),
+    })
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: f.client.id },

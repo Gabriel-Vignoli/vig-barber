@@ -4,6 +4,7 @@ import { MEMBER_ROLE_LABELS } from "../_constants/roles"
 import { getAppOrigin } from "./app-url"
 import { prisma } from "./prisma"
 import { EMAIL_FROM, resend } from "./resend"
+import { ActionError } from "./action-result"
 
 export const INVITATION_TTL_DAYS = 7
 
@@ -47,14 +48,13 @@ const sendInvitationEmail = async ({
   email,
   shopName,
   role,
-  token,
+  link,
 }: {
   email: string
   shopName: string
   role: MemberRole
-  token: string
+  link: string
 }) => {
-  const link = `${await getAppOrigin()}/convite/${token}`
   const safeShopName = escapeHtml(shopName)
   const roleLabel = MEMBER_ROLE_LABELS[role].toLowerCase()
 
@@ -79,9 +79,44 @@ const sendInvitationEmail = async ({
   return !error
 }
 
+export type InvitationResult = { emailSent: boolean; inviteUrl: string }
+
+// Shop admins invite staff (EMPLOYEE / ATENDENTE). Re-inviting replaces the
+// pending invitation, so without this a shop admin could silently cancel an
+// owner (ADMIN) invitation sent by the platform.
+export const assertNoPendingAdminInvitation = async (
+  shopId: string,
+  email: string,
+) => {
+  const pendingAdmin = await prisma.invitation.findFirst({
+    where: {
+      barbershopId: shopId,
+      email: { equals: email.trim(), mode: "insensitive" },
+      acceptedAt: null,
+      role: "ADMIN",
+    },
+    select: { id: true },
+  })
+
+  if (pendingAdmin) {
+    throw new ActionError(
+      "Este email já tem um convite de administrador pendente nesta barbearia.",
+    )
+  }
+}
+
+// create-employee / create-atendente: a new account is added directly, an
+// existing one gets an invitation
+export type StaffCreateResult =
+  { invited: false } | ({ invited: true } & InvitationResult)
+
 // Creates (or replaces) the pending invitation of this email to this shop and
 // emails the link. The caller has already checked who may invite.
-// Returns false when the email could not be sent (the invitation is removed).
+// The invitation is kept even when the email fails and the link goes back to
+// the inviter, who can share it another way (e.g. WhatsApp). Accepting
+// requires a session with the invited email, but sign-up does not verify
+// emails: while the invited email has no account, whoever holds the link can
+// create that account and accept. Treat a shared link like a password.
 export const createInvitation = async ({
   shop,
   email,
@@ -92,11 +127,11 @@ export const createInvitation = async ({
   email: string
   role: MemberRole
   invitedById: string | null
-}): Promise<boolean> => {
+}): Promise<InvitationResult> => {
   const normalizedEmail = email.trim().toLowerCase()
   const { token, tokenHash } = generateInvitationToken()
 
-  const [, invitation] = await prisma.$transaction([
+  await prisma.$transaction([
     // Re-inviting replaces the pending invitation (its old link stops working)
     prisma.invitation.deleteMany({
       where: {
@@ -118,23 +153,19 @@ export const createInvitation = async ({
     }),
   ])
 
-  let sent = false
+  const inviteUrl = `${await getAppOrigin()}/convite/${token}`
+
+  let emailSent = false
   try {
-    sent = await sendInvitationEmail({
+    emailSent = await sendInvitationEmail({
       email: normalizedEmail,
       shopName: shop.name,
       role,
-      token,
+      link: inviteUrl,
     })
   } catch {
-    sent = false
+    emailSent = false
   }
 
-  if (!sent) {
-    await prisma.invitation.deleteMany({
-      where: { id: invitation.id, barbershopId: shop.id },
-    })
-  }
-
-  return sent
+  return { emailSent, inviteUrl }
 }

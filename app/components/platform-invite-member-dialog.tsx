@@ -31,6 +31,7 @@ import {
   InviteMemberFormValues,
 } from "../_lib/validations/platform"
 import { unwrap } from "../_lib/action-result"
+import { showInviteLinkToast } from "./invite-link-toast"
 
 interface PlatformInviteMemberDialogProps {
   shopId: string
@@ -60,8 +61,8 @@ const PlatformInviteMemberDialog = ({
     setIsSubmitting(true)
 
     try {
-      await unwrap(inviteShopMember(shopId, values))
-      toast.success("Convite enviado!")
+      const invitation = await unwrap(inviteShopMember(shopId, values))
+      showInviteLinkToast({ title: "Convite criado!", ...invitation })
       setOpen(false)
       reset()
       router.refresh()

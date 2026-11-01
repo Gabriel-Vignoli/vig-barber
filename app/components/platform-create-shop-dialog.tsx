@@ -23,6 +23,7 @@ import {
   CreateShopFormValues,
 } from "../_lib/validations/platform"
 import { unwrap } from "../_lib/action-result"
+import { showInviteLinkToast } from "./invite-link-toast"
 
 const FIELDS: {
   name: keyof CreateShopFormValues
@@ -85,15 +86,13 @@ const PlatformCreateShopDialog = () => {
     setIsSubmitting(true)
 
     try {
-      const { slug, inviteSent } = await unwrap(createShop(values))
+      const { slug, emailSent, inviteUrl } = await unwrap(createShop(values))
 
-      if (inviteSent) {
-        toast.success(`Barbearia /b/${slug} criada e convite enviado ao dono!`)
-      } else {
-        toast.warning(
-          "Barbearia criada, mas o convite não foi enviado. Use o botão Convidar para tentar de novo.",
-        )
-      }
+      showInviteLinkToast({
+        title: `Barbearia /b/${slug} criada! Convite do dono pronto.`,
+        emailSent,
+        inviteUrl,
+      })
 
       setOpen(false)
       reset()

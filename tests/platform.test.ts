@@ -111,7 +111,11 @@ describe("createShop", () => {
   it("creates the shop and invites its owner as ADMIN", async () => {
     const result = await unwrap(createShop(shopInput({ phone: "11988887777" })))
 
-    expect(result).toEqual({ slug: "barbearia-nova", inviteSent: true })
+    expect(result).toEqual({
+      slug: "barbearia-nova",
+      emailSent: true,
+      inviteUrl: expect.stringContaining("/convite/"),
+    })
     const created = await prisma.barbershop.findUniqueOrThrow({
       where: { slug: "barbearia-nova" },
     })
@@ -154,9 +158,10 @@ describe("createShop", () => {
 
     const result = await unwrap(createShop(shopInput()))
 
-    expect(result).toEqual({ slug: "barbearia-nova", inviteSent: false })
+    expect(result).toMatchObject({ slug: "barbearia-nova", emailSent: false })
     expect(await prisma.barbershop.count()).toBe(2)
-    expect(await prisma.invitation.count()).toBe(0)
+    // The invitation stays, so the link can be copied and sent by hand
+    expect(await prisma.invitation.count()).toBe(1)
   })
 })
 
@@ -235,15 +240,18 @@ describe("inviteShopMember", () => {
     expect(await prisma.invitation.count()).toBe(0)
   })
 
-  it("reports a failed email", async () => {
+  it("reports a failed email and still returns the link", async () => {
     failNextEmail()
 
-    await expect(
-      unwrap(
-        inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" }),
-      ),
-    ).rejects.toThrow("Não foi possível enviar o convite. Tente novamente.")
-    expect(await prisma.invitation.count()).toBe(0)
+    const result = await unwrap(
+      inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" }),
+    )
+
+    expect(result).toEqual({
+      emailSent: false,
+      inviteUrl: expect.stringContaining("/convite/"),
+    })
+    expect(await prisma.invitation.count()).toBe(1)
   })
 })
 
