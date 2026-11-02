@@ -2,7 +2,7 @@
 
 ## Status
 
-- [ ] Phase B1 — plans config, billing state, schema
+- [x] Phase B1 — plans config, billing state, schema (migration `20261102120000_billing_state` applied to Supabase on 2026-11-02)
 - [ ] Phase B2 — access gate (what an unpaid shop loses)
 - [ ] Phase B3 — billing page: Checkout + Customer Portal
 - [ ] Phase B4 — webhook sync
@@ -113,6 +113,7 @@ Time math works on instants (`Date`), never on calendar days, so UTC vs São Pau
   - Add `STRIPE_PRICE_BASIC` to `.env.example`.
 - **B2 — access gate** (`feat(billing)`, `feat(booking)`, `feat(admin)`)
   - Gate in the tenant helpers, booking guard, `search-shops`, the public page notice, the staff blocked screen and the admin banners.
+  - First add `pastDueSince` to `tenantSelect` in `tenant.ts` and rebuild it as a `Date` in `hydrateTenant` (`unstable_cache` returns strings). Without it, every PAST_DUE shop is blocked during its grace period.
   - Tests: an unpaid shop's admin actions throw, booking is refused, the shop disappears from the finder, and the billing opt-out still works.
 - **B3 — billing page + Checkout + Portal** (`feat(billing)`)
   - Page with `loading.tsx`, the two actions, a sidebar link "Assinatura", isolation-matrix entries.
@@ -125,6 +126,7 @@ Time math works on instants (`Date`), never on calendar days, so UTC vs São Pau
   - Stripe dashboard (test mode first): product "Vig Barber", recurring price R$ 99,90/month → `STRIPE_PRICE_BASIC`; Customer Portal enabled (update card, cancel at period end, invoice history; plan switching off until there are more plans); retry schedule for failed payments ≈ 7 days.
   - Vercel env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (from the dashboard endpoint `https://vig-barber.vercel.app/api/stripe/webhook`), `STRIPE_PRICE_BASIC`.
   - Order: push + deploy → `prisma migrate deploy` (confirm first) → set env → redeploy → run one test-mode checkout end to end on production.
+  - ⚠ **Restart the trials at go-live.** The B1 migration was applied to Supabase on 2026-11-02, so those trials end around 2026-11-16. If the B2 gate ships after that date, every existing shop locks at once. At go-live, give the shops with no Stripe subscription a fresh 14-day trial (with `extend-trial` from B5, or the same SQL as the B1 backfill, after confirming with the user).
   - Update CLAUDE.md (billing section, new routes and env vars) and the Obsidian note.
 
 ## Stripe dashboard setup (user, can be done any time before B3)
