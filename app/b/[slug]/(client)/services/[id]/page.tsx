@@ -2,12 +2,13 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { cache } from "react"
 import { prisma } from "@/app/_lib/prisma"
-import { getTenant } from "@/app/_lib/tenant"
+import { getTenant, shopHasAccess } from "@/app/_lib/tenant"
 import { getViewerBookingBlocked } from "@/app/_lib/customer-booking"
 import Header from "@/app/components/header"
 import BackButton from "@/app/components/back-button"
 import ServiceCard from "@/app/components/service-card"
 import EmployeeItem from "@/app/components/employee-item"
+import BookingUnavailableNotice from "@/app/components/booking-unavailable-notice"
 
 interface ServicePageProps {
   params: Promise<{ slug: string; id: string }>
@@ -66,6 +67,7 @@ const ServicePage = async ({ params }: ServicePageProps) => {
     notFound()
   }
 
+  const bookingAvailable = shopHasAccess(shop)
   const { employees, ...rest } = service
   const serviceSerialized = { ...rest, price: Number(service.price) }
 
@@ -97,9 +99,12 @@ const ServicePage = async ({ params }: ServicePageProps) => {
               service={serviceSerialized}
               slug={shop.slug}
               bookingBlocked={bookingBlocked}
+              bookingAvailable={bookingAvailable}
             />
           </div>
         </div>
+
+        {!bookingAvailable && <BookingUnavailableNotice />}
 
         <div className="space-y-3">
           <h2 className="text-xs font-bold text-gray-400 uppercase md:text-base">

@@ -55,6 +55,8 @@ interface ServiceItemProps {
   employeeName: string
   // The viewer is ADMIN/ATENDENTE of this shop (computed on the server)
   bookingBlocked: boolean
+  // False while the shop's subscription is pending: no booking button
+  bookingAvailable: boolean
 }
 
 type ConflictingBooking = NonNullable<
@@ -73,6 +75,7 @@ const ServiceItem = ({
   employeeId,
   employeeName,
   bookingBlocked,
+  bookingAvailable,
 }: ServiceItemProps) => {
   const [signInDialogIsOpen, setSignInDialogIsOpen] = useState(false)
   const { data } = useSession()
@@ -370,13 +373,15 @@ const ServiceItem = ({
                 open={bookingSheetIsOpen}
                 onOpenChange={handleBookingSheetOpenChange}
               >
-                <Button
-                  size="sm"
-                  className="shrink-0 cursor-pointer md:h-9 md:px-4 md:text-base"
-                  onClick={handleBookingClick}
-                >
-                  Reservar
-                </Button>
+                {bookingAvailable && (
+                  <Button
+                    size="sm"
+                    className="shrink-0 cursor-pointer md:h-9 md:px-4 md:text-base"
+                    onClick={handleBookingClick}
+                  >
+                    Reservar
+                  </Button>
+                )}
 
                 <SheetContent className="flex flex-col px-0 lg:w-120 lg:max-w-120">
                   <SheetHeader className="shrink-0 px-4">

@@ -58,6 +58,8 @@ interface ServiceCardProps {
   slug: string
   // The viewer is ADMIN/ATENDENTE of this shop (computed on the server)
   bookingBlocked: boolean
+  // False while the shop's subscription is pending: no booking button
+  bookingAvailable: boolean
 }
 
 interface EmployeeOption {
@@ -76,7 +78,12 @@ const PERIODS = [
   { label: "Noite", test: (h: number) => h >= 18 },
 ]
 
-const ServiceCard = ({ service, slug, bookingBlocked }: ServiceCardProps) => {
+const ServiceCard = ({
+  service,
+  slug,
+  bookingBlocked,
+  bookingAvailable,
+}: ServiceCardProps) => {
   const { data } = useSession()
 
   const [signInDialogIsOpen, setSignInDialogIsOpen] = useState(false)
@@ -107,12 +114,14 @@ const ServiceCard = ({ service, slug, bookingBlocked }: ServiceCardProps) => {
   const [isCheckingPhone, setIsCheckingPhone] = useState(false)
 
   useEffect(() => {
+    if (!bookingAvailable) return
+
     const fetchEmployees = async () => {
       const result = await getEmployeesForService(slug, service.id)
       setEmployees(result)
     }
     fetchEmployees()
-  }, [slug, service.id])
+  }, [slug, service.id, bookingAvailable])
 
   useEffect(() => {
     if (!selectedDay || !selectedEmployeeId) return
@@ -399,13 +408,15 @@ const ServiceCard = ({ service, slug, bookingBlocked }: ServiceCardProps) => {
               <ClockIcon size={12} className="md:size-3.5" />
               <span>{service.durationInMinutes} min</span>
             </div>
-            <Button
-              className="mt-2 w-full cursor-pointer gap-2 py-3 text-sm md:mt-3 md:py-5 md:text-base"
-              onClick={handleReservarClick}
-            >
-              <CalendarPlusIcon size={16} />
-              Reservar
-            </Button>
+            {bookingAvailable && (
+              <Button
+                className="mt-2 w-full cursor-pointer gap-2 py-3 text-sm md:mt-3 md:py-5 md:text-base"
+                onClick={handleReservarClick}
+              >
+                <CalendarPlusIcon size={16} />
+                Reservar
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

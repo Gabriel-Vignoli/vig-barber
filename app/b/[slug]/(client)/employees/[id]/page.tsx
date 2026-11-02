@@ -1,5 +1,5 @@
 import { prisma } from "@/app/_lib/prisma"
-import { getSessionUserId, getTenant } from "@/app/_lib/tenant"
+import { getSessionUserId, getTenant, shopHasAccess } from "@/app/_lib/tenant"
 import { getViewerBookingBlocked } from "@/app/_lib/customer-booking"
 import Header from "@/app/components/header"
 import ContactSection from "@/app/components/contact-section"
@@ -8,6 +8,7 @@ import EmployeeReviews from "@/app/components/employee-reviews"
 import BackButton from "@/app/components/back-button"
 import ViewLocationButton from "@/app/components/view-location-button"
 import ShopMap from "@/app/components/shop-map"
+import BookingUnavailableNotice from "@/app/components/booking-unavailable-notice"
 import { getMapsSearchUrl } from "@/app/_lib/maps"
 import { Card, CardContent } from "@/app/components/ui/card"
 import { StarIcon } from "lucide-react"
@@ -118,6 +119,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
 
   const reviewableBooking = hasReviewed ? null : reviewableBookingCandidate
 
+  const bookingAvailable = shopHasAccess(barbershop)
   const employeeName = employee.user.name ?? "Funcionário"
   const employeeImage = employee.imageUrl ?? employee.user.image ?? null
   const shopImage = barbershop.logoUrl ?? barbershop.bannerUrl
@@ -284,6 +286,9 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
               <h3 className="mb-3 text-base font-bold text-gray-400 uppercase xl:text-lg">
                 Serviços
               </h3>
+              {!bookingAvailable && (
+                <BookingUnavailableNotice className="mb-3" />
+              )}
               {servicesSerialized.length === 0 ? (
                 <p className="text-sm text-gray-400 xl:text-base">
                   Este profissional ainda não possui serviços cadastrados.
@@ -298,6 +303,7 @@ const EmployeePage = async ({ params }: EmployeePageProps) => {
                       employeeId={employee.id}
                       employeeName={employeeName}
                       bookingBlocked={bookingBlocked}
+                      bookingAvailable={bookingAvailable}
                     />
                   ))}
                 </div>

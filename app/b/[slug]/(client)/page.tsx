@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { authOptions } from "@/app/_lib/auth"
-import { getTenant } from "@/app/_lib/tenant"
+import { getTenant, shopHasAccess } from "@/app/_lib/tenant"
 import { getViewerBookingBlocked } from "@/app/_lib/customer-booking"
 import { getShopServices } from "@/app/_data/get-shop-services"
 import { getShopEmployees } from "@/app/_data/get-shop-employees"
@@ -13,6 +13,7 @@ import ServiceCard from "@/app/components/service-card"
 import RecommendedCarousel from "@/app/components/recommended-carousel"
 import BookingItem from "@/app/components/booking-item"
 import Carousel from "@/app/components/carousel"
+import BookingUnavailableNotice from "@/app/components/booking-unavailable-notice"
 
 interface ShopHomeProps {
   params: Promise<{ slug: string }>
@@ -33,6 +34,7 @@ const ShopHome = async ({ params }: ShopHomeProps) => {
     ])
 
   const hasBookings = confirmedBookings.length > 0
+  const bookingAvailable = shopHasAccess(shop)
 
   return (
     <div>
@@ -97,6 +99,10 @@ const ShopHome = async ({ params }: ShopHomeProps) => {
               </div>
             </div>
 
+            {!bookingAvailable && (
+              <BookingUnavailableNotice className="mt-4 lg:mt-8" />
+            )}
+
             {hasBookings ? (
               <>
                 {/* Schedule */}
@@ -150,6 +156,7 @@ const ShopHome = async ({ params }: ShopHomeProps) => {
               service={service}
               slug={shop.slug}
               bookingBlocked={bookingBlocked}
+              bookingAvailable={bookingAvailable}
             ></ServiceCard>
           ))}
         </Carousel>
