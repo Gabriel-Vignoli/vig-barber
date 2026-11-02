@@ -94,3 +94,15 @@ export const billingActiveWhere = (now: Date): Prisma.BarbershopWhereInput => ({
     },
   ],
 })
+
+// Whether the shop already has a Stripe subscription that is still running
+// (paid, trialing in Stripe, or retrying a failed payment). Checkout refuses
+// a second subscription while this holds; a CANCELED one can subscribe again.
+export const hasLiveSubscription = (shop: {
+  stripeSubscriptionId: string | null
+  subscriptionStatus: SubscriptionStatus
+}) =>
+  Boolean(shop.stripeSubscriptionId) &&
+  (shop.subscriptionStatus === "ACTIVE" ||
+    shop.subscriptionStatus === "TRIALING" ||
+    shop.subscriptionStatus === "PAST_DUE")
