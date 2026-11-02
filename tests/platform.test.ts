@@ -18,6 +18,7 @@ import { failNextEmail, getSentEmails } from "./helpers/email"
 import { NotFoundError, RedirectError } from "./helpers/navigation"
 import { mockSession } from "./helpers/session"
 import { unwrap } from "@/app/_lib/action-result"
+import { TRIAL_DAYS } from "@/app/_lib/plans"
 
 const shopInput = (
   overrides: Partial<Parameters<typeof createShop>[0]> = {},
@@ -138,6 +139,28 @@ describe("createShop", () => {
     expect(
       await prisma.membership.count({ where: { barbershopId: created.id } }),
     ).toBe(0)
+  })
+
+  it("starts a 14-day trial on the BASIC plan", async () => {
+    const before = Date.now()
+    await unwrap(createShop(shopInput()))
+    const after = Date.now()
+
+    const created = await prisma.barbershop.findUniqueOrThrow({
+      where: { slug: "barbearia-nova" },
+    })
+    expect(created).toMatchObject({
+      plan: "BASIC",
+      subscriptionStatus: "TRIALING",
+      pastDueSince: null,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+    })
+    const day = 24 * 60 * 60 * 1000
+    const trialEnd = created.trialEndsAt!.getTime()
+    expect(trialEnd).toBeGreaterThanOrEqual(before + TRIAL_DAYS * day)
+    expect(trialEnd).toBeLessThanOrEqual(after + TRIAL_DAYS * day)
+    expect(TRIAL_DAYS).toBe(14)
   })
 
   it("rejects a slug in use, reserved or invalid", async () => {

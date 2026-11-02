@@ -7,12 +7,13 @@ import { createInvitation, type InvitationResult } from "../_lib/invitation"
 import { revalidateShop } from "../_lib/revalidate"
 import { createShopSchema } from "../_lib/validations/platform"
 import { action, ActionError } from "../_lib/action-result"
+import { DEFAULT_PLAN, getTrialEndsAt } from "../_lib/plans"
 
 const SLUG_TAKEN = "Este endereço já está em uso. Escolha outro."
 
 // Platform only: creates a shop and invites its owner as ADMIN. The owner
 // always goes through the invitation (even with an existing account), so the
-// platform never sets anyone's password.
+// platform never sets anyone's password. The free trial starts now.
 export const createShop = action(
   async (input: {
     name: string
@@ -51,6 +52,9 @@ export const createShop = action(
           city,
           phones: phone ? [phone] : [],
           description: "",
+          plan: DEFAULT_PLAN,
+          subscriptionStatus: "TRIALING",
+          trialEndsAt: getTrialEndsAt(new Date()),
         },
         select: { id: true, slug: true, name: true },
       })
