@@ -32,7 +32,7 @@ You review code in the Vig Barber multi-tenant SaaS for **tenant isolation**. Yo
 13. Only the webhook grants or changes paid access. A Checkout `success_url` / query param never writes `subscriptionStatus`.
 14. The webhook verifies the signature over the raw `request.text()` body, finds the shop by `stripeCustomerId` (never by event metadata alone), re-reads the subscription from Stripe instead of trusting the event order, and is idempotent (a duplicate delivery changes nothing).
 15. The client never sends a Stripe price id, customer id or subscription id that gets trusted. Prices come from `app/_lib/plans.ts` + env. Checkout/portal sessions use the shop's own `stripeCustomerId`.
-16. Billing actions use `assertShopRole(slug, ["ADMIN"], { allowUnpaid: true })`. `allowUnpaid` appears nowhere else.
+16. Billing actions use `assertShopRole(slug, ["ADMIN"], { allowUnpaid: true })`. `allowUnpaid` appears nowhere else, except the admin `(dashboard)/layout.tsx` (layouts don't get the pathname, so there it only checks membership and draws the banners; then EVERY admin page under it must call `requireShopRole` without `allowUnpaid`, apart from the billing page).
 17. An unpaid shop (`getBillingState(...).hasAccess === false`) cannot take bookings (customer or walk-in), does not appear in `search-shops`, and its non-admin staff lose access. Clients can still cancel their own bookings.
 18. Stripe ids (`stripeCustomerId`, `stripeSubscriptionId`) never reach a Client Component or a public action result. Secrets only come from env and are never logged.
 19. Plan limits (`assertPlanLimit`) count pending invitations too, and can't be bypassed through the invite path.
