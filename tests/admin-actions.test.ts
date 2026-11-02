@@ -241,6 +241,66 @@ describe("admin access", () => {
       await prisma.barbershopService.count({ where: { id: f.serviceB.id } }),
     ).toBe(1)
   })
+
+  it("rejects the admin of a shop whose subscription is pending", async () => {
+    const PENDING = "A assinatura desta barbearia está pendente."
+    await prisma.barbershop.update({
+      where: { id: f.shopA.id },
+      data: { subscriptionStatus: "CANCELED" },
+    })
+
+    await expect(
+      unwrap(createService("barbearia-a", SERVICE_INPUT)),
+    ).rejects.toThrow(PENDING)
+    await expect(
+      unwrap(updateService("barbearia-a", f.serviceA.id, SERVICE_INPUT)),
+    ).rejects.toThrow(PENDING)
+    await expect(
+      unwrap(deleteExpense("barbearia-a", f.expenseA.id)),
+    ).rejects.toThrow(PENDING)
+    await expect(
+      unwrap(updateBarbershop("barbearia-a", BARBERSHOP_INPUT)),
+    ).rejects.toThrow(PENDING)
+    await expect(
+      unwrap(
+        createAtendente("barbearia-a", {
+          name: "Novo Atendente",
+          email: "novo-atendente@test.local",
+          password: "senha123",
+        }),
+      ),
+    ).rejects.toThrow(PENDING)
+    await expect(
+      unwrap(deleteEmployee("barbearia-a", f.employeeA.id)),
+    ).rejects.toThrow(PENDING)
+    await expect(getNetProfit("barbearia-a")).rejects.toThrow(PENDING)
+    await expect(
+      getDashboardStats("barbearia-a", { period: "month", date: new Date() }),
+    ).rejects.toThrow(PENDING)
+
+    const shopA = await prisma.barbershop.findUniqueOrThrow({
+      where: { id: f.shopA.id },
+    })
+    expect(shopA.name).toBe("Barbearia A")
+    expect(
+      await prisma.barbershopService.count({ where: { name: "Corte novo" } }),
+    ).toBe(0)
+    expect(await prisma.expense.count({ where: { id: f.expenseA.id } })).toBe(1)
+    expect(
+      await prisma.employee.count({
+        where: { id: f.employeeA.id, isActive: true },
+      }),
+    ).toBe(1)
+    expect(
+      await prisma.user.count({
+        where: { email: "novo-atendente@test.local" },
+      }),
+    ).toBe(0)
+
+    // Shop B, in good standing, is not affected
+    mockSession(f.adminB.id)
+    await expect(getNetProfit("barbearia-b")).resolves.toBeDefined()
+  })
 })
 
 describe("services", () => {
