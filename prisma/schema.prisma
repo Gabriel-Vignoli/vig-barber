@@ -133,12 +133,17 @@ model Barbershop {
   bannerUrl            String?
   instagramUrl         String?
   status               ShopStatus         @default(ACTIVE)
-  plan                 Plan               @default(TRIAL)
+  // The tier being trialed or paid for (TRIAL is a leftover enum value, unused)
+  plan                 Plan               @default(BASIC)
   subscriptionStatus   SubscriptionStatus @default(TRIALING)
   stripeCustomerId     String?            @unique
   stripeSubscriptionId String?            @unique
   trialEndsAt          DateTime?
-  createdAt            DateTime           @default(now())
+  // Set the first time the shop enters PAST_DUE, cleared when it leaves
+  pastDueSince         DateTime?
+  // Next charge date, for display (Stripe keeps it on the subscription item)
+  currentPeriodEnd     DateTime?
+  createdAt           DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
   services    BarbershopService[]
