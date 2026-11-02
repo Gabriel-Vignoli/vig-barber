@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { updateTag } from "next/cache"
 import { prisma } from "@/app/_lib/prisma"
 import { shopTag } from "@/app/_lib/tenant"
@@ -34,6 +34,9 @@ import { getAdminExpenses } from "@/app/_data/get-admin-expenses"
 import { getAdminEmployees } from "@/app/_data/get-admin-employees"
 import { getAdminAtendentes } from "@/app/_data/get-admin-atendentes"
 import { getAllServices } from "@/app/_data/get-all-services"
+import { createCheckoutSession } from "@/app/_actions/create-checkout-session"
+import { createPortalSession } from "@/app/_actions/create-portal-session"
+import { getStripe } from "@/app/_lib/stripe"
 import {
   createEmployee as createEmployeeRow,
   createMembership,
@@ -42,7 +45,11 @@ import {
   createUser,
 } from "./helpers/factories"
 import { mockSession } from "./helpers/session"
+import { createStripeMock, type StripeMock } from "./helpers/stripe"
 import { unwrap } from "@/app/_lib/action-result"
+
+// The billing actions are in the matrix too; Stripe is never called for real
+vi.mock("@/app/_lib/stripe", () => ({ getStripe: vi.fn() }))
 
 const SERVICE_INPUT = {
   name: "Corte novo",
@@ -177,9 +184,19 @@ const seedTwoShops = async () => {
   }
 }
 
+let stripe: StripeMock
+
 beforeEach(async () => {
   f = await seedTwoShops()
   mockSession(f.adminA.id)
+  stripe = createStripeMock()
+  vi.mocked(getStripe).mockReturnValue(stripe as never)
+  vi.stubEnv("STRIPE_PRICE_BASIC", "price_basic_test")
+  vi.stubEnv("APP_URL", "https://app.test")
+})
+
+afterEach(() => {
+  vi.unstubAllEnvs()
 })
 
 describe("admin access", () => {
@@ -819,6 +836,9 @@ const adminMutationsOnShopB = (): [string, () => Promise<unknown>][] => [
     "deleteAtendente",
     () => unwrap(deleteAtendente("barbearia-b", f.atendenteB.id)),
   ],
+  // Checkout first: it creates the Stripe customer the portal needs
+  ["createCheckoutSession", () => unwrap(createCheckoutSession("barbearia-b"))],
+  ["createPortalSession", () => unwrap(createPortalSession("barbearia-b"))],
 ]
 
 const adminReadsOfShopB = (): [string, () => Promise<unknown>][] => [
@@ -861,6 +881,10 @@ describe("isolation matrix: every admin action", () => {
 
     expect(await snapshotShop(f.shopB.id)).toEqual(before)
     expect(updateTag).not.toHaveBeenCalledWith(shopTag(f.shopB.id))
+    // The billing actions stop before touching Stripe
+    expect(stripe.customers.create).not.toHaveBeenCalled()
+    expect(stripe.checkout.sessions.create).not.toHaveBeenCalled()
+    expect(stripe.billingPortal.sessions.create).not.toHaveBeenCalled()
   })
 
   it("rejects each outsider on every stats read", async () => {
