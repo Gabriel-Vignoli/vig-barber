@@ -84,3 +84,12 @@ export const parseDateKey = (dateKey: string): Date => {
   const [year, month, day] = dateKey.split("-").map(Number)
   return new Date(year, month - 1, day)
 }
+
+// "DD/MM" (or "DD/MM/AAAA" with withYear) of an instant, in Brazil time
+export const formatBrazilDate = (date: Date, { withYear = false } = {}) =>
+  new Intl.DateTimeFormat("pt-BR", {
+    timeZone: BR_TIME_ZONE,
+    day: "2-digit",
+    month: "2-digit",
+    ...(withYear && { year: "numeric" }),
+  }).format(date)
