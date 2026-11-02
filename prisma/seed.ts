@@ -11,6 +11,7 @@ import {
   SubscriptionStatus,
   Weekday,
 } from "../app/generated/prisma/client"
+import { addDays, getTrialEndsAt } from "../app/_lib/plans"
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
@@ -209,8 +210,9 @@ async function main() {
   await prisma.account.deleteMany()
   await prisma.user.deleteMany()
 
-  // Created first on purpose: the app still reads the shop with findFirst()
-  // until the tenant routes land (Phase 3/4a)
+  // The 3 shops cover the billing states: active, past due (in grace), trialing
+  const seedNow = new Date()
+
   console.log("Criando barbearias...")
   const centro = await prisma.barbershop.create({
     data: {
@@ -226,8 +228,10 @@ async function main() {
       bannerUrl:
         "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1200&q=80",
       instagramUrl: "https://instagram.com/vigbarber",
-      plan: Plan.PRO,
+      // Paid and up to date (no real Stripe ids: the demo has no customer)
+      plan: Plan.BASIC,
       subscriptionStatus: SubscriptionStatus.ACTIVE,
+      currentPeriodEnd: addDays(seedNow, 20),
     },
   })
 
@@ -245,8 +249,11 @@ async function main() {
       bannerUrl:
         "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80",
       instagramUrl: "https://instagram.com/navalhadeouro",
+      // Renewal failed 2 days ago: still inside the grace period
       plan: Plan.BASIC,
-      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      subscriptionStatus: SubscriptionStatus.PAST_DUE,
+      pastDueSince: addDays(seedNow, -2),
+      currentPeriodEnd: addDays(seedNow, -2),
     },
   })
 
@@ -263,9 +270,10 @@ async function main() {
         "Especialistas em degradê e barba completa na Zona Leste. Ambiente descontraído, boa música e atendimento sem pressa.",
       bannerUrl:
         "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=1200&q=80",
-      plan: Plan.TRIAL,
+      // Fresh free trial, as create-shop starts it
+      plan: Plan.BASIC,
       subscriptionStatus: SubscriptionStatus.TRIALING,
-      trialEndsAt: brazilDate(14, 23, 59),
+      trialEndsAt: getTrialEndsAt(seedNow),
     },
   })
 
