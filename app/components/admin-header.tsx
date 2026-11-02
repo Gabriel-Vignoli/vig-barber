@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react"
 import {
   BriefcaseIcon,
   CalendarIcon,
+  CreditCardIcon,
   LayoutDashboardIcon,
   LayoutGridIcon,
   LogOutIcon,
@@ -32,6 +33,7 @@ const getNavItems = (adminPath: string) => [
   { href: `${adminPath}/employees`, label: "Funcionários", icon: UsersIcon },
   { href: `${adminPath}/expenses`, label: "Despesas", icon: ReceiptIcon },
   { href: `${adminPath}/barbershop`, label: "Barbearia", icon: StoreIcon },
+  { href: `${adminPath}/billing`, label: "Assinatura", icon: CreditCardIcon },
 ]
 
 const AdminHeader = ({ adminName, slug }: AdminHeaderProps) => {
