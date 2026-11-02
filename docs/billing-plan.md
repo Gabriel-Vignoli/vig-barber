@@ -4,7 +4,7 @@
 
 - [x] Phase B1 — plans config, billing state, schema (migration `20261102120000_billing_state` applied to Supabase on 2026-11-02)
 - [x] Phase B2 — access gate (what an unpaid shop loses)
-- [ ] Phase B3 — billing page: Checkout + Customer Portal
+- [x] Phase B3 — billing page: Checkout + Customer Portal
 - [ ] Phase B4 — webhook sync
 - [ ] Phase B5 — platform panel + plan limits hook
 - [ ] Phase B6 — production rollout
@@ -122,6 +122,7 @@ Time math works on instants (`Date`), never on calendar days, so UTC vs São Pau
 - **B4 — webhook sync** (`feat(billing)`)
   - Replace the stub: sync from a fresh subscription, cache expiry, unknown-customer events answered 200 and logged (so Stripe doesn't retry forever).
   - Cache expiry: the gate reads the shop lookup cached for 300 s, and `revalidateShop` (`updateTag`) can't run in a route handler. Call `revalidateTag(shopSlugTag(slug), …)` and `revalidateTag(shopTag(id), …)` directly, and test that the gate opens right after a webhook write.
+  - From the B3 review: find the shop by `stripeCustomerId` (the checkout's `metadata` / `client_reference_id` only cross-check), and never set `stripeCustomerId` back to null (create-checkout-session's idempotency key would hand back a deleted customer within 24 h). After a checkout the billing page doesn't refresh by itself; consider a short auto-refresh while `?checkout=success` and not yet live.
   - Tests: build signed payloads with `stripe.webhooks.generateTestHeaderString` and mock `subscriptions.retrieve`; cover duplicates, out-of-order events, `pastDueSince` set and cleared, and an unknown price id.
   - Manual check: `stripe listen --forward-to localhost:3000/api/stripe/webhook` + `stripe trigger` / test card `4242 4242 4242 4242`, and `4000 0000 0000 0341` for a failing renewal.
 - **B5 — platform + limits hook** (`feat(platform)`, `feat(employees)`)
