@@ -3,7 +3,7 @@
 ## Status
 
 - [x] Phase B1 — plans config, billing state, schema (migration `20261102120000_billing_state` applied to Supabase on 2026-11-02)
-- [ ] Phase B2 — access gate (what an unpaid shop loses)
+- [x] Phase B2 — access gate (what an unpaid shop loses)
 - [ ] Phase B3 — billing page: Checkout + Customer Portal
 - [ ] Phase B4 — webhook sync
 - [ ] Phase B5 — platform panel + plan limits hook
@@ -83,7 +83,9 @@ Time math works on instants (`Date`), never on calendar days, so UTC vs São Pau
   - ADMIN pages → redirect to `/b/[slug]/admin/billing`
   - ATENDENTE / EMPLOYEE pages → a "Barbearia com assinatura pendente" screen
   - actions → `ActionError("A assinatura desta barbearia está pendente.")`
-  - opt-out: `{ allowUnpaid: true }`, used ONLY by the billing page and the billing actions.
+  - opt-out: `{ allowUnpaid: true }`, used ONLY by the billing page, the billing actions and the admin `(dashboard)/layout.tsx`. Layouts don't get the pathname, so the layout only checks membership and draws the banners; every admin page under it except billing calls `requireShopRole` without `allowUnpaid` and is the real gate.
+  - ATENDENTE / EMPLOYEE of an unpaid shop are redirected to `/b/[slug]/assinatura-pendente`. Customers see "Agendamentos indisponíveis no momento." and never the reason.
+  - `accept-invitation` is not gated on purpose (an invited owner must be able to join an unpaid shop to pay).
 - Public side: the shop page stays reachable (links people already have keep working) but shows "Agendamentos indisponíveis no momento" and hides the booking buttons. `create-booking`, `replace-booking` and `create-walkin-booking` reject through the shared booking guard. `search-shops` filters with `billingActiveWhere`.
 - Clients can still view and cancel their existing bookings (`delete-booking` stays open).
 - Trial and grace banners in the admin layout: "Seu teste termina em X dias", "Pagamento falhou, regularize até DD/MM".
@@ -119,6 +121,7 @@ Time math works on instants (`Date`), never on calendar days, so UTC vs São Pau
   - Page with `loading.tsx`, the two actions, a sidebar link "Assinatura", isolation-matrix entries.
 - **B4 — webhook sync** (`feat(billing)`)
   - Replace the stub: sync from a fresh subscription, cache expiry, unknown-customer events answered 200 and logged (so Stripe doesn't retry forever).
+  - Cache expiry: the gate reads the shop lookup cached for 300 s, and `revalidateShop` (`updateTag`) can't run in a route handler. Call `revalidateTag(shopSlugTag(slug), …)` and `revalidateTag(shopTag(id), …)` directly, and test that the gate opens right after a webhook write.
   - Tests: build signed payloads with `stripe.webhooks.generateTestHeaderString` and mock `subscriptions.retrieve`; cover duplicates, out-of-order events, `pastDueSince` set and cleared, and an unknown price id.
   - Manual check: `stripe listen --forward-to localhost:3000/api/stripe/webhook` + `stripe trigger` / test card `4242 4242 4242 4242`, and `4000 0000 0000 0341` for a failing renewal.
 - **B5 — platform + limits hook** (`feat(platform)`, `feat(employees)`)
