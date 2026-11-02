@@ -1,5 +1,10 @@
 import { prisma } from "@/app/_lib/prisma"
-import type { MemberRole, ShopStatus } from "@/app/generated/prisma/enums"
+import { getTrialEndsAt } from "@/app/_lib/plans"
+import type {
+  MemberRole,
+  ShopStatus,
+  SubscriptionStatus,
+} from "@/app/generated/prisma/enums"
 
 let counter = 0
 const next = () => ++counter
@@ -24,6 +29,9 @@ export const createShop = (
     name?: string
     city?: string | null
     status?: ShopStatus
+    subscriptionStatus?: SubscriptionStatus
+    trialEndsAt?: Date | null
+    pastDueSince?: Date | null
   } = {},
 ) => {
   const n = next()
@@ -36,6 +44,13 @@ export const createShop = (
       description: "Barbearia de teste",
       phones: ["11999999999"],
       status: data.status ?? "ACTIVE",
+      // Like create-shop: a fresh trial unless the test says otherwise
+      subscriptionStatus: data.subscriptionStatus ?? "TRIALING",
+      trialEndsAt:
+        data.trialEndsAt === undefined
+          ? getTrialEndsAt(new Date())
+          : data.trialEndsAt,
+      pastDueSince: data.pastDueSince ?? null,
     },
   })
 }
