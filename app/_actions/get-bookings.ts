@@ -2,7 +2,7 @@
 
 import { endOfDay, startOfDay } from "date-fns"
 import { prisma } from "../_lib/prisma"
-import { getActiveShopOrThrow } from "../_lib/tenant"
+import { getBookableShopOrThrow } from "../_lib/customer-booking"
 
 interface GetBookingsProps {
   employeeId: string
@@ -14,7 +14,7 @@ export const getBookings = async (
   slug: string,
   { date, employeeId }: GetBookingsProps,
 ) => {
-  const shop = await getActiveShopOrThrow(slug)
+  const shop = await getBookableShopOrThrow(slug)
 
   return prisma.booking.findMany({
     where: {

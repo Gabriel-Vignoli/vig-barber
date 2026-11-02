@@ -60,9 +60,12 @@ const Home = async ({ searchParams }: HomeProps) => {
 
   // Barbers used to have / as their home: keep sending them to their shop's
   // staff dashboard (307, depends on the user). Admins and atendentes use
-  // /painel or their area links.
+  // /painel or their area links. A shop with a pending subscription is
+  // skipped, so its barbers can still use the landing as clients.
   if (userId) {
-    const staffShop = await getFirstShopWithRole(userId, ["EMPLOYEE"])
+    const staffShop = await getFirstShopWithRole(userId, ["EMPLOYEE"], {
+      billingActiveOnly: true,
+    })
 
     if (staffShop) {
       redirect(`/b/${staffShop.slug}/staff`)

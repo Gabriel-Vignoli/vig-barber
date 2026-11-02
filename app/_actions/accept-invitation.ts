@@ -11,6 +11,9 @@ import { action, ActionError } from "../_lib/action-result"
 // invited one. Creates the Membership (plus the Employee row for a barber) and
 // marks the invitation as used, all in one transaction. Returns the area of
 // the shop to open next.
+// Not billing-gated on purpose: an invited owner must be able to join an
+// unpaid shop in order to pay; new staff of an unpaid shop land on the
+// pending-subscription screen.
 export const acceptInvitation = action(
   async (token: string): Promise<{ path: string; alreadyMember: boolean }> => {
     const userId = await getSessionUserId()

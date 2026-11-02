@@ -7,6 +7,7 @@ import { authOptions } from "./auth"
 import { prisma } from "./prisma"
 import { getLoginPath } from "./protected-paths"
 import { ActionError } from "./action-result"
+import { getBillingState } from "./billing"
 
 // Cache tag for everything that belongs to one shop (services, employees, stats...)
 export const shopTag = (barbershopId: string) => `shop:${barbershopId}`
@@ -32,6 +33,7 @@ const tenantSelect = {
   plan: true,
   subscriptionStatus: true,
   trialEndsAt: true,
+  pastDueSince: true,
   createdAt: true,
   updatedAt: true,
 } as const
@@ -51,6 +53,7 @@ export type ShopAccess = {
 const hydrateTenant = (shop: Tenant): Tenant => ({
   ...shop,
   trialEndsAt: shop.trialEndsAt ? new Date(shop.trialEndsAt) : null,
+  pastDueSince: shop.pastDueSince ? new Date(shop.pastDueSince) : null,
   createdAt: new Date(shop.createdAt),
   updatedAt: new Date(shop.updatedAt),
 })
@@ -106,10 +109,35 @@ export const getMembership = cache((barbershopId: string, userId: string) =>
   }),
 )
 
-// For pages: redirects instead of throwing. Platform admins get no implicit access.
+export const BILLING_PENDING_MESSAGE =
+  "A assinatura desta barbearia está pendente."
+
+// Whether the shop may operate right now (trial, paid, or inside the grace
+// period). The shop lookup is cached for 300 s, but the expiry is computed
+// on every call from `now`.
+export const shopHasAccess = (shop: Tenant, now = new Date()) =>
+  getBillingState(shop, now).hasAccess
+
+export const getBillingPath = (slug: string) => `/b/${slug}/admin/billing`
+
+export const getBillingBlockedPath = (slug: string) =>
+  `/b/${slug}/assinatura-pendente`
+
+export type ShopRoleOptions = {
+  // Skips the billing gate. Only for the billing page and the billing actions
+  // (plus the admin layout, which renders chrome only; every admin page
+  // applies the gate itself).
+  allowUnpaid?: boolean
+}
+
+// For pages: redirects instead of throwing. Platform admins get no implicit
+// access. When the shop is unpaid, its ADMIN goes to the billing page and its
+// other staff to the "assinatura pendente" screen. The billing check runs
+// after the role check, so outsiders learn nothing about the shop's billing.
 export const requireShopRole = async (
   slug: string,
   roles: MemberRole[],
+  { allowUnpaid = false }: ShopRoleOptions = {},
 ): Promise<ShopAccess> => {
   const shop = await getTenant(slug)
   const userId = await getSessionUserId()
@@ -126,6 +154,14 @@ export const requireShopRole = async (
     redirect(`/b/${slug}`)
   }
 
+  if (!allowUnpaid && !shopHasAccess(shop)) {
+    redirect(
+      membership.role === "ADMIN"
+        ? getBillingPath(slug)
+        : getBillingBlockedPath(slug),
+    )
+  }
+
   return { shop, userId, membership }
 }
 
@@ -133,6 +169,7 @@ export const requireShopRole = async (
 export const assertShopRole = async (
   slug: string,
   roles: MemberRole[],
+  { allowUnpaid = false }: ShopRoleOptions = {},
 ): Promise<ShopAccess> => {
   const userId = await getSessionUserId()
 
@@ -150,6 +187,10 @@ export const assertShopRole = async (
 
   if (!membership || !roles.includes(membership.role)) {
     throw new ActionError("Sem permissão.")
+  }
+
+  if (!allowUnpaid && !shopHasAccess(shop)) {
+    throw new ActionError(BILLING_PENDING_MESSAGE)
   }
 
   return { shop, userId, membership }

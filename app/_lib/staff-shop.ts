@@ -1,19 +1,26 @@
 import type { MemberRole } from "@/app/generated/prisma/enums"
 import { getShopAreaPath } from "../_constants/roles"
+import { billingActiveWhere } from "./billing"
 import { prisma } from "./prisma"
 import { getSafeCallbackUrl } from "./safe-callback-url"
 
 // The oldest active shop where the user holds one of these roles. Used by the
 // legacy URLs that carry no slug (/admin/*, /admin/atendente/*) and by /.
+// billingActiveOnly skips shops whose subscription is pending (/ uses it so a
+// barber of an unpaid shop can still use the landing as a client).
 export const getFirstShopWithRole = async (
   userId: string,
   roles: MemberRole[],
+  { billingActiveOnly = false }: { billingActiveOnly?: boolean } = {},
 ) => {
   const membership = await prisma.membership.findFirst({
     where: {
       userId,
       role: { in: roles },
-      barbershop: { status: "ACTIVE" },
+      barbershop: {
+        status: "ACTIVE",
+        ...(billingActiveOnly && billingActiveWhere(new Date())),
+      },
     },
     orderBy: { createdAt: "asc" },
     select: { barbershop: { select: { id: true, slug: true } } },

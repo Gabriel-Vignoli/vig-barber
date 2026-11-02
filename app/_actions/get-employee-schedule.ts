@@ -1,7 +1,7 @@
 "use server"
 
 import { prisma } from "../_lib/prisma"
-import { getActiveShopOrThrow } from "../_lib/tenant"
+import { getBookableShopOrThrow } from "../_lib/customer-booking"
 import { Weekday } from "@/app/generated/prisma/enums"
 
 const WEEKDAY_BY_JS_DAY: Weekday[] = [
@@ -26,7 +26,7 @@ export const getEmployeeSchedule = async (
   employeeId: string,
   date: Date,
 ): Promise<EmployeeScheduleResult> => {
-  const shop = await getActiveShopOrThrow(slug)
+  const shop = await getBookableShopOrThrow(slug)
   const weekday = WEEKDAY_BY_JS_DAY[date.getDay()]
 
   return prisma.employeeSchedule.findFirst({

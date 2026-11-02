@@ -1,3 +1,4 @@
+import { billingActiveWhere } from "../_lib/billing"
 import { prisma } from "../_lib/prisma"
 import { parseShopSearchQuery } from "../_lib/validations/shop-search"
 
@@ -8,8 +9,9 @@ export const SHOP_SEARCH_LIMIT = 24
 const escapeLikePattern = (value: string) =>
   value.replace(/[\\%_]/g, (char) => `\\${char}`)
 
-// Public shop finder for the landing page. Only ACTIVE shops, only public
-// fields. A query matches the name or the city, case-insensitive; an empty
+// Public shop finder for the landing page. Only ACTIVE shops whose billing
+// lets them take bookings (trial, paid or inside the grace period), only
+// public fields. A query matches the name or the city, case-insensitive; an empty
 // query lists the active shops by name. Fetches one extra row to tell the
 // page that there are more results than it shows.
 export const searchShops = async (rawQuery?: unknown) => {
@@ -19,12 +21,20 @@ export const searchShops = async (rawQuery?: unknown) => {
   const rows = await prisma.barbershop.findMany({
     where: {
       status: "ACTIVE",
-      ...(query && {
-        OR: [
-          { name: { contains: pattern, mode: "insensitive" } },
-          { city: { contains: pattern, mode: "insensitive" } },
-        ],
-      }),
+      // AND keeps the billing OR apart from the name/city OR
+      AND: [
+        billingActiveWhere(new Date()),
+        ...(query
+          ? [
+              {
+                OR: [
+                  { name: { contains: pattern, mode: "insensitive" as const } },
+                  { city: { contains: pattern, mode: "insensitive" as const } },
+                ],
+              },
+            ]
+          : []),
+      ],
     },
     orderBy: [{ name: "asc" }, { id: "asc" }],
     take: SHOP_SEARCH_LIMIT + 1,

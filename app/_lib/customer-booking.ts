@@ -4,9 +4,27 @@ import {
   getActiveShopOrThrow,
   getMembership,
   getSessionUserId,
+  shopHasAccess,
   type Tenant,
 } from "./tenant"
 import { ActionError } from "./action-result"
+
+// Customers see this instead of the billing reason: an unpaid shop just
+// does not take bookings
+export const BOOKINGS_UNAVAILABLE_MESSAGE =
+  "Agendamentos indisponíveis no momento."
+
+// For the public booking actions (and the slot lookups behind them): the
+// active shop for this slug, refusing one whose subscription is pending
+export const getBookableShopOrThrow = async (slug: string): Promise<Tenant> => {
+  const shop = await getActiveShopOrThrow(slug)
+
+  if (!shopHasAccess(shop)) {
+    throw new ActionError(BOOKINGS_UNAVAILABLE_MESSAGE)
+  }
+
+  return shop
+}
 
 interface CustomerBookingInput {
   barbershopServiceId: string
@@ -15,7 +33,7 @@ interface CustomerBookingInput {
 }
 
 // Shared guard for create-booking and replace-booking. Resolves the shop from
-// the slug, blocks staff of THIS shop, and checks in one query that the
+// the slug, refuses an unpaid shop, blocks staff of THIS shop, and checks in one query that the
 // service, the active employee and their link all belong to the shop.
 export const prepareCustomerBooking = async (
   slug: string,
@@ -27,7 +45,7 @@ export const prepareCustomerBooking = async (
     throw new ActionError("Usuário não autenticado")
   }
 
-  const shop = await getActiveShopOrThrow(slug)
+  const shop = await getBookableShopOrThrow(slug)
 
   const membership = await getMembership(shop.id, userId)
 
