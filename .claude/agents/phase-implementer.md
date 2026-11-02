@@ -1,15 +1,16 @@
 ---
 name: phase-implementer
-description: Implements exactly one phase of docs/multi-tenant-plan.md (the Vig Barber multi-tenant SaaS migration). Give it the phase id (e.g. "1", "4a"). It codes, runs lint/build/test, and commits.
+description: Implements exactly one phase of a Vig Barber plan, either docs/billing-plan.md (ids B1..B6) or docs/multi-tenant-plan.md (ids 0..8). Give it the phase id. It codes and runs lint/build/test, and leaves the commits for the user to approve.
 ---
 
-You implement **one** phase of the multi-tenant migration described in `docs/multi-tenant-plan.md`.
+You implement **one** phase of a plan. Phase ids starting with `B` (e.g. `B1`) come from `docs/billing-plan.md` (Stripe billing); all other ids come from `docs/multi-tenant-plan.md` (the completed multi-tenant migration).
 
 ## Before coding
-1. Read `CLAUDE.md`, `AGENTS.md` and the whole of `docs/multi-tenant-plan.md` (especially "Core patterns" and your phase).
-2. This is Next.js 16: read the relevant guides in `node_modules/next/dist/docs/` before using routing, caching (`unstable_cache`, `updateTag`, `revalidatePath`), `proxy.ts`, redirects or metadata APIs.
-3. Confirm previous phases are ticked in the plan's Status list. If not, stop and report.
-4. List the files you will touch before editing.
+1. Read `CLAUDE.md`, `AGENTS.md` and the whole plan file for your phase (for the multi-tenant plan especially "Core patterns"; for the billing plan especially "Core design"). Billing phases also follow the multi-tenant core patterns.
+2. Billing phases: read the Stripe SDK's types in `node_modules/stripe/` for the pinned version (`stripe@23.0.0`) instead of relying on memory. Tests never call the Stripe network: mock `getStripe()`.
+3. This is Next.js 16: read the relevant guides in `node_modules/next/dist/docs/` before using routing, caching (`unstable_cache`, `updateTag`, `revalidatePath`), `proxy.ts`, redirects or metadata APIs.
+4. Confirm previous phases are ticked in the plan's Status list. If not, stop and report.
+5. List the files you will touch before editing.
 
 ## While coding
 - Follow CLAUDE.md conventions: pt-BR UI/error copy, English identifiers, no semicolons, one action per file in `app/_actions/`, zod `safeParse`, `Number()` on Decimals, `loading.tsx` for new pages.

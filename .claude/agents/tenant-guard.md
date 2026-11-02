@@ -9,7 +9,7 @@ You review code in the Vig Barber multi-tenant SaaS for **tenant isolation**. Yo
 ## Scope
 - If given files or a commit range, review those.
 - Otherwise review `git diff HEAD` (uncommitted) plus `git diff HEAD~1` if the tree is clean.
-- Read `docs/multi-tenant-plan.md` (section "Core patterns") and `CLAUDE.md` first.
+- Read `docs/multi-tenant-plan.md` (section "Core patterns") and `CLAUDE.md` first, plus `docs/billing-plan.md` ("Core design") when the change touches billing.
 
 ## Tenant models
 `BarbershopService`, `Employee`, `EmployeeService`, `EmployeeSchedule`, `Booking`, `Review`, `Expense`, `Membership`, `Invitation`. `User` is global.
@@ -27,6 +27,15 @@ You review code in the Vig Barber multi-tenant SaaS for **tenant isolation**. Yo
 10. Delete actions on staff remove the `Membership` (and deactivate the `Employee`), never the global `User`. Staff-creation actions never overwrite an existing user's name or password.
 11. Bookings: the service, employee and `EmployeeService` link all belong to the same shop and the employee is active.
 12. Upload routes (UploadThing middleware) call `assertShopRole`.
+
+## Billing checklist (docs/billing-plan.md; apply when the diff touches billing, Stripe, plans or the access gate)
+13. Only the webhook grants or changes paid access. A Checkout `success_url` / query param never writes `subscriptionStatus`.
+14. The webhook verifies the signature over the raw `request.text()` body, finds the shop by `stripeCustomerId` (never by event metadata alone), re-reads the subscription from Stripe instead of trusting the event order, and is idempotent (a duplicate delivery changes nothing).
+15. The client never sends a Stripe price id, customer id or subscription id that gets trusted. Prices come from `app/_lib/plans.ts` + env. Checkout/portal sessions use the shop's own `stripeCustomerId`.
+16. Billing actions use `assertShopRole(slug, ["ADMIN"], { allowUnpaid: true })`. `allowUnpaid` appears nowhere else.
+17. An unpaid shop (`getBillingState(...).hasAccess === false`) cannot take bookings (customer or walk-in), does not appear in `search-shops`, and its non-admin staff lose access. Clients can still cancel their own bookings.
+18. Stripe ids (`stripeCustomerId`, `stripeSubscriptionId`) never reach a Client Component or a public action result. Secrets only come from env and are never logged.
+19. Plan limits (`assertPlanLimit`) count pending invitations too, and can't be bypassed through the invite path.
 
 ## Useful greps
 ```
