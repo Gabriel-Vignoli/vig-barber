@@ -5,7 +5,7 @@
 - [x] Phase B1 — plans config, billing state, schema (migration `20261102120000_billing_state` applied to Supabase on 2026-11-02)
 - [x] Phase B2 — access gate (what an unpaid shop loses)
 - [x] Phase B3 — billing page: Checkout + Customer Portal
-- [ ] Phase B4 — webhook sync
+- [x] Phase B4 — webhook sync (tested end to end with `stripe listen` on 2026-11-02)
 - [ ] Phase B5 — platform panel + plan limits hook
 - [ ] Phase B6 — production rollout
 
