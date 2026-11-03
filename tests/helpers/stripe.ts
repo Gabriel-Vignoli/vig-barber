@@ -50,3 +50,45 @@ export const createStripeMock = () => {
 }
 
 export type StripeMock = ReturnType<typeof createStripeMock>
+
+export type FakeSubscriptionInput = {
+  id: string
+  customer: string
+  status: Stripe.Subscription.Status
+  priceId?: string
+  // Unix seconds, like Stripe
+  currentPeriodEnd?: number
+  trialEnd?: number | null
+  metadata?: Record<string, string>
+}
+
+// The fields of a Stripe.Subscription that the webhook sync reads. The period
+// lives on the item (API >= 2025-03), not on the subscription.
+export const fakeSubscription = ({
+  id,
+  customer,
+  status,
+  priceId = "price_basic_from_env",
+  currentPeriodEnd = 1_800_000_000,
+  trialEnd = null,
+  metadata = {},
+}: FakeSubscriptionInput) =>
+  ({
+    id,
+    object: "subscription",
+    customer,
+    status,
+    trial_end: trialEnd,
+    metadata,
+    items: {
+      object: "list",
+      data: [
+        {
+          id: `si_${id}`,
+          object: "subscription_item",
+          current_period_end: currentPeriodEnd,
+          price: { id: priceId, object: "price" },
+        },
+      ],
+    },
+  }) as unknown as Stripe.Subscription
