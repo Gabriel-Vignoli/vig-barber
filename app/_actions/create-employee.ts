@@ -11,6 +11,7 @@ import {
   type StaffCreateResult,
 } from "../_lib/invitation"
 import { createEmployeeSchema } from "../_lib/validations/employee"
+import { assertPlanLimit } from "../_lib/plan-limits"
 import { action, ActionError } from "../_lib/action-result"
 
 // Adds a barber to the shop. An email that already has an account is never
@@ -81,6 +82,8 @@ export const createEmployee = action(
       if (membership) {
         // Already staff here (ADMIN, or a leftover EMPLOYEE membership): no
         // consent needed to add or reactivate the Employee row
+        await assertPlanLimit(shop, "employees")
+
         if (employee) {
           await prisma.employee.updateMany({
             where: { id: employee.id, barbershopId: shop.id },
@@ -102,6 +105,7 @@ export const createEmployee = action(
       }
 
       await assertNoPendingAdminInvitation(shop.id, email)
+      await assertPlanLimit(shop, "employees", { invitationEmail: email })
 
       const invitation = await createInvitation({
         shop,
@@ -116,6 +120,8 @@ export const createEmployee = action(
     if (!name || !password) {
       throw new ActionError("Informe nome e senha para criar um novo usuário.")
     }
+
+    await assertPlanLimit(shop, "employees")
 
     const hashedPassword = await bcrypt.hash(password, 10)
 

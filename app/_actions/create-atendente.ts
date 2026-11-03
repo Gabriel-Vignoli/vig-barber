@@ -11,6 +11,7 @@ import {
   type StaffCreateResult,
 } from "../_lib/invitation"
 import { createAtendenteSchema } from "../_lib/validations/atendente"
+import { assertPlanLimit } from "../_lib/plan-limits"
 import { action, ActionError } from "../_lib/action-result"
 
 // Adds an atendente to the shop. An email that already has an account is
@@ -60,6 +61,7 @@ export const createAtendente = action(
       }
 
       await assertNoPendingAdminInvitation(shop.id, email)
+      await assertPlanLimit(shop, "atendentes", { invitationEmail: email })
 
       const invitation = await createInvitation({
         shop,
@@ -74,6 +76,8 @@ export const createAtendente = action(
     if (!name || !password) {
       throw new ActionError("Informe nome e senha para criar um novo usuário.")
     }
+
+    await assertPlanLimit(shop, "atendentes")
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
