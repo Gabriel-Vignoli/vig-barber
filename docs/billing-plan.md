@@ -6,7 +6,7 @@
 - [x] Phase B2 — access gate (what an unpaid shop loses)
 - [x] Phase B3 — billing page: Checkout + Customer Portal
 - [x] Phase B4 — webhook sync (tested end to end with `stripe listen` on 2026-11-02)
-- [ ] Phase B5 — platform panel + plan limits hook
+- [x] Phase B5 — platform panel + plan limits hook
 - [ ] Phase B6 — production rollout
 
 Run a phase with `/saas-phase B1` (the skill reads this file for `B*` ids).
