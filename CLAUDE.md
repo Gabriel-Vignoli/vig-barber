@@ -18,7 +18,7 @@ The app started as a single-shop booking site and was migrated to multi-tenant i
 - Prisma 7 + PostgreSQL (Supabase) through the `@prisma/adapter-pg` driver adapter. `DATABASE_URL` = transaction pooler (port 6543), used by the app at runtime. `DIRECT_URL` = session pooler (port 5432), used by the CLI through `prisma.config.ts`
 - NextAuth **v4** (JWT sessions) with Google + Credentials providers and `@auth/prisma-adapter`
 - Tailwind CSS v4 + shadcn (style `base-nova`, built on **Base UI**, not Radix) + lucide icons
-- react-hook-form + zod v4, sonner toasts, Recharts, date-fns (`ptBR` locale), Resend email (sender from `EMAIL_FROM`), UploadThing for shop logo/banner uploads (`UPLOADTHING_TOKEN`), the `stripe` SDK (pinned version; webhook stub only, billing is not live)
+- react-hook-form + zod v4, sonner toasts, Recharts, date-fns (`ptBR` locale), Resend email (sender from `EMAIL_FROM`), UploadThing for shop logo/banner uploads (`UPLOADTHING_TOKEN`), the `stripe` SDK (pinned `stripe@23.0.0`, API `2026-09-30.endive`; billing runs in Stripe test mode in production, see Billing)
 - Deployed on Vercel (UTC runtime)
 
 ## Commands
@@ -57,8 +57,15 @@ The app started as a single-shop booking site and was migrated to multi-tenant i
 - `APP_URL` (absolute origin for email links; set it on Vercel for a custom domain)
 - `UPLOADTHING_TOKEN` (logo and banner uploads)
 - Optional `CONTACT_EMAIL`, `CONTACT_WHATSAPP` (landing contact CTA, each hidden when unset)
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (the webhook answers 503 without them)
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (the webhook answers 503 without them), `STRIPE_PRICE_BASIC` (the R$ 99,90 monthly price). Locally `STRIPE_WEBHOOK_SECRET` is the `stripe listen` secret; on Vercel it is the dashboard endpoint's secret (Sensitive). They differ on purpose.
 - Never commit `.env`. Tests ignore it and only run against the embedded Postgres.
+
+## Billing (`docs/billing-plan.md`, phases B1–B6 done)
+- One plan, "Vig Barber", R$ 99,90/month by card. `app/_lib/plans.ts` (`PLANS`, limits `null` = unlimited) is the single source of plans; a new plan is one entry there plus one Stripe price.
+- Trial: 14 days in our DB (`trialEndsAt`), no card. `create-shop` starts it; `extend-trial` (platform admin, "Estender teste" in `/platform`) adds days from max(now, trialEndsAt) and refuses shops with a live Stripe subscription. Grace: 7 days after a failed renewal (`pastDueSince`).
+- `app/_lib/billing.ts` decides access (`getBillingState`, `billingActiveWhere`, `hasLiveSubscription`, `getBillingStatusLabel`). Unpaid ≠ `SUSPENDED`: an unpaid shop keeps its data and URL but takes no bookings and drops out of the finder; its ATENDENTE/EMPLOYEE go to `/b/[slug]/assinatura-pendente`, its ADMIN to `/b/[slug]/admin/billing`, and shop actions throw. Only the billing page, the billing actions and the admin `(dashboard)/layout.tsx` pass `{ allowUnpaid: true }`.
+- `/b/[slug]/admin/billing` ("Assinatura"): `create-checkout-session` (carries the remaining trial into Stripe as `trial_end` when at least 48 h are left, so subscribing during the trial charges nothing until it ends) and `create-portal-session`. The webhook (`/api/stripe/webhook` → `stripe-sync.ts`, see Routes) is the only writer of Stripe state.
+- Production runs in Stripe **test mode** (sandbox endpoint `we_1UXhn3Jb3E8rfBervM0YgNY2`), so real cards are declined. Before a real shop has to pay, follow the "Live mode checklist" in the plan.
 
 ## Conventions
 - **UI copy, error messages and validation messages are in Portuguese (pt-BR)**; code identifiers are in English. Exception: the role name "atendente" appears in identifiers.

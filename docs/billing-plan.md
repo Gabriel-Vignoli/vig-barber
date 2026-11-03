@@ -7,7 +7,7 @@
 - [x] Phase B3 — billing page: Checkout + Customer Portal
 - [x] Phase B4 — webhook sync (tested end to end with `stripe listen` on 2026-11-02)
 - [x] Phase B5 — platform panel + plan limits hook
-- [ ] Phase B6 — production rollout
+- [x] Phase B6 — production rollout in **test mode** (2026-11-03: production webhook endpoint, Vercel env, checkout tested end to end on navalha-de-ouro). Live mode is still to do, see "Live mode checklist".
 
 Run a phase with `/saas-phase B1` (the skill reads this file for `B*` ids).
 
@@ -132,6 +132,15 @@ Time math works on instants (`Date`), never on calendar days, so UTC vs São Pau
   - Order: push + deploy → `prisma migrate deploy` (confirm first) → set env → redeploy → run one test-mode checkout end to end on production.
   - ⚠ **Restart the trials at go-live.** The B1 migration was applied to Supabase on 2026-11-02, so those trials end around 2026-11-16. If the B2 gate ships after that date, every existing shop locks at once. At go-live, give the shops with no Stripe subscription a fresh 14-day trial (with `extend-trial` from B5, or the same SQL as the B1 backfill, after confirming with the user).
   - Update CLAUDE.md (billing section, new routes and env vars) and the Obsidian note.
+
+## Live mode checklist (before a real shop has to pay)
+Decided 2026-11-03: production stays in test mode while a friend's barbershop tries the app for about a month. The demo shops and the friend's shop stay on trial with "Estender teste". Do this before the friend's trial ends (around mid-December 2026):
+1. Activate the Stripe account (CPF/CNPJ, bank account).
+2. In live mode: product "Vig Barber", recurring price R$ 99,90/month (new `STRIPE_PRICE_BASIC`); Customer Portal (update card, cancel at period end, invoice history, no plan switching); retries ≈ 7 days.
+3. Live webhook endpoint `https://vig-barber.vercel.app/api/stripe/webhook`, API version `2026-09-30.endive`, the 6 events (`checkout.session.completed`, `customer.subscription.created|updated|deleted`, `invoice.paid`, `invoice.payment_failed`) → new `STRIPE_WEBHOOK_SECRET`.
+4. Vercel Production env (Sensitive): the live `STRIPE_SECRET_KEY`, the new secret and the new price; redeploy. Keep the sandbox values on Preview.
+5. The test-mode ids in the DB (`stripeCustomerId` / `stripeSubscriptionId` on vig-barber-centro and navalha-de-ouro) don't exist in live mode. Clear them (confirm the SQL with the user first) or give those demo shops a fresh trial.
+6. Run one real checkout with a real card on a demo shop, then refund it in the dashboard.
 
 ## Stripe dashboard setup (user, can be done any time before B3)
 1. Product catalog → **Add product**: name "Vig Barber", price **99,90 BRL**, **Recurring**, **Monthly**. Save, then copy the price id (`price_...`) into `.env` as `STRIPE_PRICE_BASIC`.
