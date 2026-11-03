@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest"
+import { updateTag } from "next/cache"
 import { prisma } from "@/app/_lib/prisma"
-import { getActiveShopOrThrow, getTenant } from "@/app/_lib/tenant"
+import {
+  assertShopRole,
+  getActiveShopOrThrow,
+  getTenant,
+  shopSlugTag,
+  shopTag,
+} from "@/app/_lib/tenant"
 import {
   assertPlatformAdmin,
   requirePlatformAdmin,
@@ -8,6 +15,8 @@ import {
 import { createShop } from "@/app/_actions/create-shop"
 import { updateShopStatus } from "@/app/_actions/update-shop-status"
 import { inviteShopMember } from "@/app/_actions/invite-shop-member"
+import { extendTrial } from "@/app/_actions/extend-trial"
+import { hasLiveSubscription } from "@/app/_lib/billing"
 import { getPlatformShops } from "@/app/_data/get-platform-shops"
 import {
   createMembership,
@@ -18,7 +27,7 @@ import { failNextEmail, getSentEmails } from "./helpers/email"
 import { NotFoundError, RedirectError } from "./helpers/navigation"
 import { mockSession } from "./helpers/session"
 import { unwrap } from "@/app/_lib/action-result"
-import { TRIAL_DAYS } from "@/app/_lib/plans"
+import { addDays, TRIAL_DAYS } from "@/app/_lib/plans"
 
 const shopInput = (
   overrides: Partial<Parameters<typeof createShop>[0]> = {},
@@ -96,6 +105,9 @@ describe("platform admin gating", () => {
         inviteShopMember(shop.id, { email: "x@test.local", role: "ADMIN" }),
       ),
     ).rejects.toThrow("Sem permissão.")
+    await expect(unwrap(extendTrial(shop.id, 30))).rejects.toThrow(
+      "Sem permissão.",
+    )
 
     expect(await prisma.barbershop.count()).toBe(1)
     expect(
@@ -293,5 +305,147 @@ describe("getPlatformShops", () => {
       memberships: 1,
       invitations: 1,
     })
+  })
+})
+
+describe("extendTrial", () => {
+  const PENDING = "A assinatura desta barbearia está pendente."
+
+  beforeEach(() => mockSession(platformAdmin.id))
+
+  const readShop = () =>
+    prisma.barbershop.findUniqueOrThrow({ where: { id: shop.id } })
+
+  it("is refused to a signed-out visitor and to a shop admin", async () => {
+    const before = await readShop()
+
+    mockSession(null)
+    await expect(unwrap(extendTrial(shop.id, 7))).rejects.toThrow(
+      "Você precisa estar logado.",
+    )
+
+    mockSession(shopAdmin.id)
+    await expect(unwrap(extendTrial(shop.id, 7))).rejects.toThrow(
+      "Sem permissão.",
+    )
+
+    expect((await readShop()).trialEndsAt).toEqual(before.trialEndsAt)
+    expect(updateTag).not.toHaveBeenCalled()
+  })
+
+  it("adds the days to a running trial", async () => {
+    const trialEndsAt = addDays(new Date(), 3)
+    await prisma.barbershop.update({
+      where: { id: shop.id },
+      data: { trialEndsAt },
+    })
+
+    const result = await unwrap(extendTrial(shop.id, 10))
+
+    const expected = addDays(trialEndsAt, 10)
+    expect(result.trialEndsAt).toEqual(expected)
+    expect(await readShop()).toMatchObject({
+      subscriptionStatus: "TRIALING",
+      trialEndsAt: expected,
+    })
+  })
+
+  it("restarts an ended trial from now and opens the billing gate", async () => {
+    await prisma.barbershop.update({
+      where: { id: shop.id },
+      data: { trialEndsAt: addDays(new Date(), -30) },
+    })
+    mockSession(shopAdmin.id)
+    await expect(assertShopRole("barbearia-a", ["ADMIN"])).rejects.toThrow(
+      PENDING,
+    )
+
+    mockSession(platformAdmin.id)
+    const before = Date.now()
+    await unwrap(extendTrial(shop.id, 5))
+    const after = Date.now()
+
+    const updated = await readShop()
+    expect(updated.trialEndsAt!.getTime()).toBeGreaterThanOrEqual(
+      addDays(new Date(before), 5).getTime(),
+    )
+    expect(updated.trialEndsAt!.getTime()).toBeLessThanOrEqual(
+      addDays(new Date(after), 5).getTime(),
+    )
+    // Both cache tags expire, so the gate reads the new trial right away
+    expect(updateTag).toHaveBeenCalledWith(shopTag(shop.id))
+    expect(updateTag).toHaveBeenCalledWith(shopSlugTag("barbearia-a"))
+
+    mockSession(shopAdmin.id)
+    await expect(
+      assertShopRole("barbearia-a", ["ADMIN"]),
+    ).resolves.toMatchObject({ shop: { id: shop.id } })
+  })
+
+  it("brings a canceled shop back to a trial and drops the ended subscription", async () => {
+    await prisma.barbershop.update({
+      where: { id: shop.id },
+      data: {
+        subscriptionStatus: "CANCELED",
+        stripeCustomerId: "cus_old",
+        stripeSubscriptionId: "sub_ended",
+        currentPeriodEnd: addDays(new Date(), -2),
+        trialEndsAt: null,
+      },
+    })
+
+    await unwrap(extendTrial(shop.id, 14))
+
+    const updated = await readShop()
+    expect(updated).toMatchObject({
+      subscriptionStatus: "TRIALING",
+      stripeCustomerId: "cus_old",
+      stripeSubscriptionId: null,
+      currentPeriodEnd: null,
+      pastDueSince: null,
+    })
+    expect(updated.trialEndsAt!.getTime()).toBeGreaterThan(Date.now())
+    // A new checkout is not blocked by the old subscription
+    expect(hasLiveSubscription(updated)).toBe(false)
+  })
+
+  it.each(["ACTIVE", "TRIALING", "PAST_DUE"] as const)(
+    "refuses a shop with a live %s Stripe subscription",
+    async (subscriptionStatus) => {
+      await prisma.barbershop.update({
+        where: { id: shop.id },
+        data: {
+          subscriptionStatus,
+          stripeCustomerId: "cus_live",
+          stripeSubscriptionId: "sub_live",
+          pastDueSince: subscriptionStatus === "PAST_DUE" ? new Date() : null,
+        },
+      })
+      const before = await readShop()
+
+      await expect(unwrap(extendTrial(shop.id, 7))).rejects.toThrow(
+        "Esta barbearia tem uma assinatura ativa no Stripe.",
+      )
+      expect(await readShop()).toEqual(before)
+    },
+  )
+
+  it("rejects invalid days and an unknown shop", async () => {
+    for (const days of [0, -3, 1.5, 366, Number.NaN]) {
+      await expect(
+        unwrap(extendTrial(shop.id, days)),
+        `days = ${days}`,
+      ).rejects.toThrow()
+    }
+    await expect(unwrap(extendTrial(shop.id, 0))).rejects.toThrow(
+      "Informe pelo menos 1 dia.",
+    )
+    await expect(unwrap(extendTrial(shop.id, 366))).rejects.toThrow(
+      "O máximo é 365 dias por vez.",
+    )
+    await expect(unwrap(extendTrial("missing-shop", 7))).rejects.toThrow(
+      "Barbearia não encontrada.",
+    )
+    expect(updateTag).not.toHaveBeenCalled()
   })
 })

@@ -3,6 +3,7 @@ import { prisma } from "@/app/_lib/prisma"
 import {
   billingActiveWhere,
   getBillingState,
+  getBillingStatusLabel,
   type BillingShop,
 } from "@/app/_lib/billing"
 import {
@@ -272,5 +273,42 @@ describe("billingActiveWhere", () => {
       "trial-full",
       "trial-last-ms",
     ])
+  })
+})
+
+describe("getBillingStatusLabel", () => {
+  it("shows the trial end date in Brazil time", () => {
+    // 02:00 UTC on the 10th is still the 9th in São Paulo
+    expect(
+      getBillingStatusLabel(
+        shop({ trialEndsAt: new Date("2026-11-10T02:00:00.000Z") }),
+        NOW,
+      ),
+    ).toEqual({ label: "Teste até 09/11", variant: "secondary" })
+  })
+
+  it("marks an ended trial", () => {
+    expect(getBillingStatusLabel(shop({ trialEndsAt: at(-DAY) }), NOW)).toEqual(
+      { label: "Teste encerrado em 01/11", variant: "destructive" },
+    )
+    expect(getBillingStatusLabel(shop({ trialEndsAt: null }), NOW)).toEqual({
+      label: "Teste encerrado",
+      variant: "destructive",
+    })
+  })
+
+  it("labels the subscription statuses", () => {
+    expect(
+      getBillingStatusLabel(shop({ subscriptionStatus: "ACTIVE" }), NOW),
+    ).toEqual({ label: "Ativa", variant: "success" })
+    expect(
+      getBillingStatusLabel(
+        shop({ subscriptionStatus: "PAST_DUE", pastDueSince: at(-DAY) }),
+        NOW,
+      ),
+    ).toEqual({ label: "Pagamento pendente", variant: "destructive" })
+    expect(
+      getBillingStatusLabel(shop({ subscriptionStatus: "CANCELED" }), NOW),
+    ).toEqual({ label: "Cancelada", variant: "destructive" })
   })
 })
