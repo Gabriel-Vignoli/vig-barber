@@ -32,3 +32,19 @@ export const inviteMemberSchema = z.object({
 })
 
 export type InviteMemberFormValues = z.infer<typeof inviteMemberSchema>
+
+// extend-trial: whole days added to the shop's DB trial
+export const MAX_TRIAL_EXTENSION_DAYS = 365
+
+export const extendTrialSchema = z.object({
+  days: z.coerce
+    .number({ message: "Informe o número de dias." })
+    .int("Informe um número inteiro de dias.")
+    .min(1, "Informe pelo menos 1 dia.")
+    .max(
+      MAX_TRIAL_EXTENSION_DAYS,
+      `O máximo é ${MAX_TRIAL_EXTENSION_DAYS} dias por vez.`,
+    ),
+})
+
+export type ExtendTrialFormValues = z.infer<typeof extendTrialSchema>

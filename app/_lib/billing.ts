@@ -1,6 +1,7 @@
 import type { Prisma } from "@/app/generated/prisma/client"
 import type { SubscriptionStatus } from "@/app/generated/prisma/enums"
 import { addDays, GRACE_DAYS } from "./plans"
+import { formatBrazilDate } from "./timezone"
 
 // Pure billing rules: whether a shop may operate right now. Time math works on
 // instants (Date), never on calendar days, so UTC vs São Paulo does not matter
@@ -106,3 +107,37 @@ export const hasLiveSubscription = (shop: {
   (shop.subscriptionStatus === "ACTIVE" ||
     shop.subscriptionStatus === "TRIALING" ||
     shop.subscriptionStatus === "PAST_DUE")
+
+// The billing column of the platform panel. Dates are shown in Brazil time.
+export type BillingStatusLabel = {
+  label: string
+  variant: "secondary" | "success" | "destructive"
+}
+
+export const getBillingStatusLabel = (
+  shop: BillingShop,
+  now: Date,
+): BillingStatusLabel => {
+  switch (shop.subscriptionStatus) {
+    case "TRIALING": {
+      const { trialEndsAt } = shop
+      if (!trialEndsAt)
+        return { label: "Teste encerrado", variant: "destructive" }
+      return trialEndsAt.getTime() > now.getTime()
+        ? {
+            label: `Teste até ${formatBrazilDate(trialEndsAt)}`,
+            variant: "secondary",
+          }
+        : {
+            label: `Teste encerrado em ${formatBrazilDate(trialEndsAt)}`,
+            variant: "destructive",
+          }
+    }
+    case "ACTIVE":
+      return { label: "Ativa", variant: "success" }
+    case "PAST_DUE":
+      return { label: "Pagamento pendente", variant: "destructive" }
+    default:
+      return { label: "Cancelada", variant: "destructive" }
+  }
+}

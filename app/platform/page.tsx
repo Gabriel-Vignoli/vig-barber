@@ -8,6 +8,8 @@ import { Badge } from "../components/ui/badge"
 import PlatformCreateShopDialog from "../components/platform-create-shop-dialog"
 import PlatformInviteMemberDialog from "../components/platform-invite-member-dialog"
 import PlatformShopStatusButton from "../components/platform-shop-status-button"
+import PlatformExtendTrialDialog from "../components/platform-extend-trial-dialog"
+import { getBillingStatusLabel, hasLiveSubscription } from "../_lib/billing"
 
 export const metadata: Metadata = {
   title: "Plataforma",
@@ -25,6 +27,7 @@ const PlatformPage = async () => {
   await requirePlatformAdmin()
 
   const shops = await getPlatformShops()
+  const now = new Date()
 
   return (
     <div>
@@ -52,6 +55,8 @@ const PlatformPage = async () => {
             {shops.map((shop) => {
               const members = shop._count.memberships
               const pendingInvites = shop._count.invitations
+              const billing = getBillingStatusLabel(shop, now)
+              const canExtendTrial = !hasLiveSubscription(shop)
 
               return (
                 <li key={shop.id}>
@@ -71,6 +76,13 @@ const PlatformPage = async () => {
                           </Badge>
                           <Badge variant="secondary">
                             {PLAN_LABELS[shop.plan]}
+                          </Badge>
+                          <Badge
+                            variant={billing.variant}
+                            title="Assinatura"
+                            aria-label={`Assinatura: ${billing.label}`}
+                          >
+                            {billing.label}
                           </Badge>
                         </div>
                         <p className="text-muted-foreground truncate text-sm">
@@ -93,7 +105,13 @@ const PlatformPage = async () => {
                         </p>
                       </div>
 
-                      <div className="flex shrink-0 gap-2">
+                      <div className="flex shrink-0 flex-wrap gap-2">
+                        {canExtendTrial && (
+                          <PlatformExtendTrialDialog
+                            shopId={shop.id}
+                            shopName={shop.name}
+                          />
+                        )}
                         <PlatformInviteMemberDialog
                           shopId={shop.id}
                           shopName={shop.name}
