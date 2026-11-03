@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { CheckCircle2Icon, Loader2Icon, XCircleIcon } from "lucide-react"
+import { CheckCircle2Icon, XCircleIcon } from "lucide-react"
 import { requireShopRole } from "@/app/_lib/tenant"
 import { prisma } from "@/app/_lib/prisma"
 import {
@@ -12,6 +12,7 @@ import { formatBrazilDate } from "@/app/_lib/timezone"
 import { Badge } from "@/app/components/ui/badge"
 import { Card, CardContent } from "@/app/components/ui/card"
 import BillingSubscriptionButton from "@/app/components/billing-subscription-button"
+import BillingCheckoutPending from "@/app/components/billing-checkout-pending"
 
 export const metadata: Metadata = {
   title: "Assinatura",
@@ -182,13 +183,8 @@ const CheckoutSuccessNotice = ({ done }: { done: boolean }) =>
       Assinatura confirmada. Obrigado!
     </Notice>
   ) : (
-    <Notice
-      tone="success"
-      icon={<Loader2Icon size={18} className="shrink-0 animate-spin" />}
-    >
-      Pagamento recebido! Estamos confirmando sua assinatura… Atualize a página
-      em alguns instantes.
-    </Notice>
+    // Refreshes the page until the webhook confirms the subscription
+    <BillingCheckoutPending />
   )
 
 interface NoticeProps {
