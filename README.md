@@ -100,7 +100,9 @@ npx prisma db seed
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The demo users (a platform admin, shop owners, barbers, a front-desk user and clients) are listed in `prisma/seed.ts`.
+Open [http://localhost:3000](http://localhost:3000). The demo users (a platform admin, shop owners, barbers, a front-desk user and clients) are listed in `prisma/seed.ts`. You choose their logins in `.env`: `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` for the platform admin, `SEED_PASSWORD` for everyone else. A password left empty is generated at random and printed at the end of the seed.
+
+> **Warning:** the seed deletes every row in the database before it inserts the demo data. Never run it against a database with real shops.
 
 To test billing locally, forward Stripe events to the webhook and put the secret it prints in `STRIPE_WEBHOOK_SECRET`:
 

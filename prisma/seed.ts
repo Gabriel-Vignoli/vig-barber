@@ -1,6 +1,7 @@
 import "dotenv/config"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { hash } from "bcryptjs"
+import { randomBytes } from "node:crypto"
 import {
   BookingStatus,
   ExpenseCategory,
@@ -16,7 +17,22 @@ import { addDays, getTrialEndsAt } from "../app/_lib/plans"
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
 
-const DEFAULT_PASSWORD = "senha123"
+// Logins come from the environment so no password is committed to the repo.
+// An unset variable gets a random password, printed at the end of the seed.
+const readSeedPassword = (name: string) => {
+  const value = process.env[name]?.trim()
+  if (!value)
+    return { password: randomBytes(9).toString("base64url"), generated: true }
+  if (value.length < 6) {
+    throw new Error(`${name} precisa ter pelo menos 6 caracteres.`)
+  }
+  return { password: value, generated: false }
+}
+
+const ADMIN_EMAIL =
+  process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase() || "admin@vigbarber.com"
+const ADMIN_PASSWORD = readSeedPassword("SEED_ADMIN_PASSWORD")
+const DEMO_PASSWORD = readSeedPassword("SEED_PASSWORD")
 
 // Business runs on America/Sao_Paulo (fixed UTC-3)
 const BRAZIL_OFFSET_HOURS = 3
@@ -121,8 +137,12 @@ interface UserSeed {
   isPlatformAdmin?: boolean
 }
 
-const createUser = async (data: UserSeed) => {
-  const password = await hash(DEFAULT_PASSWORD, 10)
+let demoPasswordHash: Promise<string> | undefined
+
+const createUser = async (data: UserSeed, plainPassword?: string) => {
+  const password = plainPassword
+    ? await hash(plainPassword, 10)
+    : await (demoPasswordHash ??= hash(DEMO_PASSWORD.password, 10))
   return prisma.user.create({ data: { ...data, password } })
 }
 
@@ -395,11 +415,10 @@ async function main() {
     ])
 
   console.log("Criando admin da plataforma...")
-  await createUser({
-    name: "Gabriel Vignoli",
-    email: "admin@vigbarber.com",
-    isPlatformAdmin: true,
-  })
+  await createUser(
+    { name: "Gabriel Vignoli", email: ADMIN_EMAIL, isPlatformAdmin: true },
+    ADMIN_PASSWORD.password,
+  )
 
   console.log("Criando donos das barbearias...")
   const ricardo = await createUser({
@@ -734,7 +753,17 @@ async function main() {
   })
 
   console.log("Seed concluído com sucesso!")
-  console.log(`Senha de todos os usuários: ${DEFAULT_PASSWORD}`)
+  console.log(`Admin da plataforma: ${ADMIN_EMAIL}`)
+  console.log(
+    ADMIN_PASSWORD.generated
+      ? `Senha do admin (gerada, SEED_ADMIN_PASSWORD vazia): ${ADMIN_PASSWORD.password}`
+      : "Senha do admin: a de SEED_ADMIN_PASSWORD",
+  )
+  console.log(
+    DEMO_PASSWORD.generated
+      ? `Senha dos usuários demo (gerada, SEED_PASSWORD vazia): ${DEMO_PASSWORD.password}`
+      : "Senha dos usuários demo: a de SEED_PASSWORD",
+  )
 }
 
 main()
