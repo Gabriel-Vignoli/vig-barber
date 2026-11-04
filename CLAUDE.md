@@ -92,3 +92,17 @@ The app started as a single-shop booking site and was migrated to multi-tenant i
 ## Git
 - Conventional commits with a scope, enforced by git-commit-msg-linter: `feat(booking): ...`, `fix(admin): ...`, `style(atendente): ...`, `refactor`, `perf`, `chore`, `docs`. Common scopes: admin, auth, booking(s), employees, atendente, profile, reviews, barbershop, schema, tenant, platform, landing, billing, test, docs, chore.
 - Keep commits small and focused. Work happens directly on `main`.
+
+## Agent skills
+
+### Issue tracker
+
+Specs and tickets are GitHub issues in `Gabriel-Vignoli/vig-barber` (public repo), managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created only when a term or decision gets settled. See `docs/agents/domain.md`.
+
+### Project rules still apply
+
+`/implement` and `/tdd` follow this file: tenant rules, `tenant-guard` after touching actions/data/routes/schema, isolation tests for every mutation, and no commit without the user's approval (every push to `main` deploys).
