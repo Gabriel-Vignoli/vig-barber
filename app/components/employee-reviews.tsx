@@ -170,7 +170,7 @@ const EmployeeReviews = ({
                           alt={review.user.name ?? "Cliente"}
                           referrerPolicy="no-referrer"
                         />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                        <AvatarFallback className="bg-primary-solid text-primary-foreground text-xs font-bold">
                           {getInitials(review.user.name)}
                         </AvatarFallback>
                       </Avatar>
@@ -264,6 +264,7 @@ const EmployeeReviews = ({
                         renderTrigger={(triggerProps) => (
                           <Button
                             size="icon-sm"
+                            aria-label="Editar avaliação"
                             variant="ghost"
                             className="cursor-pointer"
                             {...triggerProps}
@@ -283,6 +284,7 @@ const EmployeeReviews = ({
                           render={(triggerProps) => (
                             <Button
                               size="icon-sm"
+                              aria-label="Remover avaliação"
                               variant="ghost"
                               className="text-destructive cursor-pointer"
                               {...triggerProps}

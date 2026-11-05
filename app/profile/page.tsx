@@ -50,7 +50,7 @@ const ProfilePage = async () => {
               alt={user.name ?? "User"}
               referrerPolicy="no-referrer"
             />
-            <AvatarFallback className="bg-primary text-primary-foreground font-bold xl:text-lg">
+            <AvatarFallback className="bg-primary-solid text-primary-foreground font-bold xl:text-lg">
               {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>

@@ -161,10 +161,13 @@ const PlatformCreateShopDialog = () => {
                   id={id}
                   type={field.type ?? "text"}
                   placeholder={field.placeholder}
+                  aria-invalid={Boolean(error)}
                   {...registered}
                 />
                 {error ? (
-                  <p className="text-destructive text-xs">{error.message}</p>
+                  <p role="alert" className="text-destructive text-xs">
+                    {error.message}
+                  </p>
                 ) : (
                   field.hint && (
                     <p className="text-muted-foreground text-xs">

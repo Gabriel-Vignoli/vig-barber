@@ -123,7 +123,7 @@ const AdminEmployeesTable = ({
                         alt={employeeName}
                         referrerPolicy="no-referrer"
                       />
-                      <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                      <AvatarFallback className="bg-primary-solid text-primary-foreground font-bold">
                         {getInitials(employeeName)}
                       </AvatarFallback>
                     </Avatar>
@@ -191,6 +191,7 @@ const AdminEmployeesTable = ({
                         render={(triggerProps) => (
                           <Button
                             size="icon"
+                            aria-label={`Remover ${employeeName}`}
                             variant="ghost"
                             className="text-destructive cursor-pointer"
                             {...triggerProps}

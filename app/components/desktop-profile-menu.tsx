@@ -52,7 +52,7 @@ const DesktopProfileMenu = () => {
                     alt={data.user.name ?? "User"}
                     referrerPolicy="no-referrer"
                   />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                  <AvatarFallback className="bg-primary-solid text-primary-foreground text-xs font-bold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -80,7 +80,7 @@ const DesktopProfileMenu = () => {
                   alt="User"
                   referrerPolicy="no-referrer"
                 />
-                <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                <AvatarFallback className="bg-primary-solid text-primary-foreground font-bold">
                   {initials}
                 </AvatarFallback>
               </Avatar>

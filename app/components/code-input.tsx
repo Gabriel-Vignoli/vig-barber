@@ -58,12 +58,14 @@ const CodeInput = ({ value, onChange, length = 6 }: CodeInputProps) => {
           }}
           type="text"
           inputMode="numeric"
+          autoComplete={index === 0 ? "one-time-code" : "off"}
+          aria-label={`Dígito ${index + 1} de ${digits.length}`}
           maxLength={1}
           value={digit}
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
-          className="border-input bg-background focus:border-primary size-12 rounded-lg border text-center text-xl font-semibold outline-none xl:size-14 xl:text-2xl"
+          className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 size-12 rounded-lg border text-center text-xl font-semibold outline-none focus-visible:ring-3 xl:size-14 xl:text-2xl"
         />
       ))}
     </div>

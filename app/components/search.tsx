@@ -37,11 +37,12 @@ const Search = () => {
         <Input
           placeholder="Buscar barbearias..."
           className="w-full md:h-12 md:p-4 md:text-lg"
+          aria-invalid={Boolean(form.formState.errors.search)}
           {...form.register("search")}
         />
 
         {form.formState.errors.search && (
-          <p className="text-destructive mt-1 text-sm">
+          <p role="alert" className="text-destructive mt-1 text-sm">
             {form.formState.errors.search.message}
           </p>
         )}

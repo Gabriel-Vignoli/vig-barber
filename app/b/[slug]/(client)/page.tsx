@@ -123,7 +123,7 @@ const ShopHome = async ({ params }: ShopHomeProps) => {
               <div className="relative mt-4 h-37.5 w-full lg:mt-8 lg:h-48">
                 <Image
                   src="/banner-01.png"
-                  alt="Banner 01"
+                  alt="Agende em segundos com Vig Barber"
                   fill
                   priority
                   sizes="(min-width: 1024px) 50vw, 100vw"

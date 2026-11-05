@@ -72,6 +72,7 @@ const EmployeeServicesDialog = ({
         render={(triggerProps) => (
           <Button
             size="icon"
+            aria-label="Serviços do barbeiro"
             variant="ghost"
             className="cursor-pointer"
             {...triggerProps}

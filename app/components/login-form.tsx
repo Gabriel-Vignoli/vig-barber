@@ -129,10 +129,11 @@ const LoginForm = ({ callbackUrl }: LoginFormProps) => {
             id="login-email"
             type="email"
             className="xl:p-5 xl:text-base"
+            aria-invalid={Boolean(formState.errors.email)}
             {...register("email")}
           />
           {formState.errors.email && (
-            <p className="text-destructive text-xs">
+            <p role="alert" className="text-destructive text-xs">
               {formState.errors.email.message}
             </p>
           )}
@@ -147,13 +148,14 @@ const LoginForm = ({ callbackUrl }: LoginFormProps) => {
               id="login-password"
               type={visiblePassword ? "text" : "password"}
               className="pr-10 xl:p-5 xl:text-base"
+              aria-invalid={Boolean(formState.errors.password)}
               {...register("password")}
             />
             <button
+              aria-label="Mostrar ou ocultar senha"
               type="button"
               onClick={() => setVisiblePassword((prev) => !prev)}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-              tabIndex={-1}
             >
               {visiblePassword ? (
                 <EyeOffIcon size={18} />
@@ -163,12 +165,12 @@ const LoginForm = ({ callbackUrl }: LoginFormProps) => {
             </button>
           </div>
           {formState.errors.password && (
-            <p className="text-destructive text-xs">
+            <p role="alert" className="text-destructive text-xs">
               {formState.errors.password.message}
             </p>
           )}
           {isLocked && (
-            <p className="text-destructive text-xs xl:text-sm">
+            <p role="alert" className="text-destructive text-xs xl:text-sm">
               Muitas tentativas de login. Tente novamente em{" "}
               {formatCountdown(remainingSeconds)}.
             </p>

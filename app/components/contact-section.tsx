@@ -25,7 +25,7 @@ const ContactSection = ({
         <>
           {hasBarbershopPhones && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase">
+              <p className="text-xs font-semibold text-gray-400 uppercase">
                 Barbearia
               </p>
               <div className="space-y-2">
@@ -41,7 +41,7 @@ const ContactSection = ({
 
           {hasEmployeePhone && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase">
+              <p className="text-xs font-semibold text-gray-400 uppercase">
                 Barbeiro
               </p>
               <PhoneItem phone={employeePhone as string} />

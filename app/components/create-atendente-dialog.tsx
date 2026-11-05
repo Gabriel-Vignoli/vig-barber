@@ -107,9 +107,14 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
             <Label htmlFor="atendente-name">
               Nome (apenas para novo usuário)
             </Label>
-            <Input id="atendente-name" type="text" {...register("name")} />
+            <Input
+              id="atendente-name"
+              type="text"
+              aria-invalid={Boolean(formState.errors.name)}
+              {...register("name")}
+            />
             {formState.errors.name && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.name.message}
               </p>
             )}
@@ -117,9 +122,14 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
 
           <div className="space-y-1">
             <Label htmlFor="atendente-email">Email</Label>
-            <Input id="atendente-email" type="email" {...register("email")} />
+            <Input
+              id="atendente-email"
+              type="email"
+              aria-invalid={Boolean(formState.errors.email)}
+              {...register("email")}
+            />
             {formState.errors.email && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.email.message}
               </p>
             )}
@@ -134,13 +144,14 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
                 id="atendente-password"
                 type={showPassword ? "text" : "password"}
                 className="pr-10"
+                aria-invalid={Boolean(formState.errors.password)}
                 {...register("password")}
               />
               <button
+                aria-label="Mostrar ou ocultar senha"
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-                tabIndex={-1}
               >
                 {showPassword ? (
                   <EyeOffIcon size={18} />
@@ -150,7 +161,7 @@ const CreateAtendenteDialog = ({ slug }: CreateAtendenteDialogProps) => {
               </button>
             </div>
             {formState.errors.password && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.password.message}
               </p>
             )}

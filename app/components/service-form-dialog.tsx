@@ -117,10 +117,11 @@ const ServiceFormDialog = ({
               id="service-name"
               type="text"
               className="xl:p-5 xl:text-base"
+              aria-invalid={Boolean(formState.errors.name)}
               {...register("name")}
             />
             {formState.errors.name && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.name.message}
               </p>
             )}
@@ -134,10 +135,11 @@ const ServiceFormDialog = ({
               id="service-description"
               rows={3}
               className="xl:p-5 xl:text-base"
+              aria-invalid={Boolean(formState.errors.description)}
               {...register("description")}
             />
             {formState.errors.description && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.description.message}
               </p>
             )}
@@ -154,10 +156,11 @@ const ServiceFormDialog = ({
                 step="0.01"
                 min="0"
                 className="xl:p-5 xl:text-base"
+                aria-invalid={Boolean(formState.errors.price)}
                 {...register("price")}
               />
               {formState.errors.price && (
-                <p className="text-destructive text-xs">
+                <p role="alert" className="text-destructive text-xs">
                   {formState.errors.price.message}
                 </p>
               )}
@@ -172,10 +175,11 @@ const ServiceFormDialog = ({
                 type="number"
                 min="1"
                 className="xl:p-5 xl:text-base"
+                aria-invalid={Boolean(formState.errors.durationInMinutes)}
                 {...register("durationInMinutes")}
               />
               {formState.errors.durationInMinutes && (
-                <p className="text-destructive text-xs">
+                <p role="alert" className="text-destructive text-xs">
                   {formState.errors.durationInMinutes.message}
                 </p>
               )}
@@ -191,10 +195,11 @@ const ServiceFormDialog = ({
               type="text"
               placeholder="https://..."
               className="xl:p-5 xl:text-base"
+              aria-invalid={Boolean(formState.errors.imageUrl)}
               {...register("imageUrl")}
             />
             {formState.errors.imageUrl && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.imageUrl.message}
               </p>
             )}

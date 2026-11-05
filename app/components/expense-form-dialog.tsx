@@ -124,10 +124,11 @@ const ExpenseFormDialog = ({
             <Input
               id="expense-description"
               type="text"
+              aria-invalid={Boolean(formState.errors.description)}
               {...register("description")}
             />
             {formState.errors.description && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.description.message}
               </p>
             )}
@@ -141,10 +142,11 @@ const ExpenseFormDialog = ({
                 type="number"
                 step="0.01"
                 min="0"
+                aria-invalid={Boolean(formState.errors.amount)}
                 {...register("amount")}
               />
               {formState.errors.amount && (
-                <p className="text-destructive text-xs">
+                <p role="alert" className="text-destructive text-xs">
                   {formState.errors.amount.message}
                 </p>
               )}
@@ -161,7 +163,7 @@ const ExpenseFormDialog = ({
                 }
               />
               {formState.errors.date && (
-                <p className="text-destructive text-xs">
+                <p role="alert" className="text-destructive text-xs">
                   {formState.errors.date.message}
                 </p>
               )}
@@ -190,7 +192,7 @@ const ExpenseFormDialog = ({
               </SelectContent>
             </Select>
             {formState.errors.category && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.category.message}
               </p>
             )}

@@ -35,6 +35,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-solid: var(--primary-solid);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -58,6 +59,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
+  --primary-solid: var(--primary);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -97,7 +99,10 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
+  /* --primary is for text, icons and borders. --primary-solid is the darker
+     fill behind white text: 4.99:1, while the brighter blue only reaches 3.5:1 */
   --primary: oklch(63.53% 0.1896 258.88);
+  --primary-solid: oklch(55% 0.19 258.88);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(34.35% 0.1155 269.83);
   --secondary-foreground: oklch(0.985 0 0);
@@ -108,7 +113,9 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* Components draw the ring at 50% opacity, so it has to start light to keep
+     3:1 against the dark surfaces */
+  --ring: #a9c8ff;
 
   /* Dark mode chart colors — blue family matching primary */
   --chart-1: hsl(217, 91%, 65%);
@@ -126,7 +133,7 @@
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: #a9c8ff;
 }
 
 @layer base {
@@ -139,6 +146,23 @@
   }
 
   html {
-    @apply font-sans h-full;
+    @apply h-full font-sans;
+  }
+
+  /* Plain links and buttons. Components with their own ring set outline-none */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

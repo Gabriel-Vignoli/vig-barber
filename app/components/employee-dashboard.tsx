@@ -62,7 +62,7 @@ const BookingCard = ({
             alt={booking.user.name ?? "Cliente"}
             referrerPolicy="no-referrer"
           />
-          <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+          <AvatarFallback className="bg-primary-solid text-primary-foreground text-xs font-bold">
             {getInitials(booking.user.name)}
           </AvatarFallback>
         </Avatar>
@@ -178,6 +178,7 @@ const EmployeeDashboard = ({
           <Button
             size="icon-sm"
             variant="ghost"
+            aria-label="Limpar data"
             className="cursor-pointer"
             onClick={() => setSelectedDate(undefined)}
           >

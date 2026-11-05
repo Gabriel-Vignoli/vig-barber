@@ -92,6 +92,7 @@ const EmployeeEditDialog = ({
         render={(triggerProps) => (
           <Button
             size="icon"
+            aria-label={`Editar ${employeeName}`}
             variant="ghost"
             className="cursor-pointer"
             {...triggerProps}
@@ -120,10 +121,11 @@ const EmployeeEditDialog = ({
               id="edit-employee-phone"
               type="tel"
               placeholder="(11) 91234-5678"
+              aria-invalid={Boolean(formState.errors.phone)}
               {...register("phone")}
             />
             {formState.errors.phone && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.phone.message}
               </p>
             )}
@@ -142,10 +144,11 @@ const EmployeeEditDialog = ({
               id="edit-employee-image"
               type="text"
               placeholder="https://..."
+              aria-invalid={Boolean(formState.errors.imageUrl)}
               {...register("imageUrl")}
             />
             {formState.errors.imageUrl && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.imageUrl.message}
               </p>
             )}

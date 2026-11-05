@@ -91,7 +91,7 @@ const Step = ({
         className={cn(
           "flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors",
           done
-            ? "bg-primary text-primary-foreground"
+            ? "bg-primary-solid text-primary-foreground"
             : "bg-muted text-muted-foreground",
         )}
         aria-hidden
@@ -421,7 +421,7 @@ const WalkInBookingForm = ({ services, slug }: WalkInBookingFormProps) => {
                     )}
                   >
                     {isSelected && (
-                      <span className="bg-primary text-primary-foreground absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full">
+                      <span className="bg-primary-solid text-primary-foreground absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full">
                         <CheckIcon className="size-3" />
                       </span>
                     )}

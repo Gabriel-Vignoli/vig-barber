@@ -109,10 +109,11 @@ const PlatformInviteMemberDialog = ({
             <Input
               id={`invite-email-${shopId}`}
               type="email"
+              aria-invalid={Boolean(formState.errors.email)}
               {...register("email")}
             />
             {formState.errors.email && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.email.message}
               </p>
             )}
@@ -139,7 +140,7 @@ const PlatformInviteMemberDialog = ({
               </SelectContent>
             </Select>
             {formState.errors.role && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.role.message}
               </p>
             )}

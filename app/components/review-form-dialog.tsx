@@ -131,7 +131,7 @@ const ReviewFormDialog = ({
               )}
             />
             {formState.errors.rating && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.rating.message}
               </p>
             )}
@@ -139,9 +139,14 @@ const ReviewFormDialog = ({
 
           <div className="space-y-1">
             <Label htmlFor="review-comment">Comentário (opcional)</Label>
-            <Textarea id="review-comment" rows={4} {...register("comment")} />
+            <Textarea
+              id="review-comment"
+              rows={4}
+              aria-invalid={Boolean(formState.errors.comment)}
+              {...register("comment")}
+            />
             {formState.errors.comment && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.comment.message}
               </p>
             )}

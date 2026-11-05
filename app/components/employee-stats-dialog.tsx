@@ -66,6 +66,7 @@ const EmployeeStatsDialog = ({
         render={(triggerProps) => (
           <Button
             size="icon"
+            aria-label={`Estatísticas de ${employeeName}`}
             variant="ghost"
             className="cursor-pointer"
             {...triggerProps}

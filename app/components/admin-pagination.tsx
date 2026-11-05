@@ -40,10 +40,14 @@ const AdminPagination = ({
   }
 
   return (
-    <div className="flex items-center justify-center gap-1">
+    <nav
+      aria-label="Paginação"
+      className="flex items-center justify-center gap-1"
+    >
       <Button
         variant="outline"
         size="icon"
+        aria-label="Página anterior"
         className="cursor-pointer"
         disabled={currentPage === 1}
         onClick={() => goToPage(currentPage - 1)}
@@ -64,6 +68,8 @@ const AdminPagination = ({
             key={page}
             variant={page === currentPage ? "default" : "outline"}
             size="icon"
+            aria-label={`Página ${page}`}
+            aria-current={page === currentPage ? "page" : undefined}
             className="cursor-pointer"
             onClick={() => goToPage(page)}
           >
@@ -75,13 +81,14 @@ const AdminPagination = ({
       <Button
         variant="outline"
         size="icon"
+        aria-label="Próxima página"
         className="cursor-pointer"
         disabled={currentPage === totalPages}
         onClick={() => goToPage(currentPage + 1)}
       >
         <ChevronRightIcon size={16} />
       </Button>
-    </div>
+    </nav>
   )
 }
 

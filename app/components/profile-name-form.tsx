@@ -64,10 +64,11 @@ const ProfileNameForm = ({ currentName }: ProfileNameFormProps) => {
           id="profile-name"
           type="text"
           className="xl:p-5 xl:text-base"
+          aria-invalid={Boolean(formState.errors.name)}
           {...register("name")}
         />
         {formState.errors.name && (
-          <p className="text-destructive text-xs">
+          <p role="alert" className="text-destructive text-xs">
             {formState.errors.name.message}
           </p>
         )}

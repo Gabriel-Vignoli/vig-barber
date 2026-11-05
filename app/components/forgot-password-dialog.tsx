@@ -160,10 +160,11 @@ const ForgotPasswordDialog = () => {
                   id="reset-request-email"
                   type="email"
                   className="xl:p-5 xl:text-base"
+                  aria-invalid={Boolean(requestForm.formState.errors.email)}
                   {...requestForm.register("email")}
                 />
                 {requestForm.formState.errors.email && (
-                  <p className="text-destructive text-xs">
+                  <p role="alert" className="text-destructive text-xs">
                     {requestForm.formState.errors.email.message}
                   </p>
                 )}
@@ -207,7 +208,10 @@ const ForgotPasswordDialog = () => {
                   )}
                 />
                 {verifyForm.formState.errors.code && (
-                  <p className="text-destructive text-center text-xs">
+                  <p
+                    role="alert"
+                    className="text-destructive text-center text-xs"
+                  >
                     {verifyForm.formState.errors.code.message}
                   </p>
                 )}
@@ -259,15 +263,18 @@ const ForgotPasswordDialog = () => {
                     id="reset-new-password"
                     type={visible.next ? "text" : "password"}
                     className="pr-10 xl:p-5 xl:text-base"
+                    aria-invalid={Boolean(
+                      resetForm.formState.errors.newPassword,
+                    )}
                     {...resetForm.register("newPassword")}
                   />
                   <button
+                    aria-label="Mostrar ou ocultar senha"
                     type="button"
                     onClick={() =>
                       setVisible((prev) => ({ ...prev, next: !prev.next }))
                     }
                     className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-                    tabIndex={-1}
                   >
                     {visible.next ? (
                       <EyeOffIcon size={18} />
@@ -277,7 +284,7 @@ const ForgotPasswordDialog = () => {
                   </button>
                 </div>
                 {resetForm.formState.errors.newPassword && (
-                  <p className="text-destructive text-xs">
+                  <p role="alert" className="text-destructive text-xs">
                     {resetForm.formState.errors.newPassword.message}
                   </p>
                 )}
@@ -295,9 +302,13 @@ const ForgotPasswordDialog = () => {
                     id="reset-confirm-password"
                     type={visible.confirm ? "text" : "password"}
                     className="pr-10 xl:p-5 xl:text-base"
+                    aria-invalid={Boolean(
+                      resetForm.formState.errors.confirmNewPassword,
+                    )}
                     {...resetForm.register("confirmNewPassword")}
                   />
                   <button
+                    aria-label="Mostrar ou ocultar senha"
                     type="button"
                     onClick={() =>
                       setVisible((prev) => ({
@@ -306,7 +317,6 @@ const ForgotPasswordDialog = () => {
                       }))
                     }
                     className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-                    tabIndex={-1}
                   >
                     {visible.confirm ? (
                       <EyeOffIcon size={18} />
@@ -316,7 +326,7 @@ const ForgotPasswordDialog = () => {
                   </button>
                 </div>
                 {resetForm.formState.errors.confirmNewPassword && (
-                  <p className="text-destructive text-xs">
+                  <p role="alert" className="text-destructive text-xs">
                     {resetForm.formState.errors.confirmNewPassword.message}
                   </p>
                 )}

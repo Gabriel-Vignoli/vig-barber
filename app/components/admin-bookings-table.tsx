@@ -76,7 +76,7 @@ const AdminBookingsTable = ({ bookings }: AdminBookingsTableProps) => {
                       alt={booking.user.name ?? "Cliente"}
                       referrerPolicy="no-referrer"
                     />
-                    <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                    <AvatarFallback className="bg-primary-solid text-primary-foreground font-bold">
                       {getInitials(booking.user.name)}
                     </AvatarFallback>
                   </Avatar>

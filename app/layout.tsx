@@ -39,9 +39,17 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${nunito.variable} dark h-full antialiased`}>
       <body className="flex min-h-full flex-col">
+        <a
+          href="#conteudo"
+          className="bg-primary-solid text-primary-foreground sr-only z-100 rounded-lg px-4 py-2 font-semibold focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+        >
+          Pular para o conteúdo
+        </a>
         <AuthProvider>
           <div className="flex h-full flex-col">
-            <div className="flex-1">{children}</div>
+            <main id="conteudo" tabIndex={-1} className="flex-1 outline-none">
+              {children}
+            </main>
             <Footer></Footer>
           </div>
         </AuthProvider>

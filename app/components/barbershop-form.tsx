@@ -116,9 +116,15 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
 
           <div className="space-y-1.5">
             <Label htmlFor="barbershop-name">Nome</Label>
-            <Input id="barbershop-name" {...register("name")} />
+            <Input
+              id="barbershop-name"
+              aria-invalid={Boolean(errors.name)}
+              {...register("name")}
+            />
             {errors.name && (
-              <p className="text-destructive text-xs">{errors.name.message}</p>
+              <p role="alert" className="text-destructive text-xs">
+                {errors.name.message}
+              </p>
             )}
           </div>
 
@@ -127,10 +133,11 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
             <Textarea
               id="barbershop-description"
               rows={4}
+              aria-invalid={Boolean(errors.description)}
               {...register("description")}
             />
             {errors.description && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {errors.description.message}
               </p>
             )}
@@ -160,10 +167,11 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
             <Input
               id="barbershop-logo"
               placeholder="ou cole a URL da imagem"
+              aria-invalid={Boolean(errors.logoUrl)}
               {...register("logoUrl")}
             />
             {errors.logoUrl && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {errors.logoUrl.message}
               </p>
             )}
@@ -181,10 +189,11 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
             <Input
               id="barbershop-image"
               placeholder="ou cole a URL da imagem"
+              aria-invalid={Boolean(errors.bannerUrl)}
               {...register("bannerUrl")}
             />
             {errors.bannerUrl && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {errors.bannerUrl.message}
               </p>
             )}
@@ -198,9 +207,13 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
 
           <div className="space-y-1.5">
             <Label htmlFor="barbershop-address">Endereço</Label>
-            <Input id="barbershop-address" {...register("address")} />
+            <Input
+              id="barbershop-address"
+              aria-invalid={Boolean(errors.address)}
+              {...register("address")}
+            />
             {errors.address && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {errors.address.message}
               </p>
             )}
@@ -211,10 +224,13 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
             <Input
               id="barbershop-city"
               placeholder="São Paulo"
+              aria-invalid={Boolean(errors.city)}
               {...register("city")}
             />
             {errors.city && (
-              <p className="text-destructive text-xs">{errors.city.message}</p>
+              <p role="alert" className="text-destructive text-xs">
+                {errors.city.message}
+              </p>
             )}
           </div>
 
@@ -237,6 +253,7 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
                   id="barbershop-latitude"
                   inputMode="decimal"
                   placeholder="-23.5568"
+                  aria-invalid={Boolean(errors.latitude)}
                   {...register("latitude")}
                 />
               </div>
@@ -251,12 +268,13 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
                   id="barbershop-longitude"
                   inputMode="decimal"
                   placeholder="-46.6608"
+                  aria-invalid={Boolean(errors.longitude)}
                   {...register("longitude")}
                 />
               </div>
             </div>
             {(errors.latitude || errors.longitude) && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {errors.latitude?.message ?? errors.longitude?.message}
               </p>
             )}
@@ -293,7 +311,7 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
                     </Button>
                   </div>
                   {errors.phones?.[index]?.message && (
-                    <p className="text-destructive text-xs">
+                    <p role="alert" className="text-destructive text-xs">
                       {errors.phones[index]?.message}
                     </p>
                   )}
@@ -302,7 +320,9 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
             </div>
 
             {phonesError && (
-              <p className="text-destructive text-xs">{phonesError}</p>
+              <p role="alert" className="text-destructive text-xs">
+                {phonesError}
+              </p>
             )}
 
             {phones.length < MAX_PHONES && (
@@ -329,10 +349,11 @@ const BarbershopForm = ({ slug, barbershop }: BarbershopFormProps) => {
             <Input
               id="barbershop-instagram"
               placeholder="https://instagram.com/..."
+              aria-invalid={Boolean(errors.instagramUrl)}
               {...register("instagramUrl")}
             />
             {errors.instagramUrl && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {errors.instagramUrl.message}
               </p>
             )}

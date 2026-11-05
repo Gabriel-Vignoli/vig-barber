@@ -82,13 +82,14 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
               id="current-password"
               type={visible.current ? "text" : "password"}
               className="pr-10 xl:p-5 xl:text-base"
+              aria-invalid={Boolean(formState.errors.currentPassword)}
               {...register("currentPassword")}
             />
             <button
+              aria-label="Mostrar ou ocultar senha"
               type="button"
               onClick={() => toggleVisible("current")}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-              tabIndex={-1}
             >
               {visible.current ? (
                 <EyeOffIcon size={18} />
@@ -98,7 +99,7 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
             </button>
           </div>
           {formState.errors.currentPassword && (
-            <p className="text-destructive text-xs">
+            <p role="alert" className="text-destructive text-xs">
               {formState.errors.currentPassword.message}
             </p>
           )}
@@ -114,19 +115,20 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
             id="new-password"
             type={visible.next ? "text" : "password"}
             className="pr-10 xl:p-5 xl:text-base"
+            aria-invalid={Boolean(formState.errors.newPassword)}
             {...register("newPassword")}
           />
           <button
+            aria-label="Mostrar ou ocultar senha"
             type="button"
             onClick={() => toggleVisible("next")}
             className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-            tabIndex={-1}
           >
             {visible.next ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
           </button>
         </div>
         {formState.errors.newPassword && (
-          <p className="text-destructive text-xs">
+          <p role="alert" className="text-destructive text-xs">
             {formState.errors.newPassword.message}
           </p>
         )}
@@ -141,19 +143,20 @@ const ProfilePasswordForm = ({ hasPassword }: ProfilePasswordFormProps) => {
             id="confirm-new-password"
             type={visible.confirm ? "text" : "password"}
             className="pr-10 xl:p-5 xl:text-base"
+            aria-invalid={Boolean(formState.errors.confirmNewPassword)}
             {...register("confirmNewPassword")}
           />
           <button
+            aria-label="Mostrar ou ocultar senha"
             type="button"
             onClick={() => toggleVisible("confirm")}
             className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-            tabIndex={-1}
           >
             {visible.confirm ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
           </button>
         </div>
         {formState.errors.confirmNewPassword && (
-          <p className="text-destructive text-xs">
+          <p role="alert" className="text-destructive text-xs">
             {formState.errors.confirmNewPassword.message}
           </p>
         )}

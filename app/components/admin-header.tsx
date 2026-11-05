@@ -71,10 +71,17 @@ const AdminHeader = ({ adminName, slug }: AdminHeaderProps) => {
                 key={item.href}
                 variant={isActive ? "default" : "ghost"}
                 size="icon"
+                aria-label="Sair"
                 className="cursor-pointer gap-3 xl:size-auto xl:px-4 xl:py-2"
                 nativeButton={false}
                 render={(buttonProps) => (
-                  <Link href={item.href} title={item.label} {...buttonProps}>
+                  <Link
+                    href={item.href}
+                    title={item.label}
+                    aria-label={item.label}
+                    aria-current={isActive ? "page" : undefined}
+                    {...buttonProps}
+                  >
                     <item.icon size={16} />
                     <span className="hidden xl:inline">{item.label}</span>
                   </Link>
@@ -95,7 +102,12 @@ const AdminHeader = ({ adminName, slug }: AdminHeaderProps) => {
             className="hidden cursor-pointer md:flex"
             nativeButton={false}
             render={(buttonProps) => (
-              <Link href="/painel" title="Minhas barbearias" {...buttonProps}>
+              <Link
+                href="/painel"
+                title="Minhas barbearias"
+                aria-label="Minhas barbearias"
+                {...buttonProps}
+              >
                 <LayoutGridIcon size={18} />
               </Link>
             )}
@@ -116,6 +128,7 @@ const AdminHeader = ({ adminName, slug }: AdminHeaderProps) => {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Abrir menu"
                   className="cursor-pointer md:hidden"
                   {...triggerProps}
                 >

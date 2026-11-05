@@ -196,12 +196,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
         className="font-bol cursor-pointer gap-2 p-4 xl:p-5 xl:text-base"
         onClick={handleLoginWithGoogleClick}
       >
-        <Image
-          src="/google.svg"
-          alt="Google Icon"
-          width={18}
-          height={18}
-        ></Image>
+        <Image src="/google.svg" alt="" width={18} height={18}></Image>
         Google
       </Button>
 
@@ -225,10 +220,11 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="login-email"
               type="email"
               className="xl:p-5 xl:text-base"
+              aria-invalid={Boolean(loginForm.formState.errors.email)}
               {...loginForm.register("email")}
             />
             {loginForm.formState.errors.email && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {loginForm.formState.errors.email.message}
               </p>
             )}
@@ -243,13 +239,14 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
                 id="login-password"
                 className="pr-10 xl:p-5 xl:text-base"
                 type={visiblePasswords.loginPassword ? "text" : "password"}
+                aria-invalid={Boolean(loginForm.formState.errors.password)}
                 {...loginForm.register("password")}
               />
               <button
+                aria-label="Mostrar ou ocultar senha"
                 type="button"
                 onClick={() => togglePasswordVisibility("loginPassword")}
                 className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-                tabIndex={-1}
               >
                 {visiblePasswords.loginPassword ? (
                   <EyeOffIcon size={18} />
@@ -259,15 +256,17 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               </button>
             </div>
             {loginForm.formState.errors.password && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {loginForm.formState.errors.password.message}
               </p>
             )}
             {loginError && !isLockedForCurrentEmail && (
-              <p className="text-destructive text-xs">{loginError}</p>
+              <p role="alert" className="text-destructive text-xs">
+                {loginError}
+              </p>
             )}
             {isLockedForCurrentEmail && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 Muitas tentativas de login. Tente novamente em{" "}
                 {formatCountdown(remainingSeconds)}.
               </p>
@@ -300,10 +299,11 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="signup-name"
               type="text"
               className="xl:p-5 xl:text-base"
+              aria-invalid={Boolean(signUpForm.formState.errors.name)}
               {...signUpForm.register("name")}
             />
             {signUpForm.formState.errors.name && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {signUpForm.formState.errors.name.message}
               </p>
             )}
@@ -317,10 +317,11 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               id="signup-email"
               type="email"
               className="xl:p-5 xl:text-base"
+              aria-invalid={Boolean(signUpForm.formState.errors.email)}
               {...signUpForm.register("email")}
             />
             {signUpForm.formState.errors.email && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {signUpForm.formState.errors.email.message}
               </p>
             )}
@@ -335,13 +336,14 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
                 id="signup-password"
                 type={visiblePasswords.signUpPassword ? "text" : "password"}
                 className="pr-10 xl:p-5 xl:text-base"
+                aria-invalid={Boolean(signUpForm.formState.errors.password)}
                 {...signUpForm.register("password")}
               />
               <button
+                aria-label="Mostrar ou ocultar senha"
                 type="button"
                 onClick={() => togglePasswordVisibility("signUpPassword")}
                 className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-                tabIndex={-1}
               >
                 {visiblePasswords.signUpPassword ? (
                   <EyeOffIcon size={18} />
@@ -351,7 +353,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               </button>
             </div>
             {signUpForm.formState.errors.password && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {signUpForm.formState.errors.password.message}
               </p>
             )}
@@ -368,15 +370,18 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
                   visiblePasswords.signUpConfirmPassword ? "text" : "password"
                 }
                 className="pr-10 xl:p-5 xl:text-base"
+                aria-invalid={Boolean(
+                  signUpForm.formState.errors.confirmPassword,
+                )}
                 {...signUpForm.register("confirmPassword")}
               />
               <button
+                aria-label="Mostrar ou ocultar senha"
                 type="button"
                 onClick={() =>
                   togglePasswordVisibility("signUpConfirmPassword")
                 }
                 className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-                tabIndex={-1}
               >
                 {visiblePasswords.signUpConfirmPassword ? (
                   <EyeOffIcon size={18} />
@@ -386,7 +391,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
               </button>
             </div>
             {signUpForm.formState.errors.confirmPassword && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {signUpForm.formState.errors.confirmPassword.message}
               </p>
             )}
@@ -438,7 +443,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
             )}
 
             {signUpForm.formState.errors.acceptTerms && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {signUpForm.formState.errors.acceptTerms.message}
               </p>
             )}

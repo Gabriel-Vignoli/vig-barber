@@ -109,10 +109,11 @@ const PlatformExtendTrialDialog = ({
               min={1}
               max={MAX_TRIAL_EXTENSION_DAYS}
               step={1}
+              aria-invalid={Boolean(formState.errors.days)}
               {...register("days")}
             />
             {formState.errors.days && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.days.message}
               </p>
             )}

@@ -24,7 +24,7 @@ const AdminDashboardLayout = async ({
     <div className="flex min-h-screen flex-col">
       <AdminHeader adminName={adminName ?? "Admin"} slug={slug} />
       <BillingBanner billingPath={getBillingPath(slug)} state={billingState} />
-      <main className="flex-1">{children}</main>
+      <div className="flex-1">{children}</div>
     </div>
   )
 }

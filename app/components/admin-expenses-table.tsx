@@ -133,6 +133,7 @@ const AdminExpensesTable = ({ slug, expenses }: AdminExpensesTableProps) => {
                       renderTrigger={(triggerProps) => (
                         <Button
                           size="icon"
+                          aria-label={`Editar despesa ${expense.description}`}
                           variant="ghost"
                           className="cursor-pointer"
                           {...triggerProps}
@@ -152,6 +153,7 @@ const AdminExpensesTable = ({ slug, expenses }: AdminExpensesTableProps) => {
                         render={(triggerProps) => (
                           <Button
                             size="icon"
+                            aria-label={`Remover despesa ${expense.description}`}
                             variant="ghost"
                             className="text-destructive cursor-pointer"
                             {...triggerProps}

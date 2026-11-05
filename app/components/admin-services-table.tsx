@@ -142,6 +142,7 @@ const AdminServicesTable = ({ slug, services }: AdminServicesTableProps) => {
                       renderTrigger={(triggerProps) => (
                         <Button
                           size="icon"
+                          aria-label={`Editar ${service.name}`}
                           variant="ghost"
                           className="cursor-pointer"
                           {...triggerProps}
@@ -161,6 +162,7 @@ const AdminServicesTable = ({ slug, services }: AdminServicesTableProps) => {
                         render={(triggerProps) => (
                           <Button
                             size="icon"
+                            aria-label={`Remover ${service.name}`}
                             variant="ghost"
                             className="text-destructive cursor-pointer"
                             {...triggerProps}

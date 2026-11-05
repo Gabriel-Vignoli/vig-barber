@@ -83,10 +83,11 @@ const PhoneCollectionDialog = ({
               type="tel"
               placeholder="(35) 99201-1313"
               className="lg:h-11 lg:text-base"
+              aria-invalid={Boolean(formState.errors.phone)}
               {...register("phone")}
             />
             {formState.errors.phone && (
-              <p className="text-destructive text-xs lg:text-sm">
+              <p role="alert" className="text-destructive text-xs lg:text-sm">
                 {formState.errors.phone.message}
               </p>
             )}

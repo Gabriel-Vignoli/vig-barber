@@ -12,6 +12,7 @@ const MobileNav = () => {
         render={(triggerProps) => (
           <Button
             size="icon"
+            aria-label="Abrir menu"
             variant="ghost"
             className="cursor-pointer"
             {...triggerProps}

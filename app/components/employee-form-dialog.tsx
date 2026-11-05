@@ -114,9 +114,14 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
             <Label htmlFor="employee-name">
               Nome (apenas para novo usuário)
             </Label>
-            <Input id="employee-name" type="text" {...register("name")} />
+            <Input
+              id="employee-name"
+              type="text"
+              aria-invalid={Boolean(formState.errors.name)}
+              {...register("name")}
+            />
             {formState.errors.name && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.name.message}
               </p>
             )}
@@ -124,9 +129,14 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
 
           <div className="space-y-1">
             <Label htmlFor="employee-email">Email</Label>
-            <Input id="employee-email" type="email" {...register("email")} />
+            <Input
+              id="employee-email"
+              type="email"
+              aria-invalid={Boolean(formState.errors.email)}
+              {...register("email")}
+            />
             {formState.errors.email && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.email.message}
               </p>
             )}
@@ -141,13 +151,14 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
                 id="employee-password"
                 type={showPassword ? "text" : "password"}
                 className="pr-10"
+                aria-invalid={Boolean(formState.errors.password)}
                 {...register("password")}
               />
               <button
+                aria-label="Mostrar ou ocultar senha"
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
-                tabIndex={-1}
               >
                 {showPassword ? (
                   <EyeOffIcon size={18} />
@@ -157,7 +168,7 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
               </button>
             </div>
             {formState.errors.password && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.password.message}
               </p>
             )}
@@ -169,10 +180,11 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
               id="employee-phone"
               type="tel"
               placeholder="(11) 91234-5678"
+              aria-invalid={Boolean(formState.errors.phone)}
               {...register("phone")}
             />
             {formState.errors.phone && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.phone.message}
               </p>
             )}
@@ -189,10 +201,11 @@ const EmployeeFormDialog = ({ slug }: EmployeeFormDialogProps) => {
               id="employee-image"
               type="text"
               placeholder="https://..."
+              aria-invalid={Boolean(formState.errors.imageUrl)}
               {...register("imageUrl")}
             />
             {formState.errors.imageUrl && (
-              <p className="text-destructive text-xs">
+              <p role="alert" className="text-destructive text-xs">
                 {formState.errors.imageUrl.message}
               </p>
             )}

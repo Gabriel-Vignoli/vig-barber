@@ -117,6 +117,7 @@ const EmployeeScheduleDialog = ({
         render={(triggerProps) => (
           <Button
             size="icon"
+            aria-label="Horários do barbeiro"
             variant="ghost"
             className="cursor-pointer"
             {...triggerProps}

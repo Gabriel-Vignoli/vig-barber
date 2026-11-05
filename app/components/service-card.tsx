@@ -449,7 +449,10 @@ const ServiceCard = ({
                       }`}
                     >
                       <Avatar className="h-15 w-15 lg:h-18 lg:w-18">
-                        <AvatarImage src={employee.imageUrl}></AvatarImage>
+                        <AvatarImage
+                          src={employee.imageUrl}
+                          alt=""
+                        ></AvatarImage>
                         <AvatarFallback>
                           {employee.name.charAt(0)}
                         </AvatarFallback>

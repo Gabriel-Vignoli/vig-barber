@@ -61,7 +61,7 @@ const EmployeeItem = ({ employee, slug }: EmployeeItemProps) => {
               <h3 className="truncate text-sm font-bold text-white md:text-base">
                 {employee.name}
               </h3>
-              <p className="truncate text-xs text-white/70">
+              <p className="truncate text-xs text-white/90">
                 {employee.ratingCount > 0
                   ? `${employee.ratingCount} avaliações`
                   : "Ainda sem avaliações"}

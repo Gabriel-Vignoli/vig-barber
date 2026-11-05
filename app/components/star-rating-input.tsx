@@ -12,7 +12,7 @@ const StarRatingInput = ({ value, onChange }: StarRatingInputProps) => {
   const [hovered, setHovered] = useState<number | null>(null)
 
   return (
-    <div className="flex gap-1">
+    <div role="group" aria-label="Nota" className="flex gap-1">
       {[1, 2, 3, 4, 5].map((star) => {
         const isFilled = (hovered ?? value) >= star
 
@@ -20,12 +20,15 @@ const StarRatingInput = ({ value, onChange }: StarRatingInputProps) => {
           <button
             key={star}
             type="button"
+            aria-label={`${star} ${star === 1 ? "estrela" : "estrelas"}`}
+            aria-pressed={value === star}
             onClick={() => onChange(star)}
             onMouseEnter={() => setHovered(star)}
             onMouseLeave={() => setHovered(null)}
             className="cursor-pointer p-0.5"
           >
             <StarIcon
+              aria-hidden
               size={28}
               strokeWidth={isFilled ? 0.5 : 1}
               className={
