@@ -43,7 +43,7 @@ export const PRIVACY_POLICY_SECTIONS = [
   {
     title: "Por quanto tempo guardamos",
     content:
-      "Guardamos os dados enquanto sua conta estiver ativa ou enquanto forem necessários às finalidades acima. Se você pedir a exclusão, apagamos ou anonimizamos seus dados pessoais, exceto o que precisarmos manter para cumprir a lei ou exercer direitos. Agendamentos já realizados podem continuar no histórico da barbearia de forma anonimizada. Os dados de uma barbearia com assinatura encerrada ficam guardados até que sua exclusão seja solicitada.",
+      "Guardamos os dados enquanto sua conta estiver ativa ou enquanto forem necessários às finalidades acima. Se você pedir a exclusão, apagamos ou anonimizamos seus dados pessoais, exceto o que precisarmos manter para cumprir a lei ou exercer direitos. Agendamentos já realizados e avaliações, com a nota e o comentário que você escreveu, podem continuar no histórico da barbearia sem o seu nome. Os dados de uma barbearia com assinatura encerrada ficam guardados até que sua exclusão seja solicitada.",
   },
   {
     title: "Segurança",
@@ -57,7 +57,7 @@ export const PRIVACY_POLICY_SECTIONS = [
   },
   {
     title: "Seus direitos",
-    content: `Pela LGPD, você pode pedir a confirmação do tratamento, o acesso, a correção, a anonimização ou exclusão de dados, a portabilidade, informações sobre compartilhamento e a revisão de decisões, além de revogar o consentimento e se opor a tratamentos irregulares. Faça o pedido pelo email ${LEGAL_ENTITY.contactEmail}. Responderemos em até 15 dias. Você também pode reclamar à ANPD. Pedidos sobre o atendimento de uma barbearia podem ser encaminhados diretamente a ela.`,
+    content: `Pela LGPD, você pode pedir a confirmação do tratamento, o acesso, a correção, a anonimização ou exclusão de dados, a portabilidade, informações sobre compartilhamento e a revisão de decisões, além de revogar o consentimento e se opor a tratamentos irregulares. Em Meu Perfil, você mesmo pode baixar seus dados e excluir sua conta. Para os demais pedidos, escreva para ${LEGAL_ENTITY.contactEmail}. Responderemos em até 15 dias. Você também pode reclamar à ANPD. Pedidos sobre o atendimento de uma barbearia podem ser encaminhados diretamente a ela.`,
   },
   {
     title: "Alterações",

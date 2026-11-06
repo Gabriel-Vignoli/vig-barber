@@ -23,6 +23,12 @@ const AUTH_TOASTS = {
     title: "Login realizado!",
     description: "Você entrou com sua conta do Google.",
   },
+  accountDeleted: {
+    variant: "neutral",
+    title: "Conta excluída",
+    description: "Seus dados pessoais foram apagados.",
+    icon: LogOutIcon,
+  },
   logout: {
     variant: "neutral",
     title: "Você saiu da conta",

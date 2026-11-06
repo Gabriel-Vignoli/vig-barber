@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import { Card, CardContent } from "../components/ui/card"
 import ProfileNameForm from "../components/profile-name-form"
 import ProfilePasswordForm from "../components/profile-password-form"
+import ProfileDataActions from "../components/profile-data-actions"
 
 const getInitials = (name?: string | null) => {
   if (!name) return "?"
@@ -79,6 +80,17 @@ const ProfilePage = async () => {
             <ProfilePasswordForm hasPassword={Boolean(user.password)} />
           </CardContent>
         </Card>
+
+        {user.email && (
+          <Card>
+            <CardContent className="space-y-4 p-4">
+              <h2 className="text-sm font-bold text-gray-400 uppercase">
+                Seus dados
+              </h2>
+              <ProfileDataActions email={user.email} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </>
   )

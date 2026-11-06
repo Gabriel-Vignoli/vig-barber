@@ -263,6 +263,34 @@ describe("Google sign-up", () => {
 })
 
 describe("JWT", () => {
+  const refresh = (token: JWT) =>
+    authOptions.callbacks!.jwt!({ token, account: null } as never)
+
+  it("rejects the token of an anonymized account", async () => {
+    const user = await createUser()
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { deletedAt: new Date() },
+    })
+
+    await expect(refresh({ id: user.id } as JWT)).rejects.toThrow()
+  })
+
+  it("keeps the session of a live account, and when the read fails", async () => {
+    const user = await createUser()
+    await expect(refresh({ id: user.id } as JWT)).resolves.toMatchObject({
+      id: user.id,
+    })
+
+    const read = vi
+      .spyOn(prisma.user, "findUnique")
+      .mockRejectedValueOnce(new Error("P1017") as never)
+    await expect(refresh({ id: user.id } as JWT)).resolves.toMatchObject({
+      id: user.id,
+    })
+    read.mockRestore()
+  })
+
   it("carries only the user id and drops a legacy role", async () => {
     const token = await authOptions.callbacks!.jwt!({
       token: { sub: "user-1", role: "ADMIN" } as JWT,

@@ -7,6 +7,22 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { registerLoginAttempt } from "./login-attempt"
 import { LEGAL_VERSION } from "../_constants/legal-entity"
 
+// A read failure counts as "not deleted": NextAuth clears the session cookie
+// on any error in the jwt callback, so a database hiccup must not sign people
+// out.
+const isDeletedUser = async (userId: unknown) => {
+  if (typeof userId !== "string") return false
+
+  const user = await prisma.user
+    .findUnique({ where: { id: userId }, select: { deletedAt: true } })
+    .catch((error) => {
+      console.error(error)
+      return null
+    })
+
+  return Boolean(user?.deletedAt)
+}
+
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
   session: {
@@ -61,6 +77,10 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+      } else if (await isDeletedUser(token.id)) {
+        // The JWT outlives the account, on this device and on any other one.
+        // The throw makes NextAuth drop the session.
+        throw new Error("This account was deleted")
       }
       // Tokens issued before the slim-down still carry the old global role
       delete token.role
