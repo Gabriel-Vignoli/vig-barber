@@ -15,6 +15,8 @@ export const RESERVED_SLUGS = [
   "bookings",
   "profile",
   "privacy-policy",
+  "terms",
+  "refund",
   "services",
   "employees",
   "_next",

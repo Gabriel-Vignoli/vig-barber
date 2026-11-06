@@ -208,6 +208,8 @@ describe("slugSchema", () => {
   it.each([
     ["reserved", "admin"],
     ["reserved", "privacy-policy"],
+    ["reserved", "terms"],
+    ["reserved", "refund"],
     ["uppercase", "Barbearia"],
     ["too short", "ab"],
     ["too long", "x".repeat(41)],

@@ -96,7 +96,9 @@ const socialLinks = [
 ]
 
 const legalLinks = [
+  { href: "/terms", label: "Termos de Uso" },
   { href: "/privacy-policy", label: "Política de Privacidade" },
+  { href: "/refund", label: "Política de Reembolso" },
 ]
 
 // Platform footer, shown on every page. Shop details live in ShopFooter.
