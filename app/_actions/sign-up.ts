@@ -5,6 +5,8 @@ import { prisma } from "../_lib/prisma"
 import { signUpSchema } from "../_lib/validations/auth"
 import { action, ActionError } from "../_lib/action-result"
 import { LEGAL_VERSION } from "../_constants/legal-entity"
+import { findUserByEmail } from "../_lib/invitation"
+import { assertRateLimit, getClientIp } from "../_lib/rate-limit"
 
 interface SignUpInput {
   name: string
@@ -28,9 +30,12 @@ export const signUp = action(async (input: SignUpInput) => {
 
   const { name, email, password } = parsed.data
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
+  await assertRateLimit("sign-up-ip", await getClientIp(), {
+    limit: 10,
+    windowMs: 60 * 60 * 1000,
   })
+
+  const existingUser = await findUserByEmail(email)
 
   if (existingUser) {
     throw new ActionError("Já existe uma conta com esse email.")

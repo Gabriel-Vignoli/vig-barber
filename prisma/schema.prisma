@@ -323,9 +323,20 @@ model Review {
   @@index([barbershopId])
 }
 
+// Attempts per scope and IP/email in the current window (app/_lib/rate-limit.ts)
+model RateLimit {
+  // Keyed hash, so the table holds no readable IP or email
+  key       String   @id
+  count     Int
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
 model PasswordResetCode {
   id             String    @id @default(cuid())
   email          String
+  // Keyed hash of the code, see hashResetCode
   code           String
   expiresAt      DateTime  @map("expires_at")
   usedAt         DateTime? @map("used_at")

@@ -2,6 +2,7 @@ import type { Plan } from "@/app/generated/prisma/enums"
 import { prisma } from "./prisma"
 import { DEFAULT_PLAN, PLANS, type PlanConfig } from "./plans"
 import { ActionError } from "./action-result"
+import { emailEquals } from "./email-match"
 
 // Staff limits per plan, read from PLANS (plans.ts). null = unlimited.
 //
@@ -55,12 +56,7 @@ const countStaff = async (
       acceptedAt: null,
       expiresAt: { gt: new Date() },
       ...(excludeInvitationEmail && {
-        NOT: {
-          email: {
-            equals: excludeInvitationEmail.trim(),
-            mode: "insensitive" as const,
-          },
-        },
+        NOT: { email: emailEquals(excludeInvitationEmail) },
       }),
     },
   })

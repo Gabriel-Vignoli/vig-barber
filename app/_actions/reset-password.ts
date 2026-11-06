@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs"
 import { prisma } from "../_lib/prisma"
 import { validateResetCode } from "../_lib/reset-code"
+import { findAccountByEmail } from "../_lib/email-match"
 import { resetPasswordSchema } from "../_lib/validations/password-reset"
 import { action, ActionError } from "../_lib/action-result"
 
@@ -23,7 +24,7 @@ export const resetPassword = action(
 
     const resetCode = await validateResetCode(email, code)
 
-    const user = await prisma.user.findUnique({ where: { email } })
+    const user = await findAccountByEmail(email)
 
     if (!user) {
       throw new ActionError("Usuário não encontrado.")

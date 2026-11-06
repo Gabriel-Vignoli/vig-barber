@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/app/_lib/prisma"
 import { LEGAL_VERSION } from "@/app/_constants/legal-entity"
 import { signUp } from "@/app/_actions/sign-up"
+import { hashResetCode } from "@/app/_lib/reset-code"
 import { requestPasswordReset } from "@/app/_actions/request-password-reset"
 import { verifyResetCode } from "@/app/_actions/verify-reset-code"
 import { resetPassword } from "@/app/_actions/reset-password"
@@ -31,6 +32,16 @@ const lastResetCode = (email: string) =>
     orderBy: { createdAt: "desc" },
   })
 
+// The database only has the hash, so the code comes from the email
+const lastEmailedCode = () => {
+  const emails = getSentEmails()
+  const match = emails[emails.length - 1]?.html.match(/>(\d{6})</)
+
+  if (!match) throw new Error("No reset code email was sent")
+
+  return match[1]
+}
+
 describe("signUp", () => {
   it("creates a client account with a hashed password and no membership", async () => {
     await unwrap(
@@ -54,6 +65,22 @@ describe("signUp", () => {
     expect(user.acceptedTermsAt).not.toBeNull()
     expect(user.isPlatformAdmin).toBe(false)
     expect(user.memberships).toEqual([])
+  })
+
+  it("rejects an existing email in another case", async () => {
+    await createUserWithPassword("dono@test.local")
+
+    await expect(
+      unwrap(
+        signUp({
+          name: "Invasor",
+          email: "DONO@test.local",
+          password: NEW_STRONG,
+          acceptTerms: true,
+        }),
+      ),
+    ).rejects.toThrow("Já existe uma conta com esse email.")
+    expect(await prisma.user.count()).toBe(1)
   })
 
   it("rejects an existing email without changing that account", async () => {
@@ -132,7 +159,7 @@ describe("password reset", () => {
 
     await unwrap(requestPasswordReset({ email: "reset@test.local" }))
 
-    const { code } = await lastResetCode("reset@test.local")
+    const code = lastEmailedCode()
     const [email] = getSentEmails()
     expect(email.to).toBe("reset@test.local")
     expect(email.html).toContain(code)
@@ -167,6 +194,18 @@ describe("password reset", () => {
     ).rejects.toThrow("Código inválido.")
   })
 
+  it("stores a keyed hash, never the emailed code", async () => {
+    await createUserWithPassword("hash@test.local")
+    await unwrap(requestPasswordReset({ email: "hash@test.local" }))
+
+    const stored = await lastResetCode("hash@test.local")
+    expect(stored.code).toMatch(/^[0-9a-f]{64}$/)
+    expect(stored.code).not.toContain(lastEmailedCode())
+    expect(stored.code).toBe(
+      hashResetCode("hash@test.local", lastEmailedCode()),
+    )
+  })
+
   it("stays silent for an unknown email", async () => {
     await unwrap(requestPasswordReset({ email: "ninguem@test.local" }))
 
@@ -179,25 +218,82 @@ describe("password reset", () => {
 
     await unwrap(requestPasswordReset({ email: "dois@test.local" }))
     const first = await lastResetCode("dois@test.local")
+    const firstCode = lastEmailedCode()
     await unwrap(requestPasswordReset({ email: "dois@test.local" }))
     const second = await lastResetCode("dois@test.local")
+    const secondCode = lastEmailedCode()
 
     expect(second.id).not.toBe(first.id)
     const firstAfter = await prisma.passwordResetCode.findUniqueOrThrow({
       where: { id: first.id },
     })
     expect(firstAfter.usedAt).not.toBeNull()
-    if (first.code !== second.code) {
+    if (firstCode !== secondCode) {
       await expect(
-        unwrap(verifyResetCode({ email: "dois@test.local", code: first.code })),
+        unwrap(verifyResetCode({ email: "dois@test.local", code: firstCode })),
       ).rejects.toThrow("Código inválido.")
     }
+  })
+
+  it("gives a parallel burst no more than 5 comparisons", async () => {
+    await createUserWithPassword("burst@test.local")
+    await unwrap(requestPasswordReset({ email: "burst@test.local" }))
+    const code = lastEmailedCode()
+    const wrong = code === "000000" ? "111111" : "000000"
+
+    await Promise.allSettled(
+      Array.from({ length: 12 }, () =>
+        unwrap(verifyResetCode({ email: "burst@test.local", code: wrong })),
+      ),
+    )
+
+    const row = await prisma.passwordResetCode.findFirstOrThrow({
+      where: { email: "burst@test.local" },
+    })
+    expect(row.failedAttempts).toBe(5)
+    expect(row.usedAt).not.toBeNull()
+  })
+
+  it("does not count a right code as an attempt", async () => {
+    await createUserWithPassword("certo@test.local")
+    await unwrap(requestPasswordReset({ email: "certo@test.local" }))
+    const code = lastEmailedCode()
+
+    for (let i = 0; i < 6; i++) {
+      await unwrap(verifyResetCode({ email: "certo@test.local", code }))
+    }
+
+    expect((await lastResetCode("certo@test.local")).failedAttempts).toBe(0)
+  })
+
+  it("resets an account whose email is typed in another case", async () => {
+    const user = await createUserWithPassword("Misto@test.local")
+    await unwrap(requestPasswordReset({ email: "misto@test.local" }))
+    const code = lastEmailedCode()
+
+    await unwrap(verifyResetCode({ email: "MISTO@test.local", code }))
+    await unwrap(
+      resetPassword({
+        email: "misto@test.local",
+        code,
+        newPassword: NEW_STRONG,
+        confirmNewPassword: NEW_STRONG,
+      }),
+    )
+
+    expect(
+      (await checkLoginAttempt("misto@test.local", NEW_STRONG)).status,
+    ).not.toBe("invalid")
+    const after = await prisma.user.findUniqueOrThrow({
+      where: { id: user.id },
+    })
+    expect(after.email).toBe("Misto@test.local")
   })
 
   it("burns the code after 5 wrong guesses", async () => {
     await createUserWithPassword("chute@test.local")
     await unwrap(requestPasswordReset({ email: "chute@test.local" }))
-    const { code } = await lastResetCode("chute@test.local")
+    const code = lastEmailedCode()
     const wrong = code === "000000" ? "111111" : "000000"
 
     for (let i = 0; i < 4; i++) {
@@ -226,7 +322,7 @@ describe("password reset", () => {
 
     await expect(
       unwrap(
-        verifyResetCode({ email: "velho@test.local", code: resetCode.code }),
+        verifyResetCode({ email: "velho@test.local", code: lastEmailedCode() }),
       ),
     ).rejects.toThrow("Código expirado. Solicite um novo.")
   })

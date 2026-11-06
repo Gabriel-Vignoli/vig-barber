@@ -5,6 +5,7 @@ import { prisma } from "../_lib/prisma"
 import { getSessionUserId } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
 import { removeEmployeeFromShop } from "../_lib/staff-removal"
+import { emailEquals } from "../_lib/email-match"
 import { action, ActionError } from "../_lib/action-result"
 
 // Shown wherever the shop's history still points at this user
@@ -156,7 +157,7 @@ export const deleteAccount = action(async (confirmEmail: string) => {
       // the invited email. Pending rows simply expire.
       await tx.invitation.deleteMany({
         where: {
-          email: { equals: email, mode: "insensitive" },
+          email: emailEquals(email),
           acceptedAt: { not: null },
         },
       })

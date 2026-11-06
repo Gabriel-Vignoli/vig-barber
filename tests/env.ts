@@ -9,3 +9,4 @@ if (!/@(127\.0\.0\.1|localhost):\d+\//.test(databaseUrl)) {
 
 process.env.DATABASE_URL = databaseUrl
 process.env.DIRECT_URL = databaseUrl
+process.env.NEXT_AUTH_SECRET = "test-secret"

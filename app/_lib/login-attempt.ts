@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs"
 import { prisma } from "./prisma"
+import { findAccountByEmail } from "./email-match"
 
 const MAX_LOGIN_ATTEMPTS = 5
 const LOCK_DURATION_MS = 10 * 60 * 1000 // 10 minutes
@@ -8,7 +9,7 @@ const LOCK_DURATION_MS = 10 * 60 * 1000 // 10 minutes
 // checkLoginAttempt action (UI pre-check) and the credentials authorize(), so
 // calling signIn directly can't skip the lockout.
 export const registerLoginAttempt = async (email: string, password: string) => {
-  const user = await prisma.user.findUnique({ where: { email } })
+  const user = await findAccountByEmail(email)
 
   if (!user || !user.password) {
     return { status: "invalid" as const }

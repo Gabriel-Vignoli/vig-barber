@@ -5,6 +5,7 @@ import { getAppOrigin } from "./app-url"
 import { prisma } from "./prisma"
 import { EMAIL_FROM, resend } from "./resend"
 import { ActionError } from "./action-result"
+import { emailEquals } from "./email-match"
 
 export const INVITATION_TTL_DAYS = 7
 
@@ -32,7 +33,7 @@ export const isInvitationExpired = (
 // Case-insensitive email lookup: accounts keep the email as it was typed
 export const findUserByEmail = (email: string) =>
   prisma.user.findFirst({
-    where: { email: { equals: email, mode: "insensitive" } },
+    where: { email: emailEquals(email) },
     select: { id: true },
   })
 
@@ -91,7 +92,7 @@ export const assertNoPendingAdminInvitation = async (
   const pendingAdmin = await prisma.invitation.findFirst({
     where: {
       barbershopId: shopId,
-      email: { equals: email.trim(), mode: "insensitive" },
+      email: emailEquals(email),
       acceptedAt: null,
       role: "ADMIN",
     },
@@ -132,11 +133,19 @@ export const createInvitation = async ({
   const { token, tokenHash } = generateInvitationToken()
 
   await prisma.$transaction([
+    // Expired links are useless and still hold someone's email
+    prisma.invitation.deleteMany({
+      where: {
+        barbershopId: shop.id,
+        acceptedAt: null,
+        expiresAt: { lte: new Date() },
+      },
+    }),
     // Re-inviting replaces the pending invitation (its old link stops working)
     prisma.invitation.deleteMany({
       where: {
         barbershopId: shop.id,
-        email: { equals: normalizedEmail, mode: "insensitive" },
+        email: emailEquals(normalizedEmail),
         acceptedAt: null,
       },
     }),

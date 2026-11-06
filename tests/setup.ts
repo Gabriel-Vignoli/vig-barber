@@ -19,6 +19,10 @@ vi.mock("next/cache", () => ({
   updateTag: vi.fn(),
 }))
 
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => new Headers({ "x-real-ip": "203.0.113.1" })),
+}))
+
 vi.mock("next/navigation", async () => {
   const { NotFoundError, RedirectError } = await import("./helpers/navigation")
   return {
