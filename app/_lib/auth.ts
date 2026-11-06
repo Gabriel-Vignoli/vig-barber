@@ -5,6 +5,7 @@ import { Adapter } from "next-auth/adapters"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { registerLoginAttempt } from "./login-attempt"
+import { LEGAL_VERSION } from "../_constants/legal-entity"
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
@@ -72,6 +73,22 @@ export const authOptions: AuthOptions = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
       return session
+    },
+  },
+  events: {
+    // Only fires when the adapter creates a user, so only for a first Google
+    // sign-in (email sign-up goes through the signUp action). The notice next
+    // to the Google button is what the person agreed to.
+    async createUser({ user }) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          acceptedTermsAt: new Date(),
+          consents: {
+            create: { context: "GOOGLE_SIGN_UP", version: LEGAL_VERSION },
+          },
+        },
+      })
     },
   },
   secret: process.env.NEXT_AUTH_SECRET,

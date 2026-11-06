@@ -13,6 +13,7 @@ import { Label } from "./ui/label"
 import { getPostLoginPath } from "../_actions/get-post-login-path"
 import { checkLoginAttempt } from "../_actions/check-login-attempt"
 import ForgotPasswordDialog from "./forgot-password-dialog"
+import { GoogleConsentNotice } from "./legal-consent"
 import { formatCountdown, useLoginLockout } from "../_hooks/use-login-lockout"
 import { loginSchema, LoginFormValues } from "../_lib/validations/auth"
 
@@ -109,6 +110,7 @@ const LoginForm = ({ callbackUrl }: LoginFormProps) => {
         <Image src="/google.svg" alt="" width={18} height={18} />
         Entrar com Google
       </Button>
+      <GoogleConsentNotice />
 
       <div className="flex items-center gap-3">
         <div className="bg-border h-px flex-1" />

@@ -8,6 +8,7 @@ import { DEFAULT_PLAN, getStripePriceId, isPlanKey } from "../_lib/plans"
 import { hasLiveSubscription } from "../_lib/billing"
 import { getAppOrigin } from "../_lib/app-url"
 import { action, ActionError } from "../_lib/action-result"
+import { LEGAL_VERSION } from "../_constants/legal-entity"
 
 const HOUR_MS = 60 * 60 * 1000
 
@@ -88,99 +89,118 @@ const getOrCreateCustomerId = async (
 // from the slug through the ADMIN check. allowUnpaid: an unpaid shop's admin
 // must be able to pay. The success redirect grants nothing; only the webhook
 // changes the subscription status.
-export const createCheckoutSession = action(async (slug: string) => {
-  const { shop, userId } = await assertShopRole(slug, ["ADMIN"], {
-    allowUnpaid: true,
-  })
-
-  const stripe = getStripe()
-
-  const billing = await prisma.barbershop.findUnique({
-    where: { id: shop.id },
-    select: {
-      plan: true,
-      subscriptionStatus: true,
-      trialEndsAt: true,
-      stripeCustomerId: true,
-      stripeSubscriptionId: true,
-    },
-  })
-
-  if (!billing) {
-    throw new ActionError("Barbearia não encontrada.")
-  }
-
-  const plan = isPlanKey(billing.plan) ? billing.plan : DEFAULT_PLAN
-  const priceId = getStripePriceId(plan)
-
-  if (!stripe || !priceId) {
-    throw new ActionError("Pagamentos ainda não estão configurados.")
-  }
-
-  if (hasLiveSubscription(billing)) {
-    throw new ActionError(
-      "Esta barbearia já tem uma assinatura. Use “Gerenciar assinatura”.",
-    )
-  }
-
-  // Our DB only learns about a new subscription from the webhook, so right
-  // after a checkout (or from a second tab) it may still say "no
-  // subscription". Ask Stripe too, so the same customer is never charged twice.
-  if (billing.stripeCustomerId) {
-    const subscriptions = await stripe.subscriptions.list({
-      customer: billing.stripeCustomerId,
-      status: "all",
-      limit: 10,
+export const createCheckoutSession = action(
+  async (slug: string, acceptTerms: boolean) => {
+    const { shop, userId } = await assertShopRole(slug, ["ADMIN"], {
+      allowUnpaid: true,
     })
 
-    if (
-      subscriptions.data.some((subscription) =>
-        BLOCKING_STRIPE_STATUSES.includes(subscription.status),
+    if (acceptTerms !== true) {
+      throw new ActionError(
+        "Você precisa aceitar os termos de uso e a política de reembolso.",
       )
-    ) {
+    }
+
+    const stripe = getStripe()
+
+    const billing = await prisma.barbershop.findUnique({
+      where: { id: shop.id },
+      select: {
+        plan: true,
+        subscriptionStatus: true,
+        trialEndsAt: true,
+        stripeCustomerId: true,
+        stripeSubscriptionId: true,
+      },
+    })
+
+    if (!billing) {
+      throw new ActionError("Barbearia não encontrada.")
+    }
+
+    const plan = isPlanKey(billing.plan) ? billing.plan : DEFAULT_PLAN
+    const priceId = getStripePriceId(plan)
+
+    if (!stripe || !priceId) {
+      throw new ActionError("Pagamentos ainda não estão configurados.")
+    }
+
+    if (hasLiveSubscription(billing)) {
       throw new ActionError(
         "Esta barbearia já tem uma assinatura. Use “Gerenciar assinatura”.",
       )
     }
-  }
 
-  const customerId = await getOrCreateCustomerId(
-    stripe,
-    shop,
-    slug,
-    userId,
-    billing.stripeCustomerId,
-  )
+    // Our DB only learns about a new subscription from the webhook, so right
+    // after a checkout (or from a second tab) it may still say "no
+    // subscription". Ask Stripe too, so the same customer is never charged twice.
+    if (billing.stripeCustomerId) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: billing.stripeCustomerId,
+        status: "all",
+        limit: 10,
+      })
 
-  // Keeps the rest of the free trial: the first charge happens when it ends
-  const trialEnd =
-    billing.subscriptionStatus === "TRIALING" &&
-    billing.trialEndsAt &&
-    billing.trialEndsAt.getTime() - Date.now() >= MIN_TRIAL_CARRY_MS
-      ? Math.floor(billing.trialEndsAt.getTime() / 1000)
-      : undefined
+      if (
+        subscriptions.data.some((subscription) =>
+          BLOCKING_STRIPE_STATUSES.includes(subscription.status),
+        )
+      ) {
+        throw new ActionError(
+          "Esta barbearia já tem uma assinatura. Use “Gerenciar assinatura”.",
+        )
+      }
+    }
 
-  const billingUrl = `${await getAppOrigin()}${getBillingPath(slug)}`
-  const metadata = { barbershopId: shop.id, slug }
+    const customerId = await getOrCreateCustomerId(
+      stripe,
+      shop,
+      slug,
+      userId,
+      billing.stripeCustomerId,
+    )
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    client_reference_id: shop.id,
-    metadata,
-    subscription_data: {
+    // Keeps the rest of the free trial: the first charge happens when it ends
+    const trialEnd =
+      billing.subscriptionStatus === "TRIALING" &&
+      billing.trialEndsAt &&
+      billing.trialEndsAt.getTime() - Date.now() >= MIN_TRIAL_CARRY_MS
+        ? Math.floor(billing.trialEndsAt.getTime() / 1000)
+        : undefined
+
+    const billingUrl = `${await getAppOrigin()}${getBillingPath(slug)}`
+    const metadata = { barbershopId: shop.id, slug }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      client_reference_id: shop.id,
       metadata,
-      ...(trialEnd !== undefined && { trial_end: trialEnd }),
-    },
-    locale: "pt-BR",
-    success_url: `${billingUrl}?checkout=success`,
-    cancel_url: `${billingUrl}?checkout=cancel`,
-  })
+      subscription_data: {
+        metadata,
+        ...(trialEnd !== undefined && { trial_end: trialEnd }),
+      },
+      locale: "pt-BR",
+      success_url: `${billingUrl}?checkout=success`,
+      cancel_url: `${billingUrl}?checkout=cancel`,
+    })
 
-  if (!session.url) {
-    throw new Error(`Checkout session ${session.id} has no URL`)
-  }
+    if (!session.url) {
+      throw new Error(`Checkout session ${session.id} has no URL`)
+    }
 
-  return { url: session.url }
-})
+    // Recorded here and not earlier: only an offer the admin can really open
+    // counts as accepted
+    await prisma.consent.create({
+      data: {
+        userId,
+        barbershopId: shop.id,
+        context: "CHECKOUT",
+        version: LEGAL_VERSION,
+      },
+    })
+
+    return { url: session.url }
+  },
+)

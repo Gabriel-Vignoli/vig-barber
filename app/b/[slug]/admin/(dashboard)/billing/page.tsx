@@ -148,7 +148,7 @@ const BillingPage = async ({ params, searchParams }: BillingPageProps) => {
             })}
           </p>
 
-          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:flex-wrap sm:items-center">
             {/* Right after checkout the webhook may not have landed yet;
                 hiding "Assinar" avoids a second subscription */}
             {!isSubscribed && checkout !== "success" && (

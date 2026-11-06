@@ -744,6 +744,7 @@ const snapshotShop = async (barbershopId: string) => {
     memberships,
     bookings,
     invitations,
+    consents,
   ] = await Promise.all([
     prisma.barbershop.findUniqueOrThrow({ where: { id: barbershopId } }),
     prisma.barbershopService.findMany({ where: { barbershopId }, ...byId }),
@@ -756,6 +757,7 @@ const snapshotShop = async (barbershopId: string) => {
     prisma.membership.findMany({ where: { barbershopId }, ...byId }),
     prisma.booking.findMany({ where: { barbershopId }, ...byId }),
     prisma.invitation.findMany({ where: { barbershopId }, ...byId }),
+    prisma.consent.findMany({ where: { barbershopId }, ...byId }),
   ])
 
   return {
@@ -766,6 +768,7 @@ const snapshotShop = async (barbershopId: string) => {
     memberships,
     bookings,
     invitations,
+    consents,
     userCount: await prisma.user.count(),
   }
 }
@@ -837,7 +840,10 @@ const adminMutationsOnShopB = (): [string, () => Promise<unknown>][] => [
     () => unwrap(deleteAtendente("barbearia-b", f.atendenteB.id)),
   ],
   // Checkout first: it creates the Stripe customer the portal needs
-  ["createCheckoutSession", () => unwrap(createCheckoutSession("barbearia-b"))],
+  [
+    "createCheckoutSession",
+    () => unwrap(createCheckoutSession("barbearia-b", true)),
+  ],
   ["createPortalSession", () => unwrap(createPortalSession("barbearia-b"))],
 ]
 
@@ -868,6 +874,14 @@ const outsiders = (): [string, string | null, string][] => [
 ]
 
 describe("isolation matrix: every admin action", () => {
+  it("checks the role before the terms on checkout", async () => {
+    mockSession(f.adminA.id)
+
+    await expect(
+      unwrap(createCheckoutSession("barbearia-b", false)),
+    ).rejects.toThrow("Sem permissão.")
+  })
+
   it("rejects each outsider on every mutation and leaves shop B unchanged", async () => {
     const before = await snapshotShop(f.shopB.id)
 

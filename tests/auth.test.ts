@@ -4,6 +4,8 @@ import { getToken } from "next-auth/jwt"
 import type { JWT } from "next-auth/jwt"
 import { proxy } from "@/proxy"
 import { authOptions } from "@/app/_lib/auth"
+import { prisma } from "@/app/_lib/prisma"
+import { LEGAL_VERSION } from "@/app/_constants/legal-entity"
 import { getSafeCallbackUrl } from "@/app/_lib/safe-callback-url"
 import { isProtectedPath } from "@/app/_lib/protected-paths"
 import {
@@ -240,6 +242,23 @@ describe("/painel memberships", () => {
 
     mockSession(staff.id)
     expect(await getHasStaffMembership()).toBe(true)
+  })
+})
+
+describe("Google sign-up", () => {
+  it("records the acceptance shown next to the Google button", async () => {
+    const user = await createUser({ email: "google@test.local" })
+
+    await authOptions.events!.createUser!({ user: user as never })
+
+    const after = await prisma.user.findUniqueOrThrow({
+      where: { id: user.id },
+      include: { consents: true },
+    })
+    expect(after.acceptedTermsAt).not.toBeNull()
+    expect(after.consents).toMatchObject([
+      { context: "GOOGLE_SIGN_UP", version: LEGAL_VERSION },
+    ])
   })
 })
 

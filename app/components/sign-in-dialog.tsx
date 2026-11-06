@@ -6,17 +6,10 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import { toast } from "sonner"
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  EyeIcon,
-  EyeOffIcon,
-  Loader2Icon,
-} from "lucide-react"
+import { EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
-import { Checkbox } from "./ui/checkbox"
 import { DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
 import { signUp } from "../_actions/sign-up"
 import { checkLoginAttempt } from "../_actions/check-login-attempt"
@@ -26,8 +19,8 @@ import {
   LoginFormValues,
   SignUpFormValues,
 } from "../_lib/validations/auth"
-import { PRIVACY_POLICY_SECTIONS } from "../_constants/privacy-policy"
 import ForgotPasswordDialog from "./forgot-password-dialog"
+import { GoogleConsentNotice, LegalLink, TermsCheckbox } from "./legal-consent"
 import { formatCountdown, useLoginLockout } from "../_hooks/use-login-lockout"
 import { unwrap } from "../_lib/action-result"
 
@@ -42,7 +35,6 @@ const AUTH_TOAST_KEY = "pending-auth-toast"
 const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
   const [mode, setMode] = useState<Mode>(initialMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isPolicyOpen, setIsPolicyOpen] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
 
   const [visiblePasswords, setVisiblePasswords] = useState({
@@ -89,7 +81,6 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
     setMode(newMode)
     loginForm.reset()
     signUpForm.reset()
-    setIsPolicyOpen(false)
     setLoginError(null)
   }
 
@@ -199,6 +190,7 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
         <Image src="/google.svg" alt="" width={18} height={18}></Image>
         Google
       </Button>
+      <GoogleConsentNotice />
 
       <div className="flex items-center gap-3">
         <div className="bg-border h-px flex-1" />
@@ -398,49 +390,22 @@ const SignInDialog = ({ initialMode = "login" }: SignInDialogProps) => {
           </div>
 
           <div className="space-y-1">
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="signup-accept-terms"
-                checked={signUpForm.watch("acceptTerms")}
-                onCheckedChange={(checked: boolean | "indeterminate") =>
-                  signUpForm.setValue("acceptTerms", checked === true, {
-                    shouldValidate: true,
-                  })
-                }
-              />
-              <Label
-                htmlFor="signup-accept-terms"
-                className="text-muted-foreground text-xs leading-snug font-normal xl:text-sm"
-              >
-                Eu li e aceito a política de privacidade.
-              </Label>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsPolicyOpen((prev) => !prev)}
-              className="text-primary flex cursor-pointer items-center gap-1 text-xs font-semibold xl:text-sm"
+            <TermsCheckbox
+              id="signup-accept-terms"
+              checked={signUpForm.watch("acceptTerms")}
+              onCheckedChange={(checked) =>
+                signUpForm.setValue("acceptTerms", checked, {
+                  shouldValidate: true,
+                })
+              }
             >
-              {isPolicyOpen ? "Ocultar" : "Ler"} política de privacidade
-              {isPolicyOpen ? (
-                <ChevronUpIcon size={14} />
-              ) : (
-                <ChevronDownIcon size={14} />
-              )}
-            </button>
-
-            {isPolicyOpen && (
-              <div className="bg-muted/50 max-h-40 space-y-3 overflow-y-auto rounded-lg p-3 text-xs">
-                {PRIVACY_POLICY_SECTIONS.map((section) => (
-                  <div key={section.title} className="space-y-1">
-                    <p className="text-foreground font-semibold">
-                      {section.title}
-                    </p>
-                    <p className="text-muted-foreground">{section.content}</p>
-                  </div>
-                ))}
-              </div>
-            )}
+              Li e aceito os <LegalLink href="/terms">Termos de Uso</LegalLink>{" "}
+              e a{" "}
+              <LegalLink href="/privacy-policy">
+                Política de Privacidade
+              </LegalLink>
+              .
+            </TermsCheckbox>
 
             {signUpForm.formState.errors.acceptTerms && (
               <p role="alert" className="text-destructive text-xs">

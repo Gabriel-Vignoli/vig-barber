@@ -215,6 +215,7 @@ const AVATARS = {
 
 async function main() {
   console.log("Limpando banco de dados...")
+  await prisma.consent.deleteMany()
   await prisma.review.deleteMany()
   await prisma.booking.deleteMany()
   await prisma.expense.deleteMany()

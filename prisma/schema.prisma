@@ -117,6 +117,7 @@ model User {
   employees   Employee[]
   memberships Membership[]
   invitations Invitation[] @relation("InvitationInvitedBy")
+  consents    Consent[]
 }
 
 model Barbershop {
@@ -153,6 +154,7 @@ model Barbershop {
   bookings    Booking[]
   expenses    Expense[]
   reviews     Review[]
+  consents    Consent[]
 }
 
 model Membership {
@@ -184,6 +186,32 @@ model Invitation {
   invitedBy  User?      @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
 
   @@index([email])
+}
+
+enum ConsentContext {
+  SIGN_UP
+  GOOGLE_SIGN_UP
+  INVITATION
+  CHECKOUT
+}
+
+// Append-only evidence of who accepted which version of the legal documents,
+// and where. Written by the server only, never updated. The links go null
+// instead of deleting a row, so the record outlives what it points to.
+model Consent {
+  id           String         @id @default(cuid())
+  userId       String?
+  barbershopId String?
+  context      ConsentContext
+  // LEGAL_VERSION at the time of acceptance
+  version      String
+  createdAt    DateTime       @default(now())
+
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  barbershop Barbershop? @relation(fields: [barbershopId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([barbershopId])
 }
 
 model Employee {

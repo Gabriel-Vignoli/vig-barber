@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { beforeEach, describe, expect, it } from "vitest"
 import { prisma } from "@/app/_lib/prisma"
+import { LEGAL_VERSION } from "@/app/_constants/legal-entity"
 import {
   INVITATION_TTL_DAYS,
   createInvitation,
@@ -161,7 +162,7 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "EMPLOYEE")
     mockSession(user.id)
 
-    const result = await unwrap(acceptInvitation(token))
+    const result = await unwrap(acceptInvitation(token, true))
 
     expect(result).toEqual({
       path: "/b/barbearia-a/staff",
@@ -182,7 +183,7 @@ describe("acceptInvitation", () => {
     const token = await invite("dono@test.local", "ADMIN")
     mockSession(user.id)
 
-    const result = await unwrap(acceptInvitation(token))
+    const result = await unwrap(acceptInvitation(token, true))
 
     expect(result.path).toBe("/b/barbearia-a/admin")
     expect(await prisma.employee.count({ where: { userId: user.id } })).toBe(0)
@@ -193,9 +194,50 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "ATENDENTE")
     mockSession(user.id)
 
-    const result = await unwrap(acceptInvitation(token))
+    const result = await unwrap(acceptInvitation(token, true))
 
     expect(result.path).toBe("/b/barbearia-a/atendente")
+  })
+
+  it("records the consent in the invited shop", async () => {
+    const user = await createUser({ email: "novo@test.local" })
+    const token = await invite("novo@test.local", "EMPLOYEE")
+    mockSession(user.id)
+
+    await unwrap(acceptInvitation(token, true))
+
+    expect(await prisma.consent.findMany()).toMatchObject([
+      {
+        userId: user.id,
+        barbershopId: shopA.id,
+        context: "INVITATION",
+        version: LEGAL_VERSION,
+      },
+    ])
+  })
+
+  it("refuses to accept without the terms and keeps the invitation open", async () => {
+    const user = await createUser({ email: "novo@test.local" })
+    const token = await invite("novo@test.local", "EMPLOYEE")
+    mockSession(user.id)
+
+    await expect(unwrap(acceptInvitation(token, false))).rejects.toThrow(
+      "Você precisa aceitar os termos de uso e a política de privacidade.",
+    )
+
+    expect(await prisma.membership.count()).toBe(0)
+    expect(await prisma.consent.count()).toBe(0)
+    expect((await prisma.invitation.findFirstOrThrow()).acceptedAt).toBeNull()
+  })
+
+  it("answers the same without the terms whether or not the token exists", async () => {
+    mockSession((await createUser({ email: "novo@test.local" })).id)
+
+    await expect(
+      unwrap(acceptInvitation(generateInvitationToken().token, false)),
+    ).rejects.toThrow(
+      "Você precisa aceitar os termos de uso e a política de privacidade.",
+    )
   })
 
   it("rejects a signed-in user with another email", async () => {
@@ -204,17 +246,18 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "ADMIN")
     mockSession(other.id)
 
-    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token, true))).rejects.toThrow(
       "Este convite foi enviado para novo@test.local.",
     )
     expect(await prisma.membership.count()).toBe(0)
+    expect(await prisma.consent.count()).toBe(0)
     expect((await prisma.invitation.findFirstOrThrow()).acceptedAt).toBeNull()
   })
 
   it("rejects a signed-out user", async () => {
     const token = await invite("novo@test.local", "ADMIN")
 
-    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token, true))).rejects.toThrow(
       "Você precisa estar logado.",
     )
   })
@@ -227,10 +270,11 @@ describe("acceptInvitation", () => {
     })
     mockSession(user.id)
 
-    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token, true))).rejects.toThrow(
       "Este convite expirou. Peça um novo convite.",
     )
     expect(await prisma.membership.count()).toBe(0)
+    expect(await prisma.consent.count()).toBe(0)
     expect(await prisma.employee.count()).toBe(0)
   })
 
@@ -239,11 +283,11 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "EMPLOYEE")
     mockSession(user.id)
 
-    await unwrap(acceptInvitation(token))
+    await unwrap(acceptInvitation(token, true))
     // Removed from the team afterwards: the old link must not bring them back
     await prisma.membership.deleteMany({ where: { userId: user.id } })
 
-    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token, true))).rejects.toThrow(
       "Este convite já foi usado.",
     )
     expect(await prisma.membership.count({ where: { userId: user.id } })).toBe(
@@ -256,9 +300,9 @@ describe("acceptInvitation", () => {
     mockSession(user.id)
 
     await expect(
-      unwrap(acceptInvitation(generateInvitationToken().token)),
+      unwrap(acceptInvitation(generateInvitationToken().token, true)),
     ).rejects.toThrow("Convite inválido.")
-    await expect(unwrap(acceptInvitation(""))).rejects.toThrow(
+    await expect(unwrap(acceptInvitation("", true))).rejects.toThrow(
       "Convite inválido.",
     )
   })
@@ -272,10 +316,11 @@ describe("acceptInvitation", () => {
     })
     mockSession(user.id)
 
-    await expect(unwrap(acceptInvitation(token))).rejects.toThrow(
+    await expect(unwrap(acceptInvitation(token, true))).rejects.toThrow(
       "Barbearia não encontrada.",
     )
     expect(await prisma.membership.count()).toBe(0)
+    expect(await prisma.consent.count()).toBe(0)
   })
 
   it("only grants a role in the shop that sent the invitation", async () => {
@@ -283,12 +328,15 @@ describe("acceptInvitation", () => {
     const tokenB = await invite("novo@test.local", "ADMIN", shopB)
     mockSession(user.id)
 
-    const result = await unwrap(acceptInvitation(tokenB))
+    const result = await unwrap(acceptInvitation(tokenB, true))
 
     expect(result.path).toBe("/b/barbearia-b/admin")
     expect(
       await prisma.membership.findMany({ where: { userId: user.id } }),
     ).toMatchObject([{ barbershopId: shopB.id, role: "ADMIN" }])
+    expect(await prisma.consent.findMany()).toMatchObject([
+      { userId: user.id, barbershopId: shopB.id },
+    ])
   })
 
   it("lets an admin invite only into their own shop", async () => {
@@ -309,7 +357,7 @@ describe("acceptInvitation", () => {
     const token = await invite("novo@test.local", "ADMIN")
     mockSession(user.id)
 
-    const result = await unwrap(acceptInvitation(token))
+    const result = await unwrap(acceptInvitation(token, true))
 
     expect(result).toEqual({
       path: "/b/barbearia-a/atendente",
@@ -330,7 +378,7 @@ describe("acceptInvitation", () => {
     const token = await invite("dono@test.local", "EMPLOYEE")
     mockSession(user.id)
 
-    const result = await unwrap(acceptInvitation(token))
+    const result = await unwrap(acceptInvitation(token, true))
 
     expect(result).toEqual({
       path: "/b/barbearia-a/admin",
@@ -354,7 +402,7 @@ describe("acceptInvitation", () => {
     const token = await invite("barbeiro@test.local", "EMPLOYEE")
     mockSession(user.id)
 
-    await unwrap(acceptInvitation(token))
+    await unwrap(acceptInvitation(token, true))
 
     expect(
       (await prisma.employee.findUniqueOrThrow({ where: { id: employee.id } }))

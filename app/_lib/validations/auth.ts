@@ -31,7 +31,8 @@ export const signUpFormSchema = signUpSchema
     path: ["confirmPassword"],
   })
   .refine((data) => data.acceptTerms === true, {
-    message: "Você precisa aceitar a política de privacidade.",
+    message:
+      "Você precisa aceitar os termos de uso e a política de privacidade.",
     path: ["acceptTerms"],
   })
 

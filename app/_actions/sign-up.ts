@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs"
 import { prisma } from "../_lib/prisma"
 import { signUpSchema } from "../_lib/validations/auth"
 import { action, ActionError } from "../_lib/action-result"
+import { LEGAL_VERSION } from "../_constants/legal-entity"
 
 interface SignUpInput {
   name: string
@@ -19,8 +20,10 @@ export const signUp = action(async (input: SignUpInput) => {
     throw new ActionError(parsed.error.issues[0].message)
   }
 
-  if (!input.acceptTerms) {
-    throw new ActionError("Você precisa aceitar a política de privacidade.")
+  if (input.acceptTerms !== true) {
+    throw new ActionError(
+      "Você precisa aceitar os termos de uso e a política de privacidade.",
+    )
   }
 
   const { name, email, password } = parsed.data
@@ -41,6 +44,7 @@ export const signUp = action(async (input: SignUpInput) => {
       email,
       password: hashedPassword,
       acceptedTermsAt: new Date(),
+      consents: { create: { context: "SIGN_UP", version: LEGAL_VERSION } },
     },
   })
 })

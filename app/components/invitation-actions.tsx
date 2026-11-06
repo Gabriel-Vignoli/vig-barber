@@ -9,6 +9,7 @@ import { Loader2Icon, LogInIcon, UserPlusIcon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
 import SignInDialog from "./sign-in-dialog"
+import { LegalLink, TermsCheckbox } from "./legal-consent"
 import { acceptInvitation } from "../_actions/accept-invitation"
 import { unwrap } from "../_lib/action-result"
 
@@ -22,6 +23,7 @@ type InvitationActionsProps =
 const InvitationActions = (props: InvitationActionsProps) => {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   if (props.mode === "signed-out") {
     return (
@@ -75,7 +77,7 @@ const InvitationActions = (props: InvitationActionsProps) => {
 
     try {
       const { path, alreadyMember } = await unwrap(
-        acceptInvitation(props.token),
+        acceptInvitation(props.token, acceptedTerms),
       )
       toast.success(
         alreadyMember
@@ -93,17 +95,28 @@ const InvitationActions = (props: InvitationActionsProps) => {
   }
 
   return (
-    <Button
-      className="w-full cursor-pointer py-5 sm:w-auto sm:px-8"
-      onClick={handleAccept}
-      disabled={isSubmitting}
-    >
-      {isSubmitting ? (
-        <Loader2Icon className="size-4 animate-spin" />
-      ) : (
-        "Aceitar convite"
-      )}
-    </Button>
+    <div className="space-y-4">
+      <TermsCheckbox
+        id="invitation-accept-terms"
+        checked={acceptedTerms}
+        onCheckedChange={setAcceptedTerms}
+      >
+        Li e aceito os <LegalLink href="/terms">Termos de Uso</LegalLink> e a{" "}
+        <LegalLink href="/privacy-policy">Política de Privacidade</LegalLink>.
+      </TermsCheckbox>
+
+      <Button
+        className="w-full cursor-pointer py-5 sm:w-auto sm:px-8"
+        onClick={handleAccept}
+        disabled={isSubmitting || !acceptedTerms}
+      >
+        {isSubmitting ? (
+          <Loader2Icon className="size-4 animate-spin" />
+        ) : (
+          "Aceitar convite"
+        )}
+      </Button>
+    </div>
   )
 }
 

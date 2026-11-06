@@ -7,6 +7,7 @@ import { createCheckoutSession } from "../_actions/create-checkout-session"
 import { createPortalSession } from "../_actions/create-portal-session"
 import { unwrap } from "../_lib/action-result"
 import { Button } from "./ui/button"
+import { LegalLink, TermsCheckbox } from "./legal-consent"
 
 interface BillingSubscriptionButtonProps {
   slug: string
@@ -23,6 +24,7 @@ const BillingSubscriptionButton = ({
   variant = "default",
 }: BillingSubscriptionButtonProps) => {
   const [isLoading, setIsLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   const handleClick = async () => {
     setIsLoading(true)
@@ -30,7 +32,7 @@ const BillingSubscriptionButton = ({
     try {
       const { url } = await unwrap(
         mode === "subscribe"
-          ? createCheckoutSession(slug)
+          ? createCheckoutSession(slug, acceptedTerms)
           : createPortalSession(slug),
       )
       window.location.assign(url)
@@ -46,12 +48,12 @@ const BillingSubscriptionButton = ({
 
   const Icon = mode === "subscribe" ? CreditCardIcon : SettingsIcon
 
-  return (
+  const button = (
     <Button
       variant={variant}
       className="cursor-pointer gap-2"
       onClick={handleClick}
-      disabled={isLoading}
+      disabled={isLoading || (mode === "subscribe" && !acceptedTerms)}
     >
       {isLoading ? (
         <Loader2Icon size={16} className="animate-spin" />
@@ -60,6 +62,23 @@ const BillingSubscriptionButton = ({
       )}
       {mode === "subscribe" ? "Assinar" : "Gerenciar assinatura"}
     </Button>
+  )
+
+  if (mode === "manage") return button
+
+  return (
+    <div className="w-full space-y-3">
+      <TermsCheckbox
+        id="billing-accept-terms"
+        checked={acceptedTerms}
+        onCheckedChange={setAcceptedTerms}
+      >
+        Li e aceito os <LegalLink href="/terms">Termos de Uso</LegalLink> e a{" "}
+        <LegalLink href="/refund">Política de Reembolso</LegalLink>, incluindo a
+        renovação mensal automática no cartão até eu cancelar.
+      </TermsCheckbox>
+      {button}
+    </div>
   )
 }
 

@@ -6,6 +6,7 @@ import { getSessionUserId } from "../_lib/tenant"
 import { revalidateShop } from "../_lib/revalidate"
 import { hashInvitationToken, isInvitationExpired } from "../_lib/invitation"
 import { action, ActionError } from "../_lib/action-result"
+import { LEGAL_VERSION } from "../_constants/legal-entity"
 
 // Accepts an invitation for the signed-in user, whose email must match the
 // invited one. Creates the Membership (plus the Employee row for a barber) and
@@ -15,11 +16,20 @@ import { action, ActionError } from "../_lib/action-result"
 // unpaid shop in order to pay; new staff of an unpaid shop land on the
 // pending-subscription screen.
 export const acceptInvitation = action(
-  async (token: string): Promise<{ path: string; alreadyMember: boolean }> => {
+  async (
+    token: string,
+    acceptTerms: boolean,
+  ): Promise<{ path: string; alreadyMember: boolean }> => {
     const userId = await getSessionUserId()
 
     if (!userId) {
       throw new ActionError("Você precisa estar logado.")
+    }
+
+    if (acceptTerms !== true) {
+      throw new ActionError(
+        "Você precisa aceitar os termos de uso e a política de privacidade.",
+      )
     }
 
     if (typeof token !== "string" || token.length === 0 || token.length > 128) {
@@ -80,6 +90,15 @@ export const acceptInvitation = action(
       if (count !== 1) {
         throw new ActionError("Este convite já foi usado.")
       }
+
+      await tx.consent.create({
+        data: {
+          userId,
+          barbershopId: shop.id,
+          context: "INVITATION",
+          version: LEGAL_VERSION,
+        },
+      })
 
       const membership = await tx.membership.findUnique({
         where: { userId_barbershopId: { userId, barbershopId: shop.id } },

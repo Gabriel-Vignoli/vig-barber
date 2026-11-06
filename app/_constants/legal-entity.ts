@@ -8,5 +8,7 @@ export const LEGAL_ENTITY = {
   courtCity: "[PREENCHER: cidade/UF do foro]",
 }
 
-// Change it whenever a legal document changes
+// Change both whenever a legal document changes. LEGAL_VERSION is what Consent
+// rows record, so it tells which text each person accepted.
 export const LEGAL_UPDATED_AT = "5 de novembro de 2026"
+export const LEGAL_VERSION = "2026-11-05"

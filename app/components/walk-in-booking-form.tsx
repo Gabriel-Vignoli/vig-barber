@@ -15,6 +15,7 @@ import { ptBR } from "date-fns/locale"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
+import { LegalLink } from "./legal-consent"
 import { Card, CardContent } from "./ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 import { Calendar } from "./ui/calendar"
@@ -566,6 +567,15 @@ const WalkInBookingForm = ({ services, slug }: WalkInBookingFormProps) => {
                     }
                   />
                 </div>
+
+                <p className="text-muted-foreground text-xs">
+                  Avise o cliente que o nome e o telefone ficam guardados para
+                  este atendimento, conforme a{" "}
+                  <LegalLink href="/privacy-policy">
+                    Política de Privacidade
+                  </LegalLink>
+                  .
+                </p>
               </CardContent>
             </Card>
 

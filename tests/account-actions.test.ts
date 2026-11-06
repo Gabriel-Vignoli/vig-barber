@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/app/_lib/prisma"
+import { LEGAL_VERSION } from "@/app/_constants/legal-entity"
 import { signUp } from "@/app/_actions/sign-up"
 import { requestPasswordReset } from "@/app/_actions/request-password-reset"
 import { verifyResetCode } from "@/app/_actions/verify-reset-code"
@@ -43,8 +44,11 @@ describe("signUp", () => {
 
     const user = await prisma.user.findUniqueOrThrow({
       where: { email: "novo@test.local" },
-      include: { memberships: true },
+      include: { memberships: true, consents: true },
     })
+    expect(user.consents).toMatchObject([
+      { context: "SIGN_UP", version: LEGAL_VERSION, barbershopId: null },
+    ])
     expect(user.password).not.toBe(STRONG)
     expect(await bcrypt.compare(STRONG, user.password!)).toBe(true)
     expect(user.acceptedTermsAt).not.toBeNull()
@@ -93,9 +97,25 @@ describe("signUp", () => {
           acceptTerms: false,
         }),
       ),
-    ).rejects.toThrow("Você precisa aceitar a política de privacidade.")
+    ).rejects.toThrow(
+      "Você precisa aceitar os termos de uso e a política de privacidade.",
+    )
+
+    await expect(
+      unwrap(
+        signUp({
+          name: "Sem Termos",
+          email: "termos@test.local",
+          password: STRONG,
+          acceptTerms: "false" as never,
+        }),
+      ),
+    ).rejects.toThrow(
+      "Você precisa aceitar os termos de uso e a política de privacidade.",
+    )
 
     expect(await prisma.user.count()).toBe(0)
+    expect(await prisma.consent.count()).toBe(0)
   })
 })
 
