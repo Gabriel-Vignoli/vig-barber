@@ -95,6 +95,10 @@ const socialLinks = [
   },
 ]
 
+const legalLinks = [
+  { href: "/privacy-policy", label: "Política de Privacidade" },
+]
+
 // Platform footer, shown on every page. Shop details live in ShopFooter.
 const Footer = () => {
   return (
@@ -125,6 +129,21 @@ const Footer = () => {
           ))}
         </div>
       </div>
+
+      <nav
+        aria-label="Informações legais"
+        className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 md:justify-start"
+      >
+        {legalLinks.map(({ href, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className="hover:text-foreground text-sm text-gray-400 underline underline-offset-2 transition-colors"
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
     </footer>
   )
 }

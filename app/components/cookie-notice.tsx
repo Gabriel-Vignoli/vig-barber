@@ -5,23 +5,21 @@ import Link from "next/link"
 import { CookieIcon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Card, CardContent } from "./ui/card"
-import { getCookieConsent, setCookieConsent } from "../_lib/cookie-consent"
+import {
+  dismissCookieNotice,
+  isCookieNoticeDismissed,
+} from "../_lib/cookie-notice"
 
-const CookieConsentBanner = () => {
-  const [visible, setVisible] = useState<boolean | null>(null)
+const CookieNotice = () => {
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVisible(getCookieConsent() === null)
+    setVisible(!isCookieNoticeDismissed())
   }, [])
 
-  const handleAccept = () => {
-    setCookieConsent("accepted")
-    setVisible(false)
-  }
-
-  const handleReject = () => {
-    setCookieConsent("rejected")
+  const handleDismiss = () => {
+    dismissCookieNotice()
     setVisible(false)
   }
 
@@ -36,8 +34,8 @@ const CookieConsentBanner = () => {
               <CookieIcon size={18} className="text-primary" />
             </div>
             <p className="text-sm lg:text-base">
-              Usamos cookies para melhorar sua experiência e manter você
-              conectado. Ao continuar navegando, você concorda com nossa{" "}
+              Usamos apenas cookies essenciais, que mantêm você conectado. Não
+              usamos cookies de publicidade ou rastreamento. Saiba mais na{" "}
               <Link
                 href="/privacy-policy"
                 className="text-primary underline underline-offset-2"
@@ -48,23 +46,17 @@ const CookieConsentBanner = () => {
             </p>
           </div>
 
-          <div className="flex shrink-0 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="cursor-pointer"
-              onClick={handleReject}
-            >
-              Recusar
-            </Button>
-            <Button size="sm" className="cursor-pointer" onClick={handleAccept}>
-              Aceitar
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            className="shrink-0 cursor-pointer"
+            onClick={handleDismiss}
+          >
+            Entendi
+          </Button>
         </CardContent>
       </Card>
     </div>
   )
 }
 
-export default CookieConsentBanner
+export default CookieNotice
